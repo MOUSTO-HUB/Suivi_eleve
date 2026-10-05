@@ -12,6 +12,7 @@ import { ComportementsModule } from './comportements/comportements.module.js';
 import { ElevesModule } from './eleves/eleves.module.js';
 import { MatieresModule } from './matieres/matieres.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
+import { EvenementsModule } from './evenements/evenements.module.js';
 import { PaiementsModule } from './paiements/paiements.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ResultatsModule } from './resultats/resultats.module.js';
@@ -37,6 +38,7 @@ import { TuteursModule } from './tuteurs/tuteurs.module.js';
     ResultatsModule,
     ComportementsModule,
     PaiementsModule,
+    EvenementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

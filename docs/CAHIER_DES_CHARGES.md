@@ -92,9 +92,10 @@ La comptabilité de l'école est tenue dans ses propres outils ; l'application n
 
 ### 3.8 Événements de l'école
 
-- **EF-70** Publier un événement : titre, description, date et heure, lieu, public (toute l'école ou classes), modalités d'organisation, pièce jointe.
-- **EF-71** Calendrier des événements dans l'application ; rappel automatique la veille.
-- **EF-72** Demande de participation ou d'autorisation parentale avec réponse oui/non.
+- **EF-70** Publier un événement : titre, description, date et heure (et date de fin s'il dure plusieurs jours), lieu, public (toute l'école ou classes), modalités d'organisation, pièce jointe (PDF ou image, 5 Mo au maximum). Envoi immédiat ou programmé ; réservé au secrétariat et à la direction.
+- **EF-71** Calendrier mensuel des événements (web et application) ; rappel automatique aux mêmes familles la veille à 18h (heure de Dakar).
+- **EF-72** Demande de participation ou d'autorisation parentale : question oui/non, une réponse par enfant, modifiable jusqu'au début de l'événement ; tableau des réponses élève par élève (oui, non, sans réponse).
+- **EF-73** Annulation d'un événement : les familles déjà prévenues reçoivent un message d'annulation ; le rappel de la veille est retiré.
 
 ### 3.8 bis Absences des élèves (ajout du 05/10/2026)
 
@@ -143,7 +144,8 @@ Quinze entités suffisent à la version 1 ; l'élève est au centre, relié à s
 | Comportement | id, eleve_id, type (positif/négatif), categorie, gravite, description, sanction, auteur_id, valide_par, date | 1 élève |
 | Frais / Echeance | frais : classe_id, type, montant ; echeance : eleve_id, mois, montant_du, date_limite, statut (payé, partiel, en retard) | 1 élève |
 | Paiement | id, echeance_id, montant, mode, reference, date, recu_par, recu_url | 1 échéance |
-| Annonce | id, type (pas de cours, libération, événement), titre, message, motif, date_debut, date_fin, cible (école/classes), auteur_id | N classes ciblées |
+| Annonce | id, type (pas de cours, libération, événement), titre, message, motif, date_debut, date_fin, lieu, modalites, piece_jointe_url, cible (école/classes), question, statut, programmee_le, envoyee_le, rappel_envoye_le, auteur_id | N classes ciblées |
+| ReponseAnnonce | annonce_id, tuteur_id, eleve_id, reponse (oui/non), commentaire | unique par événement, tuteur et élève |
 | Notification | id, type, tuteur_id, eleve_id, canal, contenu, statut, envoye_le, lu_le, cout, reference_fournisseur | 1 tuteur |
 | Absence | id, eleve_id, date, creneau, matiere, justifiee, motif, justification_parent, signale_par, justifiee_par | 1 élève |
 | Utilisateur | id, nom, email, telephone, role, mot_de_passe_hash, actif, derniere_connexion | 1 rôle |

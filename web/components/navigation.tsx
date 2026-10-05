@@ -24,6 +24,7 @@ const LIENS: { href: string; libelle: string; roles?: Role[] }[] = [
     roles: [...GESTION, 'COMPTABLE'],
   },
   { href: '/annonces', libelle: 'Annonces', roles: GESTION },
+  { href: '/evenements', libelle: 'Événements' },
   { href: '/appareils', libelle: 'Appareils' },
   { href: '/notifications', libelle: 'Notifications', roles: GESTION },
 ];

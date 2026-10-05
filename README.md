@@ -75,7 +75,7 @@ Les deux renvoient un jeton d'accès (15 minutes, à passer dans `Authorization:
 
 ## État du projet
 
-Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 terminé : appareils des élèves (prompt 5), moteur de notifications SMS, email et push (prompt 6), absence de cours, libération anticipée et absences injustifiées des élèves (prompt 7). Lot 3 en cours : résultats saisis par les professeurs, bulletins PDF et décisions de fin d'année (prompt 8), comportements marquants avec validation des cas graves et convocations (prompt 9), rappels de paiement avec retard calculé (prompt 10, la comptabilité restant dans les outils de l'école). Prochaine étape : événements de l'école (prompt 11).
+Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 terminé : appareils des élèves (prompt 5), moteur de notifications SMS, email et push (prompt 6), absence de cours, libération anticipée et absences injustifiées des élèves (prompt 7). Lot 3 en cours : résultats saisis par les professeurs, bulletins PDF et décisions de fin d'année (prompt 8), comportements marquants avec validation des cas graves et convocations (prompt 9), rappels de paiement avec retard calculé (prompt 10, la comptabilité restant dans les outils de l'école), événements de l'école avec calendrier, pièce jointe, rappel la veille à 18h et réponses oui/non des parents (prompt 11). Prochaine étape : application mobile parents (prompt 12).
 
 ## Notifications
 

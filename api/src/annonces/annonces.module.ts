@@ -7,5 +7,6 @@ import { AnnoncesService } from './annonces.service.js';
   imports: [ClassesModule],
   controllers: [AnnoncesController],
   providers: [AnnoncesService],
+  exports: [AnnoncesService],
 })
 export class AnnoncesModule {}

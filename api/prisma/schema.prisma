@@ -839,9 +839,11 @@ model Annonce {
   pieceJointeUrl String?       @map("piece_jointe_url")
   cible          CibleAnnonce  @default(ECOLE)
   demandeReponse Boolean       @default(false) @map("demande_reponse")
+  question       String? // événement : question posée aux parents (oui / non)
   statut         StatutAnnonce @default(BROUILLON)
   programmeeLe   DateTime?     @map("programmee_le")
   envoyeeLe      DateTime?     @map("envoyee_le")
+  rappelEnvoyeLe DateTime?     @map("rappel_envoye_le") // événement : rappel de la veille
   auteurId       String?       @map("auteur_id")
   creeLe         DateTime      @default(now()) @map("cree_le")
   modifieLe      DateTime      @updatedAt @map("modifie_le")

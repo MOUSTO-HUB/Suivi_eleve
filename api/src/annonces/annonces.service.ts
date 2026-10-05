@@ -25,6 +25,10 @@ import {
 } from '../generated/prisma/enums.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import {
+  variablesEvenement,
+  veilleA18h,
+} from '../evenements/evenements.regles.js';
 import type { CreerAnnonceDto, FiltreAnnoncesDto } from './annonces.dto.js';
 import {
   erreurProgrammation,
@@ -63,11 +67,13 @@ const formater = ({ classes, ...a }: AnnonceBrute) => ({
 const TYPE_NOTIFICATION: Record<string, TypeNotification> = {
   PAS_DE_COURS: TypeNotification.PAS_DE_COURS,
   LIBERATION_ANTICIPEE: TypeNotification.LIBERATION_ANTICIPEE,
+  EVENEMENT: TypeNotification.EVENEMENT,
 };
 
 /**
- * Absence de cours et libération anticipée : envoi immédiat ou programmé
- * (file BullMQ différée), suivi des envois et des lectures.
+ * Absence de cours, libération anticipée et événements : envoi immédiat ou
+ * programmé (file BullMQ différée), rappel des événements la veille à 18h,
+ * suivi des envois et des lectures.
  */
 @Injectable()
 export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
@@ -96,7 +102,10 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
     if (!traitementActif(this.config)) return;
     this.travailleur = new Worker<{ annonceId: string }>(
       'annonces',
-      (job) => this.envoyer(job.data.annonceId),
+      (job) =>
+        job.name === 'rappel'
+          ? this.envoyerRappel(job.data.annonceId)
+          : this.envoyer(job.data.annonceId),
       optionsFile(this.config),
     );
     this.travailleur.on('error', (e) =>
@@ -110,6 +119,16 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
     });
     for (const a of enAttente)
       await this.programmer(a.id, a.programmeeLe ?? new Date());
+    const rappels = await this.prisma.annonce.findMany({
+      where: {
+        type: TypeAnnonce.EVENEMENT,
+        statut: StatutAnnonce.ENVOYEE,
+        rappelEnvoyeLe: null,
+        dateDebut: { gt: new Date() },
+      },
+      select: { id: true, dateDebut: true },
+    });
+    for (const a of rappels) await this.programmerRappel(a.id, a.dateDebut);
   }
 
   async onModuleDestroy() {
@@ -123,6 +142,23 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
       { annonceId: id },
       { jobId: id, delay: Math.max(0, quand.getTime() - Date.now()) },
     );
+  }
+
+  /** Rappel la veille à 18h, sauf si ce moment est déjà passé. */
+  private async programmerRappel(id: string, dateDebut: Date) {
+    const delai = veilleA18h(dateDebut).getTime() - Date.now();
+    if (delai <= 0) return;
+    await this.file.add(
+      'rappel',
+      { annonceId: id },
+      { jobId: `rappel-${id}`, delay: delai },
+    );
+  }
+
+  /** Envoie tout de suite, ou programme l'envoi si une date est donnée. */
+  async publier(id: string, programmeeLe: Date | null) {
+    if (programmeeLe) await this.programmer(id, programmeeLe);
+    else await this.envoyer(id);
   }
 
   async creer(u: UtilisateurConnecte, dto: CreerAnnonceDto) {
@@ -188,8 +224,7 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
       },
     );
 
-    if (programmeeLe) await this.programmer(annonce.id, programmeeLe);
-    else await this.envoyer(annonce.id);
+    await this.publier(annonce.id, programmeeLe);
     return this.detail(u, annonce.id);
   }
 
@@ -216,7 +251,10 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
         annonce.cible === CibleAnnonce.ECOLE
           ? { ecole: true }
           : { classeIds: annonce.classes.map((c) => c.classeId) },
-      variables: variablesAnnonce(annonce),
+      variables:
+        annonce.type === TypeAnnonce.EVENEMENT
+          ? variablesEvenement(annonce, 'publication')
+          : variablesAnnonce(annonce),
       sourceType: 'annonce',
       sourceId: annonce.id,
       cleDeduplication: `annonce:${annonce.id}`,
@@ -225,6 +263,76 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
     await this.prisma.annonce.update({
       where: { id: annonce.id },
       data: { statut: StatutAnnonce.ENVOYEE, envoyeeLe: new Date() },
+    });
+    if (annonce.type === TypeAnnonce.EVENEMENT)
+      await this.programmerRappel(annonce.id, annonce.dateDebut);
+  }
+
+  /** Rappel de la veille d'un événement envoyé et toujours maintenu. */
+  async envoyerRappel(annonceId: string): Promise<void> {
+    const annonce = await this.prisma.annonce.findUnique({
+      where: { id: annonceId },
+      include: { classes: { select: { classeId: true } } },
+    });
+    if (
+      annonce?.type !== TypeAnnonce.EVENEMENT ||
+      annonce.statut !== StatutAnnonce.ENVOYEE ||
+      annonce.rappelEnvoyeLe
+    ) {
+      return;
+    }
+    await this.notifierEvenement(annonce, 'rappel');
+    await this.prisma.annonce.update({
+      where: { id: annonce.id },
+      data: { rappelEnvoyeLe: new Date() },
+    });
+  }
+
+  /**
+   * Annule un événement : retire les envois en attente et, si les familles
+   * avaient déjà été prévenues, les informe de l'annulation.
+   */
+  async annulerEvenement(u: UtilisateurConnecte, id: string) {
+    const annonce = await this.prisma.annonce.findFirst({
+      where: { id, ecoleId: u.ecoleId, type: TypeAnnonce.EVENEMENT },
+      include: { classes: { select: { classeId: true } } },
+    });
+    if (!annonce) throw new NotFoundException('Événement introuvable.');
+    if (annonce.statut === StatutAnnonce.ANNULEE)
+      throw new BadRequestException('Cet événement est déjà annulé.');
+    await this.file.remove(id);
+    await this.file.remove(`rappel-${id}`);
+    await this.prisma.annonce.update({
+      where: { id },
+      data: { statut: StatutAnnonce.ANNULEE },
+    });
+    const prevenues = annonce.statut === StatutAnnonce.ENVOYEE;
+    if (prevenues) await this.notifierEvenement(annonce, 'annulation');
+    await this.audit.journaliser(u, ActionAudit.MODIFICATION, 'Annonce', id, {
+      annulee: true,
+      famillesPrevenues: prevenues,
+    });
+  }
+
+  private async notifierEvenement(
+    annonce: Prisma.AnnonceGetPayload<{
+      include: { classes: { select: { classeId: true } } };
+    }>,
+    moment: 'rappel' | 'annulation',
+  ) {
+    // Source distincte : le suivi de la publication ne compte pas ces messages.
+    await this.notifications.notifier({
+      ecoleId: annonce.ecoleId,
+      type: TypeNotification.EVENEMENT,
+      cible:
+        annonce.cible === CibleAnnonce.ECOLE
+          ? { ecole: true }
+          : { classeIds: annonce.classes.map((c) => c.classeId) },
+      variables: variablesEvenement(annonce, moment),
+      sourceType: `annonce-${moment}`,
+      sourceId: annonce.id,
+      cleDeduplication: `evenement-${moment}:${annonce.id}`,
+      creePar: annonce.auteurId ?? undefined,
     });
   }
 
@@ -311,7 +419,11 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
       select: selectionAnnonce,
     });
     if (!annonce) throw new NotFoundException('Annonce introuvable.');
+    return { ...formater(annonce), suivi: await this.suivi(id) };
+  }
 
+  /** Suivi des envois d'une annonce ou d'un événement. */
+  async suivi(id: string) {
     const source = { sourceType: 'annonce', sourceId: id };
     const [groupes, nonLues] = await Promise.all([
       this.prisma.notification.groupBy({
@@ -352,14 +464,11 @@ export class AnnoncesService implements OnModuleInit, OnModuleDestroy {
     delete parCanal[CanalNotification.APPLICATION];
 
     return {
-      ...formater(annonce),
-      suivi: {
-        familles,
-        lues: application[StatutNotification.LUE] ?? 0,
-        enCours,
-        parCanal,
-        nonLues: nonLues.map((n) => ({ tuteur: n.tuteur, eleve: n.eleve })),
-      },
+      familles,
+      lues: application[StatutNotification.LUE] ?? 0,
+      enCours,
+      parCanal,
+      nonLues: nonLues.map((n) => ({ tuteur: n.tuteur, eleve: n.eleve })),
     };
   }
 }

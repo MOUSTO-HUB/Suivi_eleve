@@ -698,3 +698,67 @@ export const voitPaiements = (role: Role) =>
 /** « 25 000 FCFA » */
 export const fcfa = (montant: number) =>
   `${montant.toLocaleString('fr-FR')} FCFA`;
+
+// --- Événements ---
+
+export interface Evenement {
+  id: string;
+  titre: string;
+  description: string;
+  dateDebut: string;
+  dateFin: string | null;
+  lieu: string | null;
+  modalites: string | null;
+  pieceJointe: 'PDF' | 'IMAGE' | null;
+  cible: 'ECOLE' | 'CLASSES';
+  demandeReponse: boolean;
+  question: string | null;
+  statut: StatutAnnonce;
+  programmeeLe: string | null;
+  envoyeeLe: string | null;
+  rappelEnvoyeLe: string | null;
+  creeLe: string;
+  auteur: { prenoms: string; nom: string } | null;
+  classes: { id: string; nom: string }[];
+}
+
+/** Calendrier du personnel : réponses oui / non déjà reçues. */
+export interface EvenementListe extends Evenement {
+  reponses: { oui: number; non: number };
+}
+
+export interface ReponseEleve {
+  id: string;
+  prenoms: string;
+  nom: string;
+  classe: { nom: string } | null;
+  reponse: boolean | null;
+  commentaire: string | null;
+  repondant: { prenoms: string; nom: string } | null;
+  reponduLe: string | null;
+}
+
+export interface EvenementSuivi extends Evenement {
+  suivi: AnnonceSuivie['suivi'];
+  reponses: {
+    oui: number;
+    non: number;
+    sansReponse: number;
+    eleves: ReponseEleve[];
+  } | null;
+}
+
+export const LIBELLES_STATUT_EVENEMENT: Record<StatutAnnonce, string> = {
+  BROUILLON: 'Brouillon',
+  PROGRAMMEE: 'Envoi programmé',
+  ENVOYEE: 'Familles prévenues',
+  ANNULEE: 'Annulé',
+};
+
+/** « 14:30 » à Dakar. */
+export const heureFr = (iso: string) =>
+  new Date(iso).toLocaleTimeString('fr-FR', {
+    timeZone: 'Africa/Dakar',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
