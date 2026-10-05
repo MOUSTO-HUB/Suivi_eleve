@@ -14,6 +14,7 @@ Elle gère aussi le dossier de chaque élève et l'enregistrement de ses apparei
 
 - [Cahier des charges](docs/CAHIER_DES_CHARGES.md)
 - [Prompts de développement](docs/PROMPTS.md)
+- [Mise en production (VPS, sauvegardes, publication mobile)](docs/DEPLOIEMENT.md)
 
 ## Structure
 
@@ -101,7 +102,7 @@ Les notifications push exigent un build de développement (`npx expo run:android
 
 ## État du projet
 
-Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 terminé : appareils des élèves (prompt 5), moteur de notifications SMS, email et push (prompt 6), absence de cours, libération anticipée et absences injustifiées des élèves (prompt 7). Lot 3 terminé : résultats saisis par les professeurs, bulletins PDF et décisions de fin d'année (prompt 8), comportements marquants avec validation des cas graves et convocations (prompt 9), rappels de paiement avec retard calculé (prompt 10, la comptabilité restant dans les outils de l'école), événements de l'école avec calendrier, pièce jointe, rappel la veille à 18h et réponses oui/non des parents (prompt 11). Lot 4 en cours : application mobile parents et personnel (prompt 12). Prochaine étape : espace parents web, sécurité et mise en production (prompt 13).
+Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 terminé : appareils des élèves (prompt 5), moteur de notifications SMS, email et push (prompt 6), absence de cours, libération anticipée et absences injustifiées des élèves (prompt 7). Lot 3 terminé : résultats saisis par les professeurs, bulletins PDF et décisions de fin d'année (prompt 8), comportements marquants avec validation des cas graves et convocations (prompt 9), rappels de paiement avec retard calculé (prompt 10, la comptabilité restant dans les outils de l'école), événements de l'école avec calendrier, pièce jointe, rappel la veille à 18h et réponses oui/non des parents (prompt 11). Lot 4 terminé : application mobile parents et personnel (prompt 12), espace parents sur le site, revue de sécurité (contrôle d'accès vérifié sur chaque route, limitation des tentatives, en-têtes, audit, consentement, export et effacement des données d'un élève), gestion des comptes du personnel, et préparation du déploiement : images Docker, CI GitHub Actions, sauvegardes chiffrées, guide VPS et publication Expo EAS (prompt 13). Les 13 prompts sont réalisés.
 
 ## Notifications
 

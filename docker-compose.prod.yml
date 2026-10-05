@@ -1,0 +1,110 @@
+# Production sur un serveur (VPS) : voir docs/DEPLOIEMENT.md.
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+name: suivi_eleve_prod
+
+x-journaux: &journaux
+  logging:
+    driver: json-file
+    options: { max-size: '10m', max-file: '5' }
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    <<: *journaux
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    <<: *journaux
+
+  api:
+    build: { context: ., dockerfile: api/Dockerfile }
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      API_PORT: '3100'
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      REDIS_URL: redis://redis:6379
+      STOCKAGE_DIR: /donnees/stockage
+      WEB_ORIGIN: https://${DOMAINE}
+      WEB_URL: https://${DOMAINE}
+      API_URL_PUBLIQUE: https://${DOMAINE}/api
+    volumes:
+      - stockage:/donnees/stockage
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    <<: *journaux
+
+  web:
+    build: { context: ., dockerfile: web/Dockerfile }
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_URL: http://api:3100/api
+    depends_on: [api]
+    <<: *journaux
+
+  # HTTPS automatique (Let's Encrypt) ; /api vers l'API, le reste vers le site.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      DOMAINE: ${DOMAINE}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api, web]
+    <<: *journaux
+
+  # Sauvegarde chiffrée quotidienne de la base et des fichiers (deploy/sauvegarde).
+  sauvegarde:
+    build: { context: deploy/sauvegarde }
+    restart: unless-stopped
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      SAUVEGARDE_PHRASE: ${SAUVEGARDE_PHRASE}
+      SAUVEGARDE_HEURE: ${SAUVEGARDE_HEURE:-02}
+      SAUVEGARDE_JOURS: ${SAUVEGARDE_JOURS:-14}
+    volumes:
+      - ./sauvegardes:/sauvegardes
+      - stockage:/donnees/stockage:ro
+    depends_on:
+      postgres: { condition: service_healthy }
+    <<: *journaux
+
+volumes:
+  postgres_data:
+  redis_data:
+  stockage:
+  caddy_data:
+  caddy_config:

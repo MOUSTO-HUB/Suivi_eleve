@@ -22,6 +22,9 @@ Spécifications : `docs/CAHIER_DES_CHARGES.md` · Étapes de développement : `d
 - Web : Next.js 16 (App Router), lint ESLint, port 3001. Lire `web/node_modules/next/dist/docs/` avant d'écrire du code (API différentes des versions précédentes : `proxy.ts` au lieu de middleware, `params`/`searchParams` asynchrones, `refresh()` dans les Server Actions). Données lues côté serveur via `lib/api.ts` (`lireApi`, `envoyerApi`) avec le jeton en cookie httpOnly ; formulaires via `FormulaireAction` + Server Actions ; `proxy.ts` renouvelle le jeton d'accès.
 - Mobile : Expo SDK 57 ; ajouter une dépendance avec `npx expo install`, jamais `pnpm add`.
 - Prettier commun à la racine (guillemets simples).
+- Sécurité : `api/test/securite.e2e-spec.ts` inventorie toutes les routes. Une nouvelle route doit porter `@Roles(...)` (ou `@Public()`), sinon être ajoutée, avec sa justification, à `OUVERTES_A_TOUS_CONNECTES`. Les routes d'authentification passent par `LimiteurService` (Redis). L'API croit `X-Forwarded-For` seulement d'un relais privé ; le site le transmet (`transmettreIp`). Actions sensibles : `AuditService.journaliser` (l'IP est ajoutée automatiquement).
+- Comptes : le personnel est créé par la direction (`/utilisateurs`, mot de passe provisoire affiché une fois) ; la première école et son compte de direction par `node dist/cli/initialiser.js`. Les parents n'ont pas de compte à créer (code SMS) et acceptent le texte de consentement (`VERSION_CONSENTEMENT`) à la première connexion.
+- Production : `docker-compose.prod.yml` (Caddy, API, site, PostgreSQL, Redis, sauvegarde chiffrée), guide `docs/DEPLOIEMENT.md`, CI `.github/workflows/ci.yml`, mobile `mobile/eas.json`.
 - Vérifier avant de terminer une tâche : `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
 
 ## Rôles

@@ -1,0 +1,24 @@
+# Certificat HTTPS obtenu et renouvelé automatiquement pour le domaine.
+{$DOMAINE} {
+	encode zstd gzip
+
+	# API (application mobile, webhooks des fournisseurs SMS / email).
+	handle /api/* {
+		reverse_proxy api:3100
+	}
+
+	# Site : administration et espace parents.
+	handle {
+		reverse_proxy web:3001
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

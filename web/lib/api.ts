@@ -1,5 +1,5 @@
 import 'server-only';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { API_URL, COOKIE_ACCES } from './session';
 
@@ -20,6 +20,16 @@ function messageErreur(corps: unknown, statut: number): string {
   return `Erreur ${statut} de l'API.`;
 }
 
+/**
+ * Transmet à l'API l'adresse du visiteur reçue du proxy (Caddy) : sans cela,
+ * toutes les requêtes du site sembleraient venir du serveur web (limitation
+ * des tentatives, journal d'audit). L'API ne croit cet en-tête que d'un relais privé.
+ */
+export async function transmettreIp(entetes: Headers): Promise<void> {
+  const ip = (await headers()).get('x-forwarded-for');
+  if (ip) entetes.set('X-Forwarded-For', ip);
+}
+
 /** Appel authentifié à l'API, depuis un composant serveur ou une Server Action. */
 export async function appelApi(
   chemin: string,
@@ -30,6 +40,7 @@ export async function appelApi(
 
   const entetes = new Headers(init.headers);
   entetes.set('Authorization', `Bearer ${jeton}`);
+  await transmettreIp(entetes);
   if (init.body && !(init.body instanceof FormData)) {
     entetes.set('Content-Type', 'application/json');
   }

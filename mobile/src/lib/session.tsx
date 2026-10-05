@@ -28,6 +28,8 @@ interface ContexteSession {
   verifierCode: (telephone: string, code: string) => Promise<void>;
   connexionPersonnel: (email: string, motDePasse: string) => Promise<void>;
   deconnexion: () => Promise<void>;
+  /** Le parent accepte le texte d'information (consentement stocké par l'API). */
+  consentir: (version: string) => Promise<void>;
 }
 
 const Contexte = createContext<ContexteSession | null>(null);
@@ -62,6 +64,15 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
       chargement,
       utilisateur,
       dernierUtilisateur: dernier,
+      consentir: async (version) => {
+        const profil = await envoyer<Utilisateur>(
+          '/auth/consentement',
+          'POST',
+          { version },
+        );
+        setUtilisateur(profil);
+        setDernier(profil);
+      },
       demanderCode: async (telephone) => {
         await envoyer('/auth/otp/demande', 'POST', { telephone });
       },

@@ -170,3 +170,11 @@ export class ImportElevesDto {
   @IsBoolean()
   simulation: boolean = false;
 }
+
+export class EffacerDonneesDto {
+  /** Matricule de l'élève, saisi pour confirmer une opération irréversible. */
+  @IsString()
+  @IsNotEmpty({ message: "Saisissez le matricule de l'élève pour confirmer." })
+  @MaxLength(20)
+  confirmation: string;
+}

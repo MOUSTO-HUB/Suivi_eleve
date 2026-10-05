@@ -36,6 +36,7 @@ import {
 import {
   ajouterTuteur,
   archiverEleve,
+  effacerDonnees,
   changerClasse,
   restaurerEleve,
   retirerTuteur,
@@ -468,6 +469,52 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                     />
                   </Champ>
                 </FormulaireAction>
+              )}
+            </Carte>
+          )}
+
+          {profil.role === 'ADMIN' && (
+            <Carte titre="Données personnelles">
+              <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+                À la demande de la famille : copie complète des données de
+                l&apos;élève et de ses tuteurs, puis effacement après son
+                départ.
+              </p>
+              <a
+                href={`/telechargements/donnees-eleve/${eleve.id}`}
+                className={styles.boutonSecondaire}
+              >
+                Exporter les données (JSON)
+              </a>
+              {archive && (
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-medium text-red-700 dark:text-red-400">
+                    Effacer les données de l&apos;élève…
+                  </summary>
+                  <div className="mt-3">
+                    <FormulaireAction
+                      action={effacerDonnees.bind(null, eleve.id)}
+                      libelle="Effacer définitivement"
+                      style="boutonDanger"
+                      confirmation="Effacer les données de cet élève ? C'est irréversible : identité anonymisée, absences, comportement, résultats, appareils et messages supprimés."
+                    >
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Le dossier reste (anonymisé) pour les statistiques. Les
+                        tuteurs sans autre enfant à l&apos;école sont aussi
+                        anonymisés et leur compte fermé.
+                      </p>
+                      <Champ
+                        libelle={`Saisissez le matricule ${eleve.matricule} pour confirmer`}
+                      >
+                        <Saisie
+                          name="confirmation"
+                          required
+                          autoComplete="off"
+                        />
+                      </Champ>
+                    </FormulaireAction>
+                  </div>
+                </details>
               )}
             </Carte>
           )}

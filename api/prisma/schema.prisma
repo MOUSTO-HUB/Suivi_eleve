@@ -465,19 +465,20 @@ model HistoriqueClasse {
 }
 
 model Tuteur {
-  id             String    @id @default(uuid(7))
-  ecoleId        String    @map("ecole_id")
-  prenoms        String
-  nom            String
-  contact1       String    @map("contact_1") // E.164, obligatoire
-  contact2       String?   @map("contact_2") // E.164
-  email          String?
-  langue         Langue    @default(FR)
-  consentementLe DateTime? @map("consentement_le")
-  utilisateurId  String?   @unique @map("utilisateur_id")
-  creeLe         DateTime  @default(now()) @map("cree_le")
-  modifieLe      DateTime  @updatedAt @map("modifie_le")
-  creePar        String?   @map("cree_par")
+  id                  String    @id @default(uuid(7))
+  ecoleId             String    @map("ecole_id")
+  prenoms             String
+  nom                 String
+  contact1            String    @map("contact_1") // E.164, obligatoire
+  contact2            String?   @map("contact_2") // E.164
+  email               String?
+  langue              Langue    @default(FR)
+  consentementLe      DateTime? @map("consentement_le")
+  consentementVersion String?   @map("consentement_version") // version du texte accepté (VERSION_CONSENTEMENT)
+  utilisateurId       String?   @unique @map("utilisateur_id")
+  creeLe              DateTime  @default(now()) @map("cree_le")
+  modifieLe           DateTime  @updatedAt @map("modifie_le")
+  creePar             String?   @map("cree_par")
 
   ecole         Ecole                    @relation(fields: [ecoleId], references: [id])
   utilisateur   Utilisateur?             @relation(fields: [utilisateurId], references: [id], onDelete: SetNull)

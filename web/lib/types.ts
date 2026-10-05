@@ -25,6 +25,13 @@ export interface Profil {
   nom: string;
   email: string | null;
   role: Role;
+  /** Parent : texte d'information à accepter (null pour le personnel). */
+  consentement: {
+    version: string;
+    texte: string[];
+    accepte: boolean;
+    accepteLe: string | null;
+  } | null;
 }
 
 export interface Tuteur {
@@ -560,6 +567,11 @@ export interface ResultatsEleve {
       rang: number | null;
       appreciation: string | null;
     } | null;
+    matieres?: {
+      matiere: { id: string; nom: string; coefficient: number };
+      moyenne: number | null;
+      appreciation: string | null;
+    }[];
   })[];
   decision: { libelle: string; publie: boolean } | null;
 }
@@ -762,3 +774,82 @@ export const heureFr = (iso: string) =>
     hour: '2-digit',
     minute: '2-digit',
   });
+
+// --- Espace parents ---
+
+export interface NotificationParent {
+  id: string;
+  type: TypeNotification;
+  priorite: 'URGENTE' | 'HAUTE' | 'NORMALE' | 'BASSE';
+  sujet: string | null;
+  contenu: string;
+  creeLe: string;
+  lueLe: string | null;
+  sourceType: string | null;
+  sourceId: string | null;
+  eleve: { id: string; prenoms: string } | null;
+}
+
+export interface MesNotifications extends Page<NotificationParent> {
+  nonLues: number;
+}
+
+/** Événement vu par un parent : ses enfants concernés et leur réponse. */
+export interface EvenementParent extends Evenement {
+  enfants: {
+    id: string;
+    prenoms: string;
+    nom: string;
+    classe: { nom: string } | null;
+    reponse: boolean | null;
+    commentaire?: string | null;
+  }[];
+}
+
+export interface PreferenceNotification {
+  type: TypeNotification;
+  obligatoire: boolean;
+  canauxDisponibles: ('SMS' | 'EMAIL' | 'PUSH')[];
+  sms: boolean;
+  email: boolean;
+  push: boolean;
+}
+
+export const ICONES_NOTIFICATION: Record<TypeNotification, string> = {
+  LIBERATION_ANTICIPEE: '🏃',
+  PAS_DE_COURS: '🏫',
+  ABSENCE: '📋',
+  COMPORTEMENT: '⭐',
+  RAPPEL_PAIEMENT: '💳',
+  RETARD_PAIEMENT: '⏰',
+  RECU_PAIEMENT: '🧾',
+  RESULTATS: '📊',
+  DECISION_FIN_ANNEE: '🎓',
+  EVENEMENT: '📅',
+  USAGE_APPAREIL: '📱',
+  APPAREIL: '📱',
+};
+
+/** Page de l'espace parents liée à un message (ex. événement auquel répondre). */
+export function lienMessage(n: NotificationParent): string | null {
+  if (n.type === 'EVENEMENT' && n.sourceId)
+    return `/parent/evenements/${n.sourceId}`;
+  const parType: Partial<Record<TypeNotification, string>> = {
+    RESULTATS: '/parent/resultats',
+    DECISION_FIN_ANNEE: '/parent/resultats',
+    COMPORTEMENT: '/parent/comportement',
+    RAPPEL_PAIEMENT: '/parent/paiements',
+    RETARD_PAIEMENT: '/parent/paiements',
+    RECU_PAIEMENT: '/parent/paiements',
+    ABSENCE: '/parent/absences',
+    APPAREIL: '/parent/appareils',
+    USAGE_APPAREIL: '/parent/appareils',
+  };
+  return n.eleve && parType[n.type]
+    ? `${parType[n.type]}?enfant=${n.eleve.id}`
+    : (parType[n.type] ?? null);
+}
+
+/** Page d'accueil selon le rôle. */
+export const accueilDuRole = (role: string) =>
+  role === 'PARENT' ? '/parent' : '/eleves';

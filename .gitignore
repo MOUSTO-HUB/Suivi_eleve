@@ -8,6 +8,7 @@ coverage/
 .env
 .env.*
 !.env.example
+!.env.production.example
 .DS_Store
 Thumbs.db
 .vscode/
@@ -16,3 +17,8 @@ Thumbs.db
 .pnpm-store/
 api/src/generated/
 api/stockage/
+
+# Production
+sauvegardes/
+mobile/google-services.json
+mobile/GoogleService-Info.plist

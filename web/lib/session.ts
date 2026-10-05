@@ -2,11 +2,15 @@
 export const COOKIE_ACCES = 'suivi_acces';
 export const COOKIE_RAFRAICHISSEMENT = 'suivi_rafraichissement';
 
-const PROD = process.env.NODE_ENV === 'production';
+// Cookies réservés au HTTPS en production. COOKIES_SECURISES=non : essai d'un build
+// de production en HTTP sur le réseau local (jamais sur un serveur public).
+const SECURISES =
+  process.env.NODE_ENV === 'production' &&
+  process.env.COOKIES_SECURISES !== 'non';
 
 export const optionsCookie = (maxAgeSecondes: number) => ({
   httpOnly: true,
-  secure: PROD,
+  secure: SECURISES,
   sameSite: 'lax' as const,
   path: '/',
   maxAge: maxAgeSecondes,
@@ -33,6 +37,18 @@ export function expirationJeton(jeton: string): number | null {
       Buffer.from(jeton.split('.')[1], 'base64url').toString('utf8'),
     ) as { exp?: number };
     return charge.exp ? charge.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Rôle lu dans le jeton d'accès, seulement pour orienter vers le bon espace. */
+export function roleJeton(jeton: string): string | null {
+  try {
+    const charge = JSON.parse(
+      Buffer.from(jeton.split('.')[1], 'base64url').toString('utf8'),
+    ) as { role?: string };
+    return charge.role ?? null;
   } catch {
     return null;
   }

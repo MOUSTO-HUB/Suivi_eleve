@@ -113,6 +113,7 @@ describe('Authentification (e2e)', () => {
   });
 
   afterAll(async () => {
+    await prisma.journalAudit.deleteMany({ where: { ecoleId } });
     await prisma.codeOtp.deleteMany({ where: { telephone: telephoneParent } });
     await prisma.eleve.deleteMany({ where: { ecoleId } });
     await prisma.tuteur.deleteMany({ where: { ecoleId } });

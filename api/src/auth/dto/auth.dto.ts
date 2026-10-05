@@ -27,3 +27,10 @@ export class RafraichissementDto {
   @MaxLength(200)
   jetonRafraichissement: string;
 }
+
+export class ConsentementDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(20)
+  version: string;
+}

@@ -7,8 +7,10 @@ import {
   DUREE_RAFRAICHISSEMENT_S,
   expirationJeton,
   optionsCookie,
+  roleJeton,
   type Session,
 } from './lib/session';
+import { accueilDuRole } from './lib/types';
 
 const MARGE_MS = 60 * 1000;
 
@@ -25,7 +27,9 @@ export async function proxy(request: NextRequest) {
   const expiration = acces ? expirationJeton(acces) : null;
   if (expiration && expiration - Date.now() > MARGE_MS) {
     return surConnexion
-      ? NextResponse.redirect(new URL('/eleves', request.url))
+      ? NextResponse.redirect(
+          new URL(accueilDuRole(roleJeton(acces!) ?? ''), request.url),
+        )
       : NextResponse.next();
   }
 
@@ -39,7 +43,12 @@ export async function proxy(request: NextRequest) {
         session.jetonRafraichissement,
       );
       const reponse = surConnexion
-        ? NextResponse.redirect(new URL('/eleves', request.url))
+        ? NextResponse.redirect(
+            new URL(
+              accueilDuRole(roleJeton(session.jetonAcces) ?? ''),
+              request.url,
+            ),
+          )
         : NextResponse.next({ request: { headers: request.headers } });
       reponse.cookies.set(
         COOKIE_ACCES,

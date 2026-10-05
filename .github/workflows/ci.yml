@@ -1,0 +1,99 @@
+# Intégration continue : chaque push et pull request vers main est vérifié.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifications:
+    name: Lint, types, tests et builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: suivi
+          POSTGRES_PASSWORD: suivi_ci
+          POSTGRES_DB: suivi_eleve
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U suivi -d suivi_eleve"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:8-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://suivi:suivi_ci@localhost:5432/suivi_eleve?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: secret-ci-uniquement-pour-les-tests-0123456789
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version de pnpm lue dans "packageManager" (package.json).
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Client Prisma et migrations
+        working-directory: api
+        run: |
+          pnpm exec prisma generate --config prisma7.config.ts
+          pnpm exec prisma migrate deploy --config prisma7.config.ts
+
+      - name: Formatage
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Types
+        run: pnpm typecheck
+
+      - name: Tests unitaires (API et mobile)
+        run: pnpm test
+
+      - name: Tests de bout en bout (API, base et Redis réels)
+        run: pnpm --filter @suivi-eleve/api test:e2e
+
+      - name: Build API
+        run: pnpm --filter @suivi-eleve/api build
+
+      - name: Build site
+        run: pnpm --filter @suivi-eleve/web build
+
+      - name: Bundle Android de l'application mobile
+        working-directory: mobile
+        run: npx expo export --platform android --output-dir /tmp/export-mobile
+        env:
+          EXPO_PUBLIC_API_URL: https://exemple.invalid/api
+
+  images:
+    name: Images Docker
+    needs: verifications
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image de l'API
+        run: docker build -f api/Dockerfile -t suivi-eleve-api .
+      - name: Image du site
+        run: docker build -f web/Dockerfile -t suivi-eleve-web .
+      - name: Image de sauvegarde
+        run: docker build -t suivi-eleve-sauvegarde deploy/sauvegarde

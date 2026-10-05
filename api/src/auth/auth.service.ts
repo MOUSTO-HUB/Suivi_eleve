@@ -1,10 +1,20 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { hash, verify } from '@node-rs/argon2';
 import { createHash, randomBytes } from 'node:crypto';
-import { Role } from '../generated/prisma/enums.js';
+import { AuditService } from '../audit/audit.service.js';
+import { ActionAudit, Role } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
-import type { ChargeJeton, Session } from './auth.types.js';
+import type {
+  ChargeJeton,
+  Session,
+  UtilisateurConnecte,
+} from './auth.types.js';
+import { TEXTE_CONSENTEMENT, VERSION_CONSENTEMENT } from './consentement.js';
 
 export const DUREE_RAFRAICHISSEMENT_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -27,6 +37,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly audit: AuditService,
   ) {}
 
   async connexionPersonnel(
@@ -60,6 +71,17 @@ export class AuthService {
       where: { id: utilisateur.id },
       data: { derniereConnexion: new Date() },
     });
+    await this.audit.journaliser(
+      {
+        id: utilisateur.id,
+        role: utilisateur.role,
+        ecoleId: utilisateur.ecoleId,
+        tuteurId: utilisateur.tuteur?.id ?? null,
+      },
+      ActionAudit.CONNEXION,
+      'Utilisateur',
+      utilisateur.id,
+    );
     return this.emettreJetons(utilisateur);
   }
 
@@ -113,12 +135,47 @@ export class AuthService {
         telephone: true,
         role: true,
         ecoleId: true,
-        tuteur: { select: { id: true } },
+        tuteur: {
+          select: { id: true, consentementLe: true, consentementVersion: true },
+        },
       },
     });
     if (!utilisateur) throw new UnauthorizedException();
     const { tuteur, ...reste } = utilisateur;
-    return { ...reste, tuteurId: tuteur?.id ?? null };
+    return {
+      ...reste,
+      tuteurId: tuteur?.id ?? null,
+      // Parent : texte à accepter à la première connexion (ou quand il change).
+      consentement: tuteur
+        ? {
+            version: VERSION_CONSENTEMENT,
+            texte: TEXTE_CONSENTEMENT,
+            accepte: tuteur.consentementVersion === VERSION_CONSENTEMENT,
+            accepteLe: tuteur.consentementLe,
+          }
+        : null,
+    };
+  }
+
+  /** Le parent accepte la version courante du texte d'information. */
+  async consentir(u: UtilisateurConnecte, version: string) {
+    if (version !== VERSION_CONSENTEMENT) {
+      throw new BadRequestException(
+        'Le texte a changé : relisez-le avant de l’accepter.',
+      );
+    }
+    await this.prisma.tuteur.update({
+      where: { id: u.tuteurId ?? '' },
+      data: { consentementLe: new Date(), consentementVersion: version },
+    });
+    await this.audit.journaliser(
+      u,
+      ActionAudit.MODIFICATION,
+      'Tuteur',
+      u.tuteurId ?? undefined,
+      { consentement: version },
+    );
+    return this.profil(u.id);
   }
 
   private async emettreJetons(

@@ -3,6 +3,7 @@ import type { UtilisateurConnecte } from '../auth/auth.types.js';
 import { Prisma } from '../generated/prisma/client.js';
 import type { ActionAudit } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { ipRequete } from '../securite/contexte-requete.js';
 
 /** Journal d'audit des modifications sensibles (cahier des charges, section 4). */
 @Injectable()
@@ -24,6 +25,7 @@ export class AuditService {
         entite,
         entiteId,
         details,
+        ip: ipRequete(),
       },
     });
   }

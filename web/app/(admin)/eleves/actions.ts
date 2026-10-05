@@ -158,3 +158,19 @@ export async function importerEleves(
   });
   return erreur ?? { rapport };
 }
+
+/** Effacement des données d'un élève archivé (direction, irréversible). */
+export async function effacerDonnees(
+  id: string,
+  _e: Etat,
+  d: FormData,
+): Promise<Etat> {
+  const erreur = await tenter(() =>
+    envoyerApi(`/eleves/${id}/effacer`, 'POST', {
+      confirmation: texte(d, 'confirmation') ?? '',
+    }),
+  );
+  if (erreur) return erreur;
+  refresh();
+  return { succes: "Données de l'élève effacées." };
+}

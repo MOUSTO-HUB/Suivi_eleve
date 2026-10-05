@@ -1,10 +1,15 @@
 import { Stack } from 'expo-router';
+import { Consentement } from '@/components/consentement';
 import { couleurs } from '@/components/ui';
 import { FournisseurEnfants } from '@/lib/enfants';
 import { useOuvertureDepuisPush } from '@/lib/push';
+import { useUtilisateur } from '@/lib/session';
 
 export default function EspaceParent() {
   useOuvertureDepuisPush();
+  const u = useUtilisateur();
+  // Rien n'est affiché avant l'accord du tuteur sur l'usage de ses données.
+  if (u.consentement && !u.consentement.accepte) return <Consentement />;
   return (
     <FournisseurEnfants>
       <Stack

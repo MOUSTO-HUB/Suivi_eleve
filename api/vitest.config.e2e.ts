@@ -9,6 +9,7 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    setupFiles: ['./test/preparation.ts'],
     // Les files BullMQ laissent quelques instants à la fermeture.
     hookTimeout: 30_000,
     // Les envois passent par la file (avec reprises) : laisser le temps.

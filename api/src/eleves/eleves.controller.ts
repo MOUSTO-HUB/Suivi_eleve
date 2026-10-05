@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -22,16 +23,19 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { UtilisateurCourant } from '../auth/decorators/utilisateur-courant.decorator.js';
 import { ParentOwnsEleveGuard } from '../auth/guards/parent-owns-eleve.guard.js';
 import { GESTION_SCOLARITE, PERSONNEL } from '../common/roles.js';
+import { Role } from '../generated/prisma/enums.js';
 import {
   ArchiverEleveDto,
   ChangerClasseDto,
   CreerEleveDto,
+  EffacerDonneesDto,
   ExportElevesDto,
   FiltreElevesDto,
   ImportElevesDto,
   ModifierEleveDto,
   TuteurEleveDto,
 } from './eleves.dto.js';
+import { DonneesService } from './donnees.service.js';
 import { ElevesService } from './eleves.service.js';
 import {
   type FichierExport,
@@ -54,6 +58,7 @@ export class ElevesController {
   constructor(
     private readonly eleves: ElevesService,
     private readonly importExport: ImportExportService,
+    private readonly donnees: DonneesService,
   ) {}
 
   /** Personnel : élèves de l'école. Parent : ses enfants uniquement. */
@@ -170,5 +175,28 @@ export class ElevesController {
     @Param('tuteurId', ParseUUIDPipe) tuteurId: string,
   ) {
     return this.eleves.retirerTuteur(u, id, tuteurId);
+  }
+
+  /** Copie de toutes les données de l'élève et de ses tuteurs (demande de la famille). */
+  @Get(':id/donnees')
+  @Roles(Role.ADMIN)
+  async exporterDonnees(
+    @UtilisateurCourant() u: UtilisateurConnecte,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return envoyerFichier(res, await this.donnees.exporter(u, id));
+  }
+
+  /** Effacement des données d'un élève archivé (irréversible, direction seulement). */
+  @Post(':id/effacer')
+  @Roles(Role.ADMIN)
+  @HttpCode(200)
+  effacerDonnees(
+    @UtilisateurCourant() u: UtilisateurConnecte,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: EffacerDonneesDto,
+  ) {
+    return this.donnees.effacer(u, id, dto.confirmation);
   }
 }

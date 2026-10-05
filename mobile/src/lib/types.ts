@@ -15,6 +15,12 @@ export interface Utilisateur {
   role: Role;
   ecoleId: string;
   tuteurId?: string | null;
+  /** Parent : texte d'information à accepter avant d'utiliser l'application. */
+  consentement?: {
+    version: string;
+    texte: string[];
+    accepte: boolean;
+  } | null;
 }
 
 export interface Session {
