@@ -12,6 +12,7 @@ const LIENS: { href: string; libelle: string; roles?: Role[] }[] = [
   { href: '/tuteurs', libelle: 'Tuteurs' },
   { href: '/classes', libelle: 'Classes' },
   { href: '/absences', libelle: 'Absences' },
+  { href: '/comportements', libelle: 'Comportement' },
   {
     href: '/resultats',
     libelle: 'Résultats',

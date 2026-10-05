@@ -65,12 +65,13 @@ Merci de nous indiquer le motif de cette absence, par l'application ou auprès d
     },
   },
   COMPORTEMENT: {
-    SMS: { contenu: 'Suivi_eleve : {details}' },
+    // {resume} : une phrase courte pour le SMS et le push ; {details} : le compte rendu complet.
+    SMS: { contenu: 'Suivi_eleve : {resume}' },
     EMAIL: {
       sujet: 'Comportement – {prenom_eleve}',
       contenu: `${salutation}{details}${signature}`,
     },
-    PUSH: { sujet: 'Comportement de {prenom_eleve}', contenu: '{details}' },
+    PUSH: { sujet: 'Comportement de {prenom_eleve}', contenu: '{resume}' },
   },
   RAPPEL_PAIEMENT: {
     SMS: {

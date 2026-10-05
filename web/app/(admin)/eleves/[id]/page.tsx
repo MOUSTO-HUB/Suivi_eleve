@@ -14,13 +14,16 @@ import {
   styles,
 } from '@/components/ui';
 import { lireApi, lireApiOuNull } from '@/lib/api';
-import { peutGererDossiers } from '@/lib/profil';
+import { peutGererDossiers, profilCourant } from '@/lib/profil';
 import {
   dateFr,
   designationAppareil,
   LIBELLES_LIEN,
   noteFr,
   type ResultatsEleve,
+  type Comportement,
+  LIBELLES_CATEGORIE,
+  peutSignaler,
   type Absence,
   type Appareil,
   type Classe,
@@ -58,19 +61,24 @@ function Info({
 
 export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
   const { id } = await props.params;
-  const [eleve, gestion] = await Promise.all([
+  const [eleve, gestion, profil] = await Promise.all([
     lireApiOuNull<EleveDetail>(`/eleves/${id}`),
     peutGererDossiers(),
+    profilCourant(),
   ]);
   if (!eleve) notFound();
-  const [classes, appareils, absences, resultats] = await Promise.all([
-    gestion ? lireApi<Classe[]>('/classes') : Promise.resolve([]),
-    lireApi<Page<Appareil>>(`/appareils?eleveId=${eleve.id}&parPage=100`),
-    lireApi<Page<Absence> & { nonJustifiees: number }>(
-      `/absences?eleveId=${eleve.id}&parPage=5`,
-    ),
-    lireApi<ResultatsEleve>(`/resultats/eleves/${eleve.id}`),
-  ]);
+  const [classes, appareils, absences, resultats, comportements] =
+    await Promise.all([
+      gestion ? lireApi<Classe[]>('/classes') : Promise.resolve([]),
+      lireApi<Page<Appareil>>(`/appareils?eleveId=${eleve.id}&parPage=100`),
+      lireApi<Page<Absence> & { nonJustifiees: number }>(
+        `/absences?eleveId=${eleve.id}&parPage=5`,
+      ),
+      lireApi<ResultatsEleve>(`/resultats/eleves/${eleve.id}`),
+      lireApi<Page<Comportement>>(
+        `/comportements?eleveId=${eleve.id}&parPage=5`,
+      ),
+    ]);
   const archive = eleve.statut === 'ARCHIVE';
 
   return (
@@ -267,6 +275,42 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                 </span>
                 {!resultats.decision.publie && ' (non publiée)'}
               </p>
+            )}
+          </Carte>
+
+          <Carte
+            titre="Comportement"
+            actions={
+              !archive &&
+              peutSignaler(profil.role) && (
+                <Link
+                  className={styles.boutonSecondaire}
+                  href={`/comportements/nouveau?eleveId=${eleve.id}`}
+                >
+                  Signaler
+                </Link>
+              )
+            }
+          >
+            {comportements.total === 0 ? (
+              <p className="text-sm text-zinc-500">Rien de signalé.</p>
+            ) : (
+              <ul className="flex flex-col gap-2 text-sm">
+                {comportements.elements.map((c) => (
+                  <li key={c.id}>
+                    <Badge couleur={c.type === 'POSITIF' ? 'vert' : 'orange'}>
+                      {LIBELLES_CATEGORIE[c.categorie]}
+                    </Badge>{' '}
+                    <span className="text-xs text-zinc-500">
+                      {dateFr(c.date.slice(0, 10))}
+                      {c.statut === 'EN_ATTENTE' ? ' · à valider' : ''}
+                    </span>
+                    <span className="block text-zinc-700 dark:text-zinc-300">
+                      {c.description}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </Carte>
 

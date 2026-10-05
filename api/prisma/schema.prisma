@@ -713,6 +713,7 @@ model Comportement {
   auteurId      String?               @map("auteur_id")
   valideParId   String?               @map("valide_par_id")
   valideLe      DateTime?             @map("valide_le")
+  motifRejet    String?               @map("motif_rejet") // cas grave refusé par la direction
   creeLe        DateTime              @default(now()) @map("cree_le")
   modifieLe     DateTime              @updatedAt @map("modifie_le")
   creePar       String?               @map("cree_par")

@@ -8,6 +8,7 @@ import { AppService } from './app.service.js';
 import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ClassesModule } from './classes/classes.module.js';
+import { ComportementsModule } from './comportements/comportements.module.js';
 import { ElevesModule } from './eleves/eleves.module.js';
 import { MatieresModule } from './matieres/matieres.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
@@ -33,6 +34,7 @@ import { TuteursModule } from './tuteurs/tuteurs.module.js';
     AbsencesModule,
     MatieresModule,
     ResultatsModule,
+    ComportementsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

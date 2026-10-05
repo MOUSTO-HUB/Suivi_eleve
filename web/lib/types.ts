@@ -586,3 +586,77 @@ export const lireNote = (valeur: FormDataEntryValue | null): number | null => {
     typeof valeur === 'string' ? valeur.trim().replace(',', '.') : '';
   return texte === '' ? null : Number(texte);
 };
+
+// --- Comportements ---
+
+export type TypeComportement = 'POSITIF' | 'NEGATIF';
+export type CategorieComportement =
+  | 'FELICITATIONS'
+  | 'ENCOURAGEMENT'
+  | 'RETARD'
+  | 'ABSENCE'
+  | 'INDISCIPLINE'
+  | 'FRAUDE'
+  | 'VIOLENCE'
+  | 'USAGE_APPAREIL'
+  | 'AUTRE';
+export type StatutValidation = 'EN_ATTENTE' | 'VALIDE' | 'REJETE';
+
+export interface Comportement {
+  id: string;
+  type: TypeComportement;
+  categorie: CategorieComportement;
+  gravite: number;
+  description: string;
+  sanction: string | null;
+  convocationLe: string | null;
+  date: string;
+  statut: StatutValidation;
+  valideLe: string | null;
+  motifRejet: string | null;
+  eleve: {
+    id: string;
+    prenoms: string;
+    nom: string;
+    matricule: string;
+    classe: { id: string; nom: string } | null;
+  };
+  auteur: { prenoms: string; nom: string; role: Role } | null;
+  validePar: { prenoms: string; nom: string } | null;
+}
+
+export const CATEGORIES_COMPORTEMENT: Record<
+  TypeComportement,
+  CategorieComportement[]
+> = {
+  POSITIF: ['FELICITATIONS', 'ENCOURAGEMENT'],
+  NEGATIF: [
+    'RETARD',
+    'INDISCIPLINE',
+    'FRAUDE',
+    'VIOLENCE',
+    'USAGE_APPAREIL',
+    'AUTRE',
+  ],
+};
+
+export const LIBELLES_CATEGORIE: Record<CategorieComportement, string> = {
+  FELICITATIONS: 'Félicitations',
+  ENCOURAGEMENT: 'Encouragements',
+  RETARD: 'Retards répétés',
+  ABSENCE: 'Absence',
+  INDISCIPLINE: 'Indiscipline',
+  FRAUDE: 'Fraude',
+  VIOLENCE: 'Violence',
+  USAGE_APPAREIL: "Usage d'un appareil en classe",
+  AUTRE: 'Autre',
+};
+
+export const LIBELLES_STATUT_VALIDATION: Record<StatutValidation, string> = {
+  EN_ATTENTE: 'À valider par la direction',
+  VALIDE: 'Famille prévenue',
+  REJETE: 'Refusé',
+};
+
+/** Peut signaler un comportement. */
+export const peutSignaler = (role: Role) => peutFaireAppel(role);

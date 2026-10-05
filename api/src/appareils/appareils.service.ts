@@ -505,6 +505,7 @@ export class AppareilsService {
         cible: { eleveIds: [appareil.eleve.id] },
         variables: {
           details: `${appareil.eleve.prenoms} a utilisé un appareil en classe sans autorisation ${this.seuilUsage} fois ce mois-ci. Un comportement a été inscrit à son dossier.`,
+          resume: `${appareil.eleve.prenoms} a utilisé un appareil en classe ${this.seuilUsage} fois ce mois-ci. Comportement inscrit au dossier.`,
         },
         sourceType: 'appareil',
         sourceId: appareil.id,
