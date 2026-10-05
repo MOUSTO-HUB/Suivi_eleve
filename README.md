@@ -75,4 +75,4 @@ Les deux renvoient un jeton d'accès (15 minutes, à passer dans `Authorization:
 
 ## État du projet
 
-Lot 1 en cours : socle du monorepo (prompt 1), schéma de base de données (prompt 2) et authentification (prompt 3) en place. Prochaine étape : gestion des élèves et tuteurs (prompt 4).
+Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Prochaine étape : appareils des élèves (prompt 5).

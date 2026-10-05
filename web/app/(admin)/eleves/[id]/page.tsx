@@ -1,0 +1,253 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { ChampsTuteur } from '@/components/champs-eleve';
+import { FormulaireAction } from '@/components/formulaire-action';
+import {
+  Badge,
+  Carte,
+  Champ,
+  EnTete,
+  Liste,
+  Saisie,
+  styles,
+} from '@/components/ui';
+import { lireApi, lireApiOuNull } from '@/lib/api';
+import { peutGererDossiers } from '@/lib/profil';
+import {
+  dateFr,
+  LIBELLES_LIEN,
+  type Classe,
+  type EleveDetail,
+} from '@/lib/types';
+import {
+  ajouterTuteur,
+  archiverEleve,
+  changerClasse,
+  restaurerEleve,
+  retirerTuteur,
+} from '../actions';
+
+export const metadata: Metadata = { title: 'Fiche élève · Suivi_eleve' };
+
+function Info({
+  libelle,
+  children,
+}: {
+  libelle: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+        {libelle}
+      </dt>
+      <dd className="mt-0.5 text-sm text-zinc-900 dark:text-zinc-100">
+        {children}
+      </dd>
+    </div>
+  );
+}
+
+export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
+  const { id } = await props.params;
+  const [eleve, gestion] = await Promise.all([
+    lireApiOuNull<EleveDetail>(`/eleves/${id}`),
+    peutGererDossiers(),
+  ]);
+  if (!eleve) notFound();
+  const classes = gestion ? await lireApi<Classe[]>('/classes') : [];
+  const archive = eleve.statut === 'ARCHIVE';
+
+  return (
+    <>
+      <EnTete
+        titre={`${eleve.prenoms} ${eleve.nom}`}
+        sousTitre={`Matricule ${eleve.matricule}`}
+        actions={
+          <>
+            <Link className={styles.boutonSecondaire} href="/eleves">
+              Retour à la liste
+            </Link>
+            {gestion && (
+              <Link
+                className={styles.bouton}
+                href={`/eleves/${eleve.id}/modifier`}
+              >
+                Modifier
+              </Link>
+            )}
+          </>
+        }
+      />
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          <Carte
+            titre="Identité"
+            actions={
+              archive ? (
+                <Badge couleur="orange">Archivé</Badge>
+              ) : (
+                <Badge couleur="vert">Actif</Badge>
+              )
+            }
+          >
+            <dl className="grid gap-4 sm:grid-cols-3">
+              <Info libelle="Genre">
+                {eleve.genre === 'FEMININ' ? 'Féminin' : 'Masculin'}
+              </Info>
+              <Info libelle="Date de naissance">
+                {dateFr(eleve.dateNaissance)}
+              </Info>
+              <Info libelle="Âge">{eleve.age} ans</Info>
+              <Info libelle="Classe">{eleve.classe?.nom ?? 'Sans classe'}</Info>
+              <Info libelle="Téléphone">{eleve.telephone ?? '—'}</Info>
+              <Info libelle="Inscrit le">{dateFr(eleve.dateInscription)}</Info>
+            </dl>
+          </Carte>
+
+          <Carte titre="Tuteurs">
+            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {eleve.tuteurs.map((t) => (
+                <li
+                  key={t.id}
+                  className="flex flex-wrap items-start justify-between gap-3 py-3"
+                >
+                  <div className="text-sm">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      <Link className={styles.lien} href={`/tuteurs/${t.id}`}>
+                        {t.prenoms} {t.nom}
+                      </Link>{' '}
+                      <span className="text-zinc-500">
+                        · {LIBELLES_LIEN[t.lien]}
+                      </span>{' '}
+                      {t.principal && <Badge couleur="vert">Principal</Badge>}
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+                      {t.contact1}
+                      {t.contact2 && ` · ${t.contact2}`}
+                      {t.email && ` · ${t.email}`}
+                    </p>
+                  </div>
+                  {gestion && eleve.tuteurs.length > 1 && (
+                    <FormulaireAction
+                      action={retirerTuteur.bind(null, eleve.id, t.id)}
+                      libelle="Retirer"
+                      libelleEnCours="Retrait…"
+                      style="boutonDanger"
+                      confirmation={`Retirer ${t.prenoms} ${t.nom} des tuteurs de cet élève ?`}
+                      className="flex flex-col items-end gap-2"
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+            {gestion && (
+              <details className="mt-4 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
+                <summary className="cursor-pointer text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                  Ajouter un tuteur
+                </summary>
+                <div className="mt-4">
+                  <FormulaireAction
+                    action={ajouterTuteur.bind(null, eleve.id)}
+                    libelle="Ajouter le tuteur"
+                    reinitialiserSiSucces
+                  >
+                    <ChampsTuteur obligatoire lienParDefaut="MERE" />
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" name="principal" /> Devient le
+                      tuteur principal
+                    </label>
+                  </FormulaireAction>
+                </div>
+              </details>
+            )}
+          </Carte>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <Carte titre="Historique des classes">
+            <ol className="flex flex-col gap-3 text-sm">
+              {eleve.historiqueClasse.map((h) => (
+                <li key={`${h.classe.id}-${h.dateDebut}`}>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {h.classe.nom}
+                  </span>
+                  <span className="block text-xs text-zinc-500">
+                    depuis le {dateFr(h.dateDebut)}
+                    {h.dateFin
+                      ? ` jusqu'au ${dateFr(h.dateFin)}`
+                      : ' (en cours)'}
+                  </span>
+                </li>
+              ))}
+              {eleve.historiqueClasse.length === 0 && (
+                <li className="text-zinc-500">
+                  Aucune classe pour l&apos;instant.
+                </li>
+              )}
+            </ol>
+          </Carte>
+
+          {gestion && !archive && (
+            <Carte titre="Changer de classe">
+              <FormulaireAction
+                action={changerClasse.bind(null, eleve.id)}
+                libelle="Changer de classe"
+              >
+                <Champ libelle="Nouvelle classe" obligatoire>
+                  <Liste name="classeId" defaultValue="" required>
+                    <option value="" disabled>
+                      Choisir…
+                    </option>
+                    {classes
+                      .filter((c) => c.id !== eleve.classe?.id)
+                      .map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.nom}
+                        </option>
+                      ))}
+                  </Liste>
+                </Champ>
+                <Champ libelle="À partir du" aide="Par défaut : aujourd'hui.">
+                  <Saisie type="date" name="date" />
+                </Champ>
+              </FormulaireAction>
+            </Carte>
+          )}
+
+          {gestion && (
+            <Carte titre={archive ? 'Dossier archivé' : 'Archiver le dossier'}>
+              {archive ? (
+                <FormulaireAction
+                  action={restaurerEleve.bind(null, eleve.id)}
+                  libelle="Restaurer l'élève"
+                  style="boutonSecondaire"
+                />
+              ) : (
+                <FormulaireAction
+                  action={archiverEleve.bind(null, eleve.id)}
+                  libelle="Archiver"
+                  style="boutonDanger"
+                  confirmation="Archiver ce dossier ? L'élève n'apparaîtra plus dans les listes, mais rien n'est supprimé."
+                >
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Le dossier est conservé et peut être restauré à tout moment.
+                  </p>
+                  <Champ libelle="Motif">
+                    <Saisie
+                      name="motif"
+                      maxLength={500}
+                      placeholder="Ex. départ de la famille"
+                    />
+                  </Champ>
+                </FormulaireAction>
+              )}
+            </Carte>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}

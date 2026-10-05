@@ -1,0 +1,100 @@
+import 'server-only';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { API_URL, COOKIE_ACCES } from './session';
+
+export class ErreurApi extends Error {
+  constructor(
+    readonly statut: number,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** Message lisible à partir d'une réponse d'erreur NestJS (texte ou liste de messages). */
+function messageErreur(corps: unknown, statut: number): string {
+  const message = (corps as { message?: unknown } | null)?.message;
+  if (Array.isArray(message)) return message.join(' ');
+  if (typeof message === 'string') return message;
+  return `Erreur ${statut} de l'API.`;
+}
+
+/** Appel authentifié à l'API, depuis un composant serveur ou une Server Action. */
+export async function appelApi(
+  chemin: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const jeton = (await cookies()).get(COOKIE_ACCES)?.value;
+  if (!jeton) redirect('/connexion');
+
+  const entetes = new Headers(init.headers);
+  entetes.set('Authorization', `Bearer ${jeton}`);
+  if (init.body && !(init.body instanceof FormData)) {
+    entetes.set('Content-Type', 'application/json');
+  }
+
+  const reponse = await fetch(`${API_URL}${chemin}`, {
+    ...init,
+    headers: entetes,
+    cache: 'no-store',
+  });
+  if (reponse.status === 401) redirect('/connexion');
+  if (!reponse.ok) {
+    const corps: unknown = await reponse.json().catch(() => null);
+    throw new ErreurApi(reponse.status, messageErreur(corps, reponse.status));
+  }
+  return reponse;
+}
+
+export async function lireApi<T>(chemin: string): Promise<T> {
+  return (await appelApi(chemin)).json() as Promise<T>;
+}
+
+/** Variante pour les pages : une ressource absente donne null (puis notFound()). */
+export async function lireApiOuNull<T>(chemin: string): Promise<T | null> {
+  try {
+    return await lireApi<T>(chemin);
+  } catch (e) {
+    if (e instanceof ErreurApi && (e.statut === 404 || e.statut === 400)) {
+      return null;
+    }
+    throw e;
+  }
+}
+
+export async function envoyerApi<T>(
+  chemin: string,
+  methode: 'POST' | 'PATCH' | 'DELETE',
+  corps?: unknown,
+): Promise<T> {
+  const reponse = await appelApi(chemin, {
+    method: methode,
+    body:
+      corps instanceof FormData
+        ? corps
+        : corps === undefined
+          ? undefined
+          : JSON.stringify(corps),
+  });
+  return (await reponse.json()) as T;
+}
+
+/** Résultat d'une Server Action, affiché par le formulaire. */
+export interface EtatFormulaire {
+  erreur?: string;
+  succes?: string;
+}
+
+/** Exécute un appel et transforme une erreur de l'API en message pour le formulaire. */
+export async function tenter(
+  action: () => Promise<unknown>,
+): Promise<EtatFormulaire | null> {
+  try {
+    await action();
+    return null;
+  } catch (e) {
+    if (e instanceof ErreurApi) return { erreur: e.message };
+    throw e;
+  }
+}
