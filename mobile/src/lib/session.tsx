@@ -10,6 +10,7 @@ import {
 import {
   envoyer,
   fermerSession,
+  lire,
   ouvrirSession,
   quandSessionExpiree,
   reprendreSession,
@@ -39,8 +40,11 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
 
   const ouvrir = useCallback(async (session: Session) => {
     await ouvrirSession(session);
-    setUtilisateur(session.utilisateur);
-    setDernier(session.utilisateur);
+    // La session ne contient que l'identifiant et le rôle : le profil donne le nom.
+    const profil = await lire<Utilisateur>('/auth/moi').catch(() => null);
+    const u = profil ?? session.utilisateur;
+    setUtilisateur(u);
+    setDernier(u);
     // Sans attendre : l'accès à l'application ne dépend pas du push.
     void inscrirePush();
   }, []);

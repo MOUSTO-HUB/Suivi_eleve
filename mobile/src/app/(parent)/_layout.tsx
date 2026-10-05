@@ -1,24 +1,12 @@
-import * as Notifications from 'expo-notifications';
-import { router, Stack } from 'expo-router';
-import { useEffect } from 'react';
+import { Stack } from 'expo-router';
 import { couleurs } from '@/components/ui';
 import { FournisseurEnfants } from '@/lib/enfants';
-
-/** Notification push touchée : ouvre la liste des messages. */
-function OuvertureDepuisPush() {
-  const reponse = Notifications.useLastNotificationResponse();
-  useEffect(() => {
-    if (!reponse) return;
-    router.navigate('/notifications');
-    void Notifications.clearLastNotificationResponseAsync();
-  }, [reponse]);
-  return null;
-}
+import { useOuvertureDepuisPush } from '@/lib/push';
 
 export default function EspaceParent() {
+  useOuvertureDepuisPush();
   return (
     <FournisseurEnfants>
-      <OuvertureDepuisPush />
       <Stack
         screenOptions={{
           headerTintColor: couleurs.primaire,

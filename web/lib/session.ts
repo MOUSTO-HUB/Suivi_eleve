@@ -15,7 +15,7 @@ export const optionsCookie = (maxAgeSecondes: number) => ({
 export const DUREE_ACCES_S = 15 * 60;
 export const DUREE_RAFRAICHISSEMENT_S = 30 * 24 * 60 * 60;
 
-export const API_URL = process.env.API_URL ?? 'http://localhost:3000/api';
+export const API_URL = process.env.API_URL ?? 'http://localhost:3100/api';
 
 export interface Session {
   jetonAcces: string;

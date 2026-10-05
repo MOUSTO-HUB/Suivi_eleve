@@ -9,3 +9,4 @@ docs
 web/next-env.d.ts
 api/src/generated
 api/prisma/migrations
+mobile/expo-env.d.ts

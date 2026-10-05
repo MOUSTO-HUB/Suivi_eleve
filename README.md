@@ -41,7 +41,7 @@ pnpm db:migrate
 pnpm db:seed
 
 # 4. Applications (un terminal chacune)
-pnpm dev:api      # http://localhost:3000/api/sante
+pnpm dev:api      # http://localhost:3100/api/sante
 pnpm dev:web      # http://localhost:3001
 pnpm dev:mobile   # scanner le QR code avec l'application Expo Go
 ```
@@ -84,10 +84,20 @@ Sur un téléphone, l'API doit être joignable par son adresse sur le réseau lo
 
 ```bash
 # mobile/.env.local (non versionné)
-EXPO_PUBLIC_API_URL=http://192.168.1.20:3000/api
+EXPO_PUBLIC_API_URL=http://192.168.1.20:3100/api
 ```
 
-Expo Go suffit pour tout tester, sauf les notifications push : depuis le SDK 53, elles exigent un build de développement (`npx expo run:android` ou `eas build --profile development`) avec Firebase configuré. Le jeton FCM de l'appareil est alors enregistré automatiquement auprès de l'API après la connexion.
+Trois façons de l'essayer :
+
+| Où                          | Comment                                                                                                                                 | Limites                                                                                                                |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Navigateur (le plus rapide) | `pnpm dev:mobile` puis touche `w`, ou ouvrir l'adresse du serveur Expo ; dans Chrome, F12 puis l'icône téléphone pour la taille d'écran | pas de push ni de caméra fiable (saisir le code de l'étiquette) ; jetons dans `localStorage` (développement seulement) |
+| Téléphone Android           | application **Expo Go** (Play Store), même réseau Wi-Fi que le PC, scanner le QR code affiché par Expo                                  | pas de push (build de développement nécessaire)                                                                        |
+| iPhone                      | Expo Go n'est plus sur l'App Store : il faut un compte Apple Developer (99 $/an), `npx eas-cli go` puis TestFlight                      | idem                                                                                                                   |
+
+L'origine de la version navigateur doit figurer dans `WEB_ORIGIN` (CORS de l'API), ex. `http://localhost:8090` si Expo est lancé avec `--port 8090`.
+
+Les notifications push exigent un build de développement (`npx expo run:android` ou `eas build --profile development`) avec Firebase configuré : le jeton FCM de l'appareil est alors enregistré automatiquement auprès de l'API après la connexion.
 
 ## État du projet
 

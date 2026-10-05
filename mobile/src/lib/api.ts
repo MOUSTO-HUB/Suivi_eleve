@@ -1,9 +1,9 @@
-import * as SecureStore from 'expo-secure-store';
+import { effacerSecret, ecrireSecret, lireSecret } from './stockage-securise';
 import type { Session } from './types';
 
-/** Adresse de l'API (ex. http://192.168.1.20:3000/api pour un téléphone sur le même Wi-Fi). */
+/** Adresse de l'API (ex. http://192.168.1.20:3100/api pour un téléphone sur le même Wi-Fi). */
 export const API_URL = (
-  process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api'
+  process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3100/api'
 ).replace(/\/$/, '');
 
 const CLE_RAFRAICHISSEMENT = 'suivi.jetonRafraichissement';
@@ -28,16 +28,13 @@ export function quandSessionExpiree(rappel: () => void) {
 
 export async function ouvrirSession(session: Session) {
   jetonAcces = session.jetonAcces;
-  await SecureStore.setItemAsync(
-    CLE_RAFRAICHISSEMENT,
-    session.jetonRafraichissement,
-  );
+  await ecrireSecret(CLE_RAFRAICHISSEMENT, session.jetonRafraichissement);
 }
 
 export async function fermerSession() {
-  const jeton = await SecureStore.getItemAsync(CLE_RAFRAICHISSEMENT);
+  const jeton = await lireSecret(CLE_RAFRAICHISSEMENT);
   jetonAcces = null;
-  await SecureStore.deleteItemAsync(CLE_RAFRAICHISSEMENT);
+  await effacerSecret(CLE_RAFRAICHISSEMENT);
   if (jeton) {
     await fetch(`${API_URL}/auth/deconnexion`, {
       method: 'POST',
@@ -49,7 +46,7 @@ export async function fermerSession() {
 
 /** Reprend la session enregistrée (au lancement) ; null si elle a expiré. */
 export async function reprendreSession(): Promise<Session | null> {
-  const jeton = await SecureStore.getItemAsync(CLE_RAFRAICHISSEMENT);
+  const jeton = await lireSecret(CLE_RAFRAICHISSEMENT);
   if (!jeton) return null;
   const reponse = await fetch(`${API_URL}/auth/rafraichir`, {
     method: 'POST',
@@ -57,7 +54,7 @@ export async function reprendreSession(): Promise<Session | null> {
     body: JSON.stringify({ jetonRafraichissement: jeton }),
   });
   if (reponse.status === 401 || reponse.status === 400) {
-    await SecureStore.deleteItemAsync(CLE_RAFRAICHISSEMENT);
+    await effacerSecret(CLE_RAFRAICHISSEMENT);
     return null;
   }
   if (!reponse.ok) throw new ErreurApi(reponse.status, 'Serveur indisponible.');

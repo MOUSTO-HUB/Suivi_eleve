@@ -1,6 +1,8 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { envoyer } from './api';
 
@@ -45,6 +47,16 @@ export async function inscrirePush(): Promise<void> {
   } catch {
     // Le parent reçoit toujours SMS et email : le push est un complément.
   }
+}
+
+/** Notification push touchée : ouvre la liste des messages. */
+export function useOuvertureDepuisPush() {
+  const reponse = Notifications.useLastNotificationResponse();
+  useEffect(() => {
+    if (!reponse) return;
+    router.navigate('/notifications');
+    void Notifications.clearLastNotificationResponseAsync();
+  }, [reponse]);
 }
 
 export async function desinscrirePush(): Promise<void> {
