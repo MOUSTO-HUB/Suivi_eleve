@@ -306,7 +306,8 @@ describe('Appareils (e2e)', () => {
   describe('signalements', () => {
     const notifications = (type: string) =>
       prisma.notification.count({
-        where: { ecoleId, eleveId: awa, type: type as never },
+        // Les emails envoyés (une ligne APPLICATION accompagne chaque message).
+        where: { ecoleId, eleveId: awa, type: type as never, canal: 'EMAIL' },
       });
 
     it('suit la vie de l’appareil et prévient la famille', async () => {
@@ -326,9 +327,9 @@ describe('Appareils (e2e)', () => {
       expect(trouve.body.statut).toBe('TROUVE');
       expect(await notifications('APPAREIL')).toBe(1);
       const notif = await prisma.notification.findFirstOrThrow({
-        where: { ecoleId, eleveId: awa, type: 'APPAREIL' },
+        where: { ecoleId, eleveId: awa, type: 'APPAREIL', canal: 'EMAIL' },
       });
-      expect(notif).toMatchObject({ canal: 'EMAIL', statut: 'EN_FILE' });
+      expect(notif.statut).toMatch(/EN_FILE|ENVOYEE/);
       expect(notif.contenu).toMatch(
         /téléphone Tecno Spark 20 bleu de Awa a été trouvé.*Cour de récréation/,
       );

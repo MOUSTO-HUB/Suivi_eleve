@@ -182,6 +182,7 @@ enum CanalNotification {
   SMS
   EMAIL
   PUSH
+  APPLICATION // historique consultable par le parent dans l'application
 }
 
 enum PrioriteNotification {
@@ -831,6 +832,7 @@ model ReponseAnnonce {
 
 model Notification {
   id                   String               @id @default(uuid(7))
+  lotId                String               @map("lot_id") // même message : une ligne par canal
   ecoleId              String               @map("ecole_id")
   type                 TypeNotification
   priorite             PrioriteNotification @default(NORMALE)
@@ -848,7 +850,7 @@ model Notification {
   cout                 Int? // FCFA
   sourceType           String?              @map("source_type") // ex. annonce, echeance, comportement
   sourceId             String?              @map("source_id")
-  cleDeduplication     String?              @unique @map("cle_deduplication") // évite les relances en double
+  cleDeduplication     String?              @unique @map("cle_deduplication") // portée par la ligne APPLICATION : évite les doublons
   envoyeeLe            DateTime?            @map("envoyee_le")
   delivreeLe           DateTime?            @map("delivree_le")
   lueLe                DateTime?            @map("lue_le")
@@ -864,6 +866,8 @@ model Notification {
   @@index([statut, priorite])
   @@index([sourceType, sourceId])
   @@index([referenceFournisseur])
+  @@index([lotId])
+  @@index([ecoleId, canal, creeLe])
   @@map("notifications")
 }
 

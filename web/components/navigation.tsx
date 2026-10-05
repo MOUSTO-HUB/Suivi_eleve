@@ -8,13 +8,15 @@ const LIENS = [
   { href: '/tuteurs', libelle: 'Tuteurs' },
   { href: '/classes', libelle: 'Classes' },
   { href: '/appareils', libelle: 'Appareils' },
+  { href: '/notifications', libelle: 'Notifications', gestion: true },
 ];
 
-export function Navigation() {
+/** `gestion` : liens réservés à la direction et au secrétariat. */
+export function Navigation({ gestion }: { gestion: boolean }) {
   const chemin = usePathname();
   return (
     <nav aria-label="Navigation principale" className="flex gap-1">
-      {LIENS.map(({ href, libelle }) => {
+      {LIENS.filter((l) => gestion || !l.gestion).map(({ href, libelle }) => {
         const actif = chemin === href || chemin.startsWith(`${href}/`);
         return (
           <Link

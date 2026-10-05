@@ -12,9 +12,7 @@ import { page, sauter } from '../common/pagination.js';
 import { Prisma } from '../generated/prisma/client.js';
 import {
   ActionAudit,
-  CanalNotification,
   CategorieComportement,
-  PrioriteNotification,
   Role,
   StatutEleve,
   TypeComportement,
@@ -487,36 +485,30 @@ export class AppareilsService {
     };
     const usage = dto.type === TypeIncidentAppareil.USAGE_EN_CLASSE;
 
-    await this.notifications.notifierTuteurs({
+    // Canaux et priorité : ceux du type (cahier des charges, tableau des notifications).
+    await this.notifications.notifier({
       ecoleId: u.ecoleId,
-      eleveId: appareil.eleve.id,
       type: usage ? TypeNotification.USAGE_APPAREIL : TypeNotification.APPAREIL,
-      sujet: usage
-        ? `Usage d'un appareil en classe – ${appareil.eleve.prenoms}`
-        : `Appareil de ${appareil.eleve.prenoms}`,
-      message: [messages[dto.type], precisions].filter(Boolean).join(' '),
-      canaux: [CanalNotification.EMAIL, CanalNotification.PUSH],
+      cible: { eleveIds: [appareil.eleve.id] },
+      variables: {
+        details: [messages[dto.type], precisions].filter(Boolean).join(' '),
+      },
       sourceType: 'appareil',
       sourceId: appareil.id,
+      creePar: u.id,
     });
 
     if (comportementCree) {
-      const message = `${appareil.eleve.prenoms} a utilisé un appareil en classe sans autorisation ${this.seuilUsage} fois ce mois-ci. Un comportement a été inscrit à son dossier.`;
-      await this.notifications.notifierTuteurs({
+      await this.notifications.notifier({
         ecoleId: u.ecoleId,
-        eleveId: appareil.eleve.id,
         type: TypeNotification.COMPORTEMENT,
-        priorite: PrioriteNotification.HAUTE,
-        sujet: `Comportement – ${appareil.eleve.prenoms}`,
-        message,
-        messageSms: `Suivi_eleve : ${appareil.eleve.prenoms} a utilisé un appareil en classe ${this.seuilUsage} fois ce mois-ci. Comportement inscrit au dossier.`,
-        canaux: [
-          CanalNotification.SMS,
-          CanalNotification.EMAIL,
-          CanalNotification.PUSH,
-        ],
+        cible: { eleveIds: [appareil.eleve.id] },
+        variables: {
+          details: `${appareil.eleve.prenoms} a utilisé un appareil en classe sans autorisation ${this.seuilUsage} fois ce mois-ci. Un comportement a été inscrit à son dossier.`,
+        },
         sourceType: 'appareil',
         sourceId: appareil.id,
+        creePar: u.id,
       });
     }
   }

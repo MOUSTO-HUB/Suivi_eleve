@@ -75,6 +75,19 @@ Les deux renvoient un jeton d'accès (15 minutes, à passer dans `Authorization:
 
 ## État du projet
 
-Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 en cours : appareils des élèves avec étiquettes QR et signalements (prompt 5). Prochaine étape : moteur de notifications SMS, email et push (prompt 6).
+Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 en cours : appareils des élèves (prompt 5) et moteur de notifications SMS, email et push (prompt 6). Prochaine étape : absence de cours et libération anticipée (prompt 7).
 
-Les notifications aux parents (appareil trouvé, confisqué, usage en classe…) sont déjà enregistrées en file d'attente (table `notifications`, statut `EN_FILE`) ; leur envoi réel arrive avec le prompt 6.
+## Notifications
+
+Le moteur envoie les messages par file d'attente (Redis + BullMQ) : 3 essais avec délai croissant, bascule sur le fournisseur SMS de secours puis sur Contact_tuteur_2, journal de chaque envoi. En développement, `SMS_FOURNISSEUR=console` (et `EMAIL_FOURNISSEUR`, `PUSH_FOURNISSEUR`) écrit les messages dans les logs de l'API au lieu de les envoyer.
+
+Pour envoyer de vrais messages, renseigner dans `.env` :
+
+| Canal         | Fournisseur              | Variables                                                                                               |
+| ------------- | ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| SMS           | Orange SMS API           | `SMS_FOURNISSEUR=orange`, `ORANGE_CLIENT_ID`, `ORANGE_CLIENT_SECRET`, `ORANGE_NUMERO_EXPEDITEUR`        |
+| SMS (secours) | Twilio                   | `SMS_FOURNISSEUR_SECOURS=twilio`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_NUMERO_EXPEDITEUR` |
+| Email         | Brevo                    | `EMAIL_FOURNISSEUR=brevo`, `BREVO_API_KEY`, `EMAIL_EXPEDITEUR`                                          |
+| Push          | Firebase Cloud Messaging | `PUSH_FOURNISSEUR=fcm`, `FCM_PROJET_ID`, `FCM_EMAIL_COMPTE_SERVICE`, `FCM_CLE_PRIVEE`                   |
+
+Accusés de livraison : renseigner `API_URL_PUBLIQUE` et `WEBHOOK_SECRET`. Les adresses de rappel sont alors envoyées automatiquement à Orange et à Twilio ; chez Brevo, déclarer le webhook `<API_URL_PUBLIQUE>/notifications/webhooks/brevo?jeton=<WEBHOOK_SECRET>`.

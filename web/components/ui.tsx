@@ -48,6 +48,12 @@ export function Liste(props: ComponentProps<'select'>) {
   return <select {...props} className={`${champ} ${props.className ?? ''}`} />;
 }
 
+export function Zone(props: ComponentProps<'textarea'>) {
+  return (
+    <textarea {...props} className={`${champ} ${props.className ?? ''}`} />
+  );
+}
+
 export function Alerte({
   type = 'erreur',
   children,

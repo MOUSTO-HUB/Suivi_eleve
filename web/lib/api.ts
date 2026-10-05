@@ -47,8 +47,14 @@ export async function appelApi(
   return reponse;
 }
 
+/** Lecture pour une page : un accès refusé par l'API mène à une page explicative. */
 export async function lireApi<T>(chemin: string): Promise<T> {
-  return (await appelApi(chemin)).json() as Promise<T>;
+  try {
+    return (await (await appelApi(chemin)).json()) as T;
+  } catch (e) {
+    if (e instanceof ErreurApi && e.statut === 403) redirect('/acces-refuse');
+    throw e;
+  }
 }
 
 /** Variante pour les pages : une ressource absente donne null (puis notFound()). */
@@ -65,7 +71,7 @@ export async function lireApiOuNull<T>(chemin: string): Promise<T | null> {
 
 export async function envoyerApi<T>(
   chemin: string,
-  methode: 'POST' | 'PATCH' | 'DELETE',
+  methode: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   corps?: unknown,
 ): Promise<T> {
   const reponse = await appelApi(chemin, {

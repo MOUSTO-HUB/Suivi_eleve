@@ -259,3 +259,97 @@ export const designationAppareil = (a: Appareil) =>
   [LIBELLES_TYPE_APPAREIL[a.type], a.marque, a.modele, a.couleur]
     .filter(Boolean)
     .join(' ');
+
+// --- Notifications ---
+
+export type TypeNotification =
+  | 'LIBERATION_ANTICIPEE'
+  | 'PAS_DE_COURS'
+  | 'COMPORTEMENT'
+  | 'RAPPEL_PAIEMENT'
+  | 'RETARD_PAIEMENT'
+  | 'RECU_PAIEMENT'
+  | 'RESULTATS'
+  | 'DECISION_FIN_ANNEE'
+  | 'EVENEMENT'
+  | 'USAGE_APPAREIL'
+  | 'APPAREIL';
+export type CanalNotification = 'SMS' | 'EMAIL' | 'PUSH' | 'APPLICATION';
+export type StatutNotification =
+  'EN_FILE' | 'ENVOYEE' | 'DELIVREE' | 'ECHOUEE' | 'LUE';
+
+export interface NotificationJournal {
+  id: string;
+  lotId: string;
+  type: TypeNotification;
+  canal: CanalNotification;
+  priorite: 'URGENTE' | 'HAUTE' | 'NORMALE' | 'BASSE';
+  statut: StatutNotification;
+  destinataire: string;
+  sujet: string | null;
+  contenu: string;
+  essais: number;
+  erreur: string | null;
+  fournisseur: string | null;
+  cout: number | null;
+  creeLe: string;
+  envoyeeLe: string | null;
+  delivreeLe: string | null;
+  tuteur: { id: string; prenoms: string; nom: string };
+  eleve: { id: string; prenoms: string; nom: string } | null;
+}
+
+export interface StatistiquesNotifications {
+  mois: string;
+  parCanal: Partial<
+    Record<CanalNotification, Partial<Record<StatutNotification, number>>>
+  >;
+  sms: { envoyes: number; cout: number; plafond: number | null };
+}
+
+export interface ModeleCanal {
+  canal: 'SMS' | 'EMAIL' | 'PUSH';
+  personnalise: boolean;
+  sujet: string | null;
+  contenu: string;
+  variables: string[];
+  apercu: string;
+  apercuSujet: string | null;
+}
+
+export interface ModeleType {
+  type: TypeNotification;
+  obligatoire: boolean;
+  canauxParDefaut: CanalNotification[];
+  canaux: ModeleCanal[];
+}
+
+export const LIBELLES_TYPE_NOTIFICATION: Record<TypeNotification, string> = {
+  LIBERATION_ANTICIPEE: 'Libération anticipée',
+  PAS_DE_COURS: 'Pas de cours',
+  COMPORTEMENT: 'Comportement',
+  RAPPEL_PAIEMENT: 'Rappel de paiement',
+  RETARD_PAIEMENT: 'Retard de paiement',
+  RECU_PAIEMENT: 'Reçu de paiement',
+  RESULTATS: 'Résultats',
+  DECISION_FIN_ANNEE: "Décision de fin d'année",
+  EVENEMENT: 'Événement',
+  USAGE_APPAREIL: "Usage d'appareil en classe",
+  APPAREIL: 'Appareil',
+};
+
+export const LIBELLES_CANAL: Record<CanalNotification, string> = {
+  SMS: 'SMS',
+  EMAIL: 'Email',
+  PUSH: 'Push',
+  APPLICATION: 'Application',
+};
+
+export const LIBELLES_STATUT_NOTIFICATION: Record<StatutNotification, string> =
+  {
+    EN_FILE: 'En file',
+    ENVOYEE: 'Envoyée',
+    DELIVREE: 'Délivrée',
+    ECHOUEE: 'Échouée',
+    LUE: 'Lue',
+  };
