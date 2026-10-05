@@ -1,0 +1,39 @@
+import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
+import { SmsModule } from '../sms/sms.module.js';
+import { AuthController } from './auth.controller.js';
+import { AuthService } from './auth.service.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { ParentOwnsEleveGuard } from './guards/parent-owns-eleve.guard.js';
+import { RolesGuard } from './guards/roles.guard.js';
+import { OtpService } from './otp.service.js';
+
+@Module({
+  imports: [
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const secret = config.getOrThrow<string>('JWT_SECRET');
+        if (secret.length < 32) {
+          throw new Error('JWT_SECRET doit contenir au moins 32 caractères.');
+        }
+        return { secret, signOptions: { expiresIn: '15m' } };
+      },
+    }),
+    SmsModule,
+  ],
+  controllers: [AuthController],
+  providers: [
+    AuthService,
+    OtpService,
+    ParentOwnsEleveGuard,
+    // Ordre d'exécution : authentification, puis rôles.
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
+  exports: [ParentOwnsEleveGuard],
+})
+export class AuthModule {}

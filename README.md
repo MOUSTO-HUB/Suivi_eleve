@@ -50,19 +50,29 @@ Arrêter la base : `pnpm db:down`.
 
 ## Commandes utiles
 
-| Commande          | Rôle                                |
-| ----------------- | ----------------------------------- |
-| `pnpm lint`       | Lint de toutes les applications     |
-| `pnpm typecheck`  | Vérification des types              |
-| `pnpm test`       | Tests unitaires de l'API            |
-| `pnpm build`      | Build de l'API et du web            |
-| `pnpm format`     | Formatage Prettier                  |
-| `pnpm db:migrate` | Crée et applique les migrations     |
-| `pnpm db:seed`    | Données de test (relançable)        |
-| `pnpm db:studio`  | Explorer la base dans le navigateur |
+| Commande                                  | Rôle                                  |
+| ----------------------------------------- | ------------------------------------- |
+| `pnpm lint`                               | Lint de toutes les applications       |
+| `pnpm typecheck`                          | Vérification des types                |
+| `pnpm test`                               | Tests unitaires de l'API              |
+| `pnpm --filter @suivi-eleve/api test:e2e` | Tests de bout en bout (base démarrée) |
+| `pnpm build`                              | Build de l'API et du web              |
+| `pnpm format`                             | Formatage Prettier                    |
+| `pnpm db:migrate`                         | Crée et applique les migrations       |
+| `pnpm db:seed`                            | Données de test (relançable)          |
+| `pnpm db:studio`                          | Explorer la base dans le navigateur   |
 
 Le schéma de données est dans [`api/prisma/schema.prisma`](api/prisma/schema.prisma). Les données de test créent une école, l'année 2026-2027 (3 trimestres), 6 comptes du personnel, 2 classes, 20 élèves, 25 tuteurs et 10 appareils.
 
+## Se connecter en développement
+
+| Qui       | Route                                                               | Identifiants de test                                                                                                                                                         |
+| --------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Personnel | `POST /api/auth/connexion`                                          | `direction@ecole-pilote.sn`, `secretariat@…`, `comptabilite@…`, `surveillant@…`, `prof.diop@…`, `prof.ba@…` ; mot de passe `SEED_MOT_DE_PASSE` (`Suivi-Dev-2026` par défaut) |
+| Parent    | `POST /api/auth/otp/demande` puis `POST /api/auth/otp/verification` | un numéro de tuteur, ex. `+221771000036` ; avec `SMS_FOURNISSEUR=console`, le code s'affiche dans les logs de l'API                                                          |
+
+Les deux renvoient un jeton d'accès (15 minutes, à passer dans `Authorization: Bearer …`) et un jeton de rafraîchissement (30 jours, `POST /api/auth/rafraichir`). `GET /api/auth/moi` renvoie l'utilisateur connecté.
+
 ## État du projet
 
-Lot 1 en cours : socle du monorepo (prompt 1) et schéma de base de données (prompt 2) en place. Prochaine étape : authentification et rôles (prompt 3).
+Lot 1 en cours : socle du monorepo (prompt 1), schéma de base de données (prompt 2) et authentification (prompt 3) en place. Prochaine étape : gestion des élèves et tuteurs (prompt 4).

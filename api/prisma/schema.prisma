@@ -257,20 +257,55 @@ model Utilisateur {
   modifieLe         DateTime  @updatedAt @map("modifie_le")
   creePar           String?   @map("cree_par")
 
-  ecole                 Ecole              @relation(fields: [ecoleId], references: [id])
-  tuteur                Tuteur?
-  classesPrincipales    Classe[]           @relation("EnseignantPrincipal")
-  evaluations           Evaluation[]
-  comportementsSignales Comportement[]     @relation("ComportementAuteur")
-  comportementsValides  Comportement[]     @relation("ComportementValidateur")
-  incidentsAppareil     IncidentAppareil[]
-  paiementsRecus        Paiement[]
-  annonces              Annonce[]
-  jetonsPush            JetonPush[]
-  journalAudit          JournalAudit[]
+  ecole                  Ecole                   @relation(fields: [ecoleId], references: [id])
+  tuteur                 Tuteur?
+  classesPrincipales     Classe[]                @relation("EnseignantPrincipal")
+  evaluations            Evaluation[]
+  comportementsSignales  Comportement[]          @relation("ComportementAuteur")
+  comportementsValides   Comportement[]          @relation("ComportementValidateur")
+  incidentsAppareil      IncidentAppareil[]
+  paiementsRecus         Paiement[]
+  annonces               Annonce[]
+  jetonsPush             JetonPush[]
+  jetonsRafraichissement JetonRafraichissement[]
+  journalAudit           JournalAudit[]
 
   @@index([ecoleId, role])
   @@map("utilisateurs")
+}
+
+// Jeton de rafraîchissement opaque (30 jours) : seule son empreinte SHA-256 est stockée.
+// Chaque rafraîchissement le remplace ; la réutilisation d’un jeton révoqué ferme toutes les sessions de l’utilisateur.
+model JetonRafraichissement {
+  id            String    @id @default(uuid(7))
+  utilisateurId String    @map("utilisateur_id")
+  jetonHash     String    @unique @map("jeton_hash")
+  expireLe      DateTime  @map("expire_le")
+  revoqueLe     DateTime? @map("revoque_le")
+  creeLe        DateTime  @default(now()) @map("cree_le")
+  modifieLe     DateTime  @updatedAt @map("modifie_le")
+  creePar       String?   @map("cree_par")
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@index([utilisateurId])
+  @@map("jetons_rafraichissement")
+}
+
+// Code de connexion à 6 chiffres envoyé par SMS aux parents : valide 5 minutes, 3 essais.
+model CodeOtp {
+  id         String    @id @default(uuid(7))
+  telephone  String // E.164
+  codeHash   String    @map("code_hash") // argon2
+  expireLe   DateTime  @map("expire_le")
+  essais     Int       @default(0)
+  consommeLe DateTime? @map("consomme_le") // utilisé, épuisé ou remplacé
+  creeLe     DateTime  @default(now()) @map("cree_le")
+  modifieLe  DateTime  @updatedAt @map("modifie_le")
+  creePar    String?   @map("cree_par")
+
+  @@index([telephone, creeLe])
+  @@map("codes_otp")
 }
 
 model JetonPush {

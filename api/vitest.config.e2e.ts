@@ -7,11 +7,14 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    // Valeurs par défaut = docker-compose ; un .env ou l'environnement les remplace.
     env: {
-      // Valeur par défaut = base du docker-compose ; un .env la remplace.
       DATABASE_URL:
         process.env.DATABASE_URL ??
         'postgresql://suivi:suivi_dev@localhost:5432/suivi_eleve?schema=public',
+      JWT_SECRET:
+        process.env.JWT_SECRET ??
+        'secret-e2e-uniquement-pour-les-tests-0123456789',
     },
   },
 });

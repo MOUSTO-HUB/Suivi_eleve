@@ -16,6 +16,7 @@ Spécifications : `docs/CAHIER_DES_CHARGES.md` · Étapes de développement : `d
 
 - API : NestJS 12 en modules ES (imports locaux suffixés `.js`), lint oxlint, tests Vitest (`*.spec.ts`, e2e dans `api/test`). Routes sous le préfixe `/api`.
 - Base : Prisma 7 (`api/prisma/schema.prisma`, config `api/prisma7.config.ts`). Client généré dans `api/src/generated/prisma` (non versionné, `pnpm db:generate`), importé depuis `../generated/prisma/client.js` ; connexion via `PrismaService` (adaptateur `@prisma/adapter-pg`). Modifier le schéma puis `pnpm db:migrate` ; ne jamais éditer une migration déjà poussée.
+- Authentification (`api/src/auth`) : toutes les routes exigent un jeton, sauf celles marquées `@Public()`. Restreindre par rôle avec `@Roles(Role.X)`. Toute route qui prend un id d'élève porte `@UseGuards(ParentOwnsEleveGuard)` (+ `@ParamEleve('id')` si le paramètre ne s'appelle pas `eleveId`). Utilisateur courant : `@UtilisateurCourant()`. Le personnel doit toujours être filtré par `utilisateur.ecoleId`.
 - Web : Next.js 16 (App Router), lint ESLint, port 3001.
 - Mobile : Expo SDK 57 ; ajouter une dépendance avec `npx expo install`, jamais `pnpm add`.
 - Prettier commun à la racine (guillemets simples).

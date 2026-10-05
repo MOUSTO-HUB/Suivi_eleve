@@ -1,6 +1,7 @@
 // Données fictives de développement : 1 école, 2 classes, 20 élèves, 25 tuteurs, 10 appareils.
 // Le script est idempotent (upsert sur des clés uniques) : il peut être relancé sans doublons.
 import { config } from 'dotenv';
+import { hash } from '@node-rs/argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 import {
   Genre,
@@ -162,7 +163,10 @@ async function main() {
     });
   }
 
-  // Personnel (sans mot de passe : l'authentification arrive au prompt 3).
+  // Personnel : tous les comptes reçoivent le mot de passe SEED_MOT_DE_PASSE.
+  const motDePasseHash = await hash(
+    process.env.SEED_MOT_DE_PASSE ?? 'Suivi-Dev-2026',
+  );
   const personnel = [
     {
       email: 'direction@ecole-pilote.sn',
@@ -205,8 +209,8 @@ async function main() {
   for (const p of personnel) {
     const u = await prisma.utilisateur.upsert({
       where: { email: p.email },
-      update: {},
-      create: { ...p, ecoleId: ecole.id },
+      update: { motDePasseHash },
+      create: { ...p, ecoleId: ecole.id, motDePasseHash },
     });
     utilisateurs.set(p.email, u.id);
   }
