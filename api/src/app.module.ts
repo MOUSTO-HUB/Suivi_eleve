@@ -9,8 +9,10 @@ import { AuditModule } from './audit/audit.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ClassesModule } from './classes/classes.module.js';
 import { ElevesModule } from './eleves/eleves.module.js';
+import { MatieresModule } from './matieres/matieres.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { ResultatsModule } from './resultats/resultats.module.js';
 import { StockageModule } from './stockage/stockage.module.js';
 import { TuteursModule } from './tuteurs/tuteurs.module.js';
 
@@ -29,6 +31,8 @@ import { TuteursModule } from './tuteurs/tuteurs.module.js';
     AppareilsModule,
     AnnoncesModule,
     AbsencesModule,
+    MatieresModule,
+    ResultatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

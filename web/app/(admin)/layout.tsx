@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Navigation } from '@/components/navigation';
 import { styles } from '@/components/ui';
 import { profilCourant } from '@/lib/profil';
-import { LIBELLES_ROLE, peutGerer } from '@/lib/types';
+import { LIBELLES_ROLE } from '@/lib/types';
 import { seDeconnecter } from '../connexion/actions';
 
 export default async function LayoutAdmin({ children }: LayoutProps<'/'>) {
@@ -18,7 +18,7 @@ export default async function LayoutAdmin({ children }: LayoutProps<'/'>) {
             >
               Suivi_eleve
             </Link>
-            <Navigation gestion={peutGerer(profil.role)} />
+            <Navigation role={profil.role} />
           </div>
           <div className="flex items-center gap-3 text-sm">
             <span className="text-zinc-600 dark:text-zinc-400">

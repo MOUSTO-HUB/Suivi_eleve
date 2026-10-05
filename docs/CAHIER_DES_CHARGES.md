@@ -70,8 +70,8 @@ Le système couvre huit modules ; chaque exigence porte un identifiant (EF-xx) r
 
 ### 3.5 Résultats et admission
 
-- **EF-40** Saisir les notes par matière, devoir, composition et période (trimestre ou semestre), avec coefficients.
-- **EF-41** Calculer moyennes, rang et appréciation ; générer le bulletin PDF.
+- **EF-40** Chaque professeur saisit, pour sa matière et sa classe, la moyenne de chaque élève par période (sur 20) et une appréciation. Les professeurs de chaque matière sont désignés par la direction (révisé le 05/10/2026 : aucune note de devoir n'est saisie).
+- **EF-41** Le professeur principal (ou la direction) saisit la moyenne générale, le rang et l'appréciation générale. L'application ne calcule aucune moyenne ni aucun rang ; elle génère le bulletin PDF à partir des saisies.
 - **EF-42** Publier les résultats après validation de la direction ; notifier les parents (moyenne et lien vers le bulletin, jamais le détail par SMS).
 - **EF-43** Enregistrer la décision de fin d'année (admis, redouble, exclu, orienté) et la notifier.
 
@@ -136,7 +136,8 @@ Quinze entités suffisent à la version 1 ; l'élève est au centre, relié à s
 | AnneeScolaire | id, libelle (2026-2027), date_debut, date_fin, active | N classes, N périodes |
 | Appareil | id, eleve_id, type, marque, modele, couleur, numero_serie, imei, signes_distinctifs, photo_url, qr_code, statut | 1 élève ; N incidents |
 | IncidentAppareil | id, appareil_id, type (perdu, trouvé, confisqué, restitué, usage en classe), date_heure, lieu, auteur_id, commentaire | 1 appareil |
-| Matiere / Evaluation / Note | matiere : nom, coefficient ; evaluation : type, date, periode ; note : eleve_id, evaluation_id, valeur, appreciation | N notes par élève |
+| Matiere / Enseignement | matiere : nom, coefficient (affiché sur le bulletin) ; enseignement : classe_id, matiere_id, enseignant_id | qui saisit quelle moyenne |
+| MoyenneMatiere | eleve_id, periode_id, matiere_id, moyenne (saisie), appreciation, saisie_par | N par élève et période |
 | Resultat | eleve_id, periode, moyenne, rang, decision, bulletin_url, publie | 1 élève |
 | Comportement | id, eleve_id, type (positif/négatif), categorie, gravite, description, sanction, auteur_id, valide_par, date | 1 élève |
 | Frais / Echeance | frais : classe_id, type, montant ; echeance : eleve_id, mois, montant_du, date_limite, statut (payé, partiel, en retard) | 1 élève |

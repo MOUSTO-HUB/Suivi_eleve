@@ -245,6 +245,44 @@ async function main() {
     );
   }
 
+  // Matières et professeurs : chacun saisit les moyennes de ses matières.
+  const matieres: [string, number][] = [
+    ['Mathématiques', 4],
+    ['Français', 4],
+    ['Anglais', 2],
+    ['Histoire-Géographie', 2],
+    ['Sciences de la vie et de la Terre', 2],
+    ['Éducation physique et sportive', 1],
+  ];
+  const profs: Record<string, string | undefined> = {
+    Mathématiques: utilisateurs.get('prof.diop@ecole-pilote.sn'),
+    'Sciences de la vie et de la Terre': utilisateurs.get(
+      'prof.diop@ecole-pilote.sn',
+    ),
+    Français: utilisateurs.get('prof.ba@ecole-pilote.sn'),
+    'Histoire-Géographie': utilisateurs.get('prof.ba@ecole-pilote.sn'),
+  };
+  for (const [nom, coefficient] of matieres) {
+    const matiere = await prisma.matiere.upsert({
+      where: { ecoleId_nom: { ecoleId: ecole.id, nom } },
+      update: {},
+      create: { ecoleId: ecole.id, nom, coefficient },
+    });
+    for (const classe of classes) {
+      await prisma.enseignement.upsert({
+        where: {
+          classeId_matiereId: { classeId: classe.id, matiereId: matiere.id },
+        },
+        update: {},
+        create: {
+          classeId: classe.id,
+          matiereId: matiere.id,
+          enseignantId: profs[nom],
+        },
+      });
+    }
+  }
+
   // 25 tuteurs.
   const tuteurs = [];
   for (let i = 0; i < 25; i++) {

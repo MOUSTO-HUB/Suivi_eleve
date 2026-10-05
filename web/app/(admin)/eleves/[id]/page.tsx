@@ -19,6 +19,8 @@ import {
   dateFr,
   designationAppareil,
   LIBELLES_LIEN,
+  noteFr,
+  type ResultatsEleve,
   type Absence,
   type Appareil,
   type Classe,
@@ -61,12 +63,13 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
     peutGererDossiers(),
   ]);
   if (!eleve) notFound();
-  const [classes, appareils, absences] = await Promise.all([
+  const [classes, appareils, absences, resultats] = await Promise.all([
     gestion ? lireApi<Classe[]>('/classes') : Promise.resolve([]),
     lireApi<Page<Appareil>>(`/appareils?eleveId=${eleve.id}&parPage=100`),
     lireApi<Page<Absence> & { nonJustifiees: number }>(
       `/absences?eleveId=${eleve.id}&parPage=5`,
     ),
+    lireApi<ResultatsEleve>(`/resultats/eleves/${eleve.id}`),
   ]);
   const archive = eleve.statut === 'ARCHIVE';
 
@@ -218,6 +221,55 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
         </div>
 
         <div className="flex flex-col gap-6">
+          <Carte titre="Résultats">
+            {resultats.periodes.length === 0 ? (
+              <p className="text-sm text-zinc-500">
+                Aucune période pour cette classe.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-2 text-sm">
+                {resultats.periodes.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span>
+                      <span className="font-medium">{p.libelle}</span>
+                      {p.resultat?.moyenne != null && (
+                        <span className="text-zinc-600 dark:text-zinc-400">
+                          {' '}
+                          · {noteFr(p.resultat.moyenne)}/20
+                          {p.resultat.rang
+                            ? ` · ${p.resultat.rang}/${resultats.effectif}`
+                            : ''}
+                        </span>
+                      )}
+                    </span>
+                    {p.resultat ? (
+                      <a
+                        className={styles.lien}
+                        href={`/telechargements/bulletin/${eleve.id}/${p.id}`}
+                      >
+                        Bulletin{p.publie ? '' : ' (provisoire)'}
+                      </a>
+                    ) : (
+                      <span className="text-xs text-zinc-500">non saisi</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {resultats.decision && (
+              <p className="mt-3 text-sm">
+                Décision :{' '}
+                <span className="font-medium">
+                  {resultats.decision.libelle}
+                </span>
+                {!resultats.decision.publie && ' (non publiée)'}
+              </p>
+            )}
+          </Carte>
+
           <Carte titre="Absences">
             <p className="text-sm">
               {absences.total} absence(s), dont{' '}

@@ -272,6 +272,8 @@ model Utilisateur {
   jetonsRafraichissement JetonRafraichissement[]
   absencesSignalees      Absence[]               @relation("AbsenceSignaleur")
   absencesJustifiees     Absence[]               @relation("AbsenceJustificateur")
+  enseignements          Enseignement[]
+  moyennesSaisies        MoyenneMatiere[]
   journalAudit           JournalAudit[]
 
   @@index([ecoleId, role])
@@ -362,9 +364,10 @@ model Periode {
   modifieLe       DateTime @updatedAt @map("modifie_le")
   creePar         String?  @map("cree_par")
 
-  anneeScolaire AnneeScolaire @relation(fields: [anneeScolaireId], references: [id], onDelete: Cascade)
+  anneeScolaire AnneeScolaire    @relation(fields: [anneeScolaireId], references: [id], onDelete: Cascade)
   evaluations   Evaluation[]
   resultats     Resultat[]
+  moyennes      MoyenneMatiere[]
 
   @@unique([anneeScolaireId, ordre])
   @@map("periodes")
@@ -389,6 +392,7 @@ model Classe {
   evaluations         Evaluation[]
   frais               Frais[]
   annonces            AnnonceClasse[]
+  enseignements       Enseignement[]
 
   @@unique([anneeScolaireId, nom])
   @@index([ecoleId])
@@ -428,6 +432,7 @@ model Eleve {
   reponsesAnnonce  ReponseAnnonce[]
   notifications    Notification[]
   absences         Absence[]
+  moyennesMatieres MoyenneMatiere[]
 
   @@index([ecoleId, statut])
   @@index([classeId])
@@ -556,11 +561,55 @@ model Matiere {
   modifieLe   DateTime @updatedAt @map("modifie_le")
   creePar     String?  @map("cree_par")
 
-  ecole       Ecole        @relation(fields: [ecoleId], references: [id])
-  evaluations Evaluation[]
+  ecole         Ecole            @relation(fields: [ecoleId], references: [id])
+  evaluations   Evaluation[]
+  enseignements Enseignement[]
+  moyennes      MoyenneMatiere[]
 
   @@unique([ecoleId, nom])
   @@map("matieres")
+}
+
+// Qui enseigne quelle matière dans quelle classe : définit qui saisit quelle moyenne.
+model Enseignement {
+  id           String   @id @default(uuid(7))
+  classeId     String   @map("classe_id")
+  matiereId    String   @map("matiere_id")
+  enseignantId String?  @map("enseignant_id")
+  creeLe       DateTime @default(now()) @map("cree_le")
+  modifieLe    DateTime @updatedAt @map("modifie_le")
+  creePar      String?  @map("cree_par")
+
+  classe     Classe       @relation(fields: [classeId], references: [id], onDelete: Cascade)
+  matiere    Matiere      @relation(fields: [matiereId], references: [id])
+  enseignant Utilisateur? @relation(fields: [enseignantId], references: [id], onDelete: SetNull)
+
+  @@unique([classeId, matiereId])
+  @@index([enseignantId])
+  @@map("enseignements")
+}
+
+// Moyenne d'une matière pour une période, saisie par le professeur (aucun calcul).
+model MoyenneMatiere {
+  id           String   @id @default(uuid(7))
+  eleveId      String   @map("eleve_id")
+  periodeId    String   @map("periode_id")
+  matiereId    String   @map("matiere_id")
+  moyenne      Decimal? @db.Decimal(5, 2) // sur 20 ; null = non noté
+  appreciation String?
+  saisieParId  String?  @map("saisie_par_id")
+  creeLe       DateTime @default(now()) @map("cree_le")
+  modifieLe    DateTime @updatedAt @map("modifie_le")
+  creePar      String?  @map("cree_par")
+
+  eleve     Eleve        @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  periode   Periode      @relation(fields: [periodeId], references: [id])
+  matiere   Matiere      @relation(fields: [matiereId], references: [id])
+  saisiePar Utilisateur? @relation(fields: [saisieParId], references: [id], onDelete: SetNull)
+
+  @@unique([eleveId, periodeId, matiereId])
+  @@index([periodeId, matiereId])
+  @@map("moyennes_matieres")
 }
 
 model Evaluation {

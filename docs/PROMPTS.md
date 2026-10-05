@@ -61,7 +61,7 @@ Ajoute aussi les absences des élèves : appel d'une classe (date, créneau, mat
 ## Prompt 8 — Résultats et admission
 
 ```text
-Crée les modules Matieres, Evaluations, Notes et Resultats : saisie des notes par classe en grille (type tableur), coefficients, calcul des moyennes par matière et générale, rang, appréciation automatique selon des seuils paramétrables. Génère le bulletin PDF par élève. Les résultats restent en brouillon jusqu'à validation par l'ADMIN ; à la publication, notifier les parents (SMS : moyenne + rang ; email/app : bulletin). Ajoute la décision de fin d'année (ADMIS, REDOUBLE, EXCLU, ORIENTE). Teste le calcul des moyennes.
+Crée les modules Matieres et Resultats, sans aucun calcul de note : la direction désigne le professeur de chaque matière dans chaque classe ; chaque professeur saisit pour sa matière la moyenne de chaque élève par période (/20) et une appréciation ; le professeur principal (ou la direction) saisit la moyenne générale, le rang et l'appréciation générale. Génère le bulletin PDF par élève à partir des saisies. Les résultats restent en brouillon jusqu'à publication par l'ADMIN (saisie des professeurs verrouillée ensuite) ; à la publication, notifier les parents (SMS : moyenne + rang ; email/app : bulletin). Ajoute la décision de fin d'année (ADMIS, REDOUBLE, EXCLU, ORIENTE), saisie puis publiée.
 ```
 
 ## Prompt 9 — Comportements marquants

@@ -462,3 +462,127 @@ export const aujourdHui = () =>
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Dakar' }).format(
     new Date(),
   );
+
+// --- Résultats ---
+
+export type DecisionFinAnnee = 'ADMIS' | 'REDOUBLE' | 'EXCLU' | 'ORIENTE';
+
+export interface Periode {
+  id: string;
+  libelle: string;
+  ordre: number;
+}
+
+export interface Matiere {
+  id: string;
+  nom: string;
+  coefficient: number;
+}
+
+export interface Enseignement {
+  matiere: Matiere;
+  enseignant: { id: string; prenoms: string; nom: string } | null;
+}
+
+export interface Personne {
+  id: string;
+  prenoms: string;
+  nom: string;
+  role: Role;
+}
+
+export interface MesSaisies {
+  enseignements: {
+    classe: { id: string; nom: string };
+    matiere: { id: string; nom: string };
+    enseignant: { prenoms: string; nom: string } | null;
+  }[];
+  classesPrincipales: { id: string; nom: string }[];
+}
+
+export interface GrilleSaisie {
+  classe: {
+    id: string;
+    nom: string;
+    enseignantPrincipal: { id: string; prenoms: string; nom: string } | null;
+  };
+  periode: Periode;
+  publie: boolean;
+  publieLe: string | null;
+  peutSaisirGeneral: boolean;
+  peutPublier: boolean;
+  matieres: (Matiere & {
+    enseignant: { id: string; prenoms: string; nom: string } | null;
+    peutSaisir: boolean;
+    saisies: number;
+  })[];
+  eleves: {
+    id: string;
+    matricule: string;
+    prenoms: string;
+    nom: string;
+    moyennes: Record<
+      string,
+      { moyenne: number | null; appreciation: string | null }
+    >;
+    resultat: {
+      moyenne: number | null;
+      rang: number | null;
+      appreciation: string | null;
+    } | null;
+  }[];
+}
+
+export interface Decisions {
+  classe: { id: string; nom: string; anneeScolaire: { libelle: string } };
+  peutSaisir: boolean;
+  peutPublier: boolean;
+  publie: boolean;
+  eleves: {
+    id: string;
+    prenoms: string;
+    nom: string;
+    decision: {
+      decision: DecisionFinAnnee;
+      moyenneAnnuelle: number | null;
+      observation: string | null;
+      publie: boolean;
+    } | null;
+  }[];
+}
+
+export interface ResultatsEleve {
+  effectif: number;
+  periodes: (Periode & {
+    publie: boolean;
+    resultat: {
+      moyenne: number | null;
+      rang: number | null;
+      appreciation: string | null;
+    } | null;
+  })[];
+  decision: { libelle: string; publie: boolean } | null;
+}
+
+export const LIBELLES_DECISION: Record<DecisionFinAnnee, string> = {
+  ADMIS: 'Admis(e)',
+  REDOUBLE: 'Redouble',
+  EXCLU: 'Exclu(e)',
+  ORIENTE: 'Orienté(e)',
+};
+
+/** « 14.5 » → « 14,50 » */
+export const noteFr = (n: number | null | undefined) =>
+  n === null || n === undefined
+    ? '—'
+    : n.toLocaleString('fr-FR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+/** « 14,5 » ou « 14.5 » → 14.5 ; vide → null ; illisible → NaN (refusé par l'API). */
+export const lireNote = (valeur: FormDataEntryValue | null): number | null => {
+  const texte =
+    typeof valeur === 'string' ? valeur.trim().replace(',', '.') : '';
+  return texte === '' ? null : Number(texte);
+};
