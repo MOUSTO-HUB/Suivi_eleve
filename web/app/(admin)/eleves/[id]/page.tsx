@@ -24,6 +24,9 @@ import {
   type Comportement,
   LIBELLES_CATEGORIE,
   peutSignaler,
+  voitPaiements,
+  fcfa,
+  type ListeRappels,
   type Absence,
   type Appareil,
   type Classe,
@@ -67,7 +70,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
     profilCourant(),
   ]);
   if (!eleve) notFound();
-  const [classes, appareils, absences, resultats, comportements] =
+  const [classes, appareils, absences, resultats, comportements, paiements] =
     await Promise.all([
       gestion ? lireApi<Classe[]>('/classes') : Promise.resolve([]),
       lireApi<Page<Appareil>>(`/appareils?eleveId=${eleve.id}&parPage=100`),
@@ -78,6 +81,12 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
       lireApi<Page<Comportement>>(
         `/comportements?eleveId=${eleve.id}&parPage=5`,
       ),
+      // Réservé à la comptabilité, à la direction et au secrétariat.
+      voitPaiements(profil.role)
+        ? lireApi<ListeRappels>(
+            `/rappels-paiement?eleveId=${eleve.id}&statut=EN_COURS`,
+          )
+        : Promise.resolve(null),
     ]);
   const archive = eleve.statut === 'ARCHIVE';
 
@@ -313,6 +322,46 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
               </ul>
             )}
           </Carte>
+
+          {paiements && (
+            <Carte
+              titre="Paiements en attente"
+              actions={
+                <Link className={styles.boutonSecondaire} href="/paiements">
+                  Gérer
+                </Link>
+              }
+            >
+              {paiements.total === 0 ? (
+                <p className="text-sm text-zinc-500">
+                  Aucun paiement en attente.
+                </p>
+              ) : (
+                <ul className="flex flex-col gap-2 text-sm">
+                  {paiements.elements.map((r) => (
+                    <li
+                      key={r.id}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <span>
+                        {r.libelle}
+                        <span className="block font-medium">
+                          {fcfa(r.montant)}
+                        </span>
+                      </span>
+                      {r.joursRetard > 0 ? (
+                        <Badge couleur="orange">
+                          {r.joursRetard} j de retard
+                        </Badge>
+                      ) : (
+                        <Badge>À venir</Badge>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Carte>
+          )}
 
           <Carte titre="Absences">
             <p className="text-sm">

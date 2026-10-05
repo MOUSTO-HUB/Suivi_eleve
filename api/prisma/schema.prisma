@@ -124,6 +124,11 @@ enum MotifReduction {
   AUTRE
 }
 
+enum StatutRappel {
+  EN_COURS
+  REGLE
+}
+
 enum StatutEcheance {
   A_PAYER
   PARTIEL
@@ -274,6 +279,7 @@ model Utilisateur {
   absencesJustifiees     Absence[]               @relation("AbsenceJustificateur")
   enseignements          Enseignement[]
   moyennesSaisies        MoyenneMatiere[]
+  rappelsPaiement        RappelPaiement[]
   journalAudit           JournalAudit[]
 
   @@index([ecoleId, role])
@@ -433,6 +439,7 @@ model Eleve {
   notifications    Notification[]
   absences         Absence[]
   moyennesMatieres MoyenneMatiere[]
+  rappelsPaiement  RappelPaiement[]
 
   @@index([ecoleId, statut])
   @@index([classeId])
@@ -1008,4 +1015,32 @@ model Absence {
   @@unique([eleveId, date, creneau])
   @@index([date])
   @@map("absences")
+}
+
+// ─── Rappels de paiement ─────────────────────────────────────────────────────
+
+// La comptabilité est tenue par l'école dans ses propres outils : l'application
+// prévient seulement la famille d'un paiement en attente (montant et date normale
+// saisis par le comptable ; le retard est calculé chaque jour).
+model RappelPaiement {
+  id             String       @id @default(uuid(7))
+  eleveId        String       @map("eleve_id")
+  libelle        String // ex. « Mensualité d'octobre 2026 »
+  montant        Int // FCFA
+  dateEcheance   DateTime     @map("date_echeance") @db.Date // date de paiement normale
+  statut         StatutRappel @default(EN_COURS)
+  nombreEnvois   Int          @default(0) @map("nombre_envois")
+  dernierEnvoiLe DateTime?    @map("dernier_envoi_le")
+  regleLe        DateTime?    @map("regle_le")
+  auteurId       String?      @map("auteur_id")
+  creeLe         DateTime     @default(now()) @map("cree_le")
+  modifieLe      DateTime     @updatedAt @map("modifie_le")
+  creePar        String?      @map("cree_par")
+
+  eleve  Eleve        @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  auteur Utilisateur? @relation(fields: [auteurId], references: [id], onDelete: SetNull)
+
+  @@index([eleveId, statut])
+  @@index([statut, dateEcheance])
+  @@map("rappels_paiement")
 }

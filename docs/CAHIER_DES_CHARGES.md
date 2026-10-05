@@ -81,13 +81,14 @@ Le système couvre huit modules ; chaque exigence porte un identifiant (EF-xx) r
 - **EF-51** Les cas graves sont validés par la direction avant envoi ; les autres partent directement.
 - **EF-52** Historique consultable par le parent ; convocation possible avec date de rendez-vous.
 
-### 3.7 Paiements mensuels
+### 3.7 Rappels de paiement (révisé le 05/10/2026)
 
-- **EF-60** Définir les frais par classe : inscription, mensualité, échéance (ex. le 5 du mois), réductions (fratrie, bourse).
-- **EF-61** Enregistrer un paiement (montant, mode : espèces, Mobile Money, virement ; référence) et envoyer un reçu au parent.
-- **EF-62** Détecter automatiquement les retards chaque jour et envoyer les relances : rappel 3 jours avant l'échéance, relance J+1, J+7, J+15 (paramétrable).
-- **EF-63** Tableau de bord : encaissé, attendu, impayés par classe et par mois ; export comptable.
-- **EF-64** (Version 2) Paiement en ligne par Mobile Money (Wave, Orange Money) ou carte.
+La comptabilité de l'école est tenue dans ses propres outils ; l'application ne gère ni frais, ni encaissements, ni reçus.
+
+- **EF-60** Le comptable (ou la direction) signale un paiement en attente pour un élève : libellé (ex. « Mensualité d'octobre »), montant en FCFA, date de paiement normale.
+- **EF-61** Le système calcule le retard en jours depuis cette date ; la famille est prévenue aussitôt (rappel avant la date, retard après), avec le total des sommes en attente pour l'élève s'il y en a plusieurs.
+- **EF-62** Le comptable peut relancer (retard recalculé) puis marquer le paiement « réglé » une fois constaté ; plus aucun message ne part ensuite.
+- **EF-63** Liste des paiements en attente avec le retard de chacun et le montant total en attente ; le parent voit les paiements en attente de ses enfants.
 
 ### 3.8 Événements de l'école
 

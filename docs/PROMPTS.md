@@ -70,10 +70,10 @@ Crée les modules Matieres et Resultats, sans aucun calcul de note : la directio
 Crée le module Comportements : signalement positif ou négatif par un enseignant ou la vie scolaire (catégorie, gravité 1 à 3, description, sanction, convocation avec date). Gravité 3 : validation par l'ADMIN avant envoi au parent ; sinon envoi direct. Historique par élève visible par le parent. Formule les messages de façon factuelle et respectueuse.
 ```
 
-## Prompt 10 — Paiements et relances
+## Prompt 10 — Rappels de paiement
 
 ```text
-Crée les modules Frais, Echeances et Paiements : frais par classe (inscription, mensualité), réductions (fratrie, bourse), génération automatique des échéances mensuelles de l'année, enregistrement d'un paiement (espèces, Mobile Money, virement, référence) avec paiement partiel, reçu PDF envoyé au parent. Tâche planifiée quotidienne à 8h : rappel 3 jours avant l'échéance, relances J+1, J+7, J+15 (paramétrables), sans doublon. Tableau de bord COMPTABLE : encaissé, attendu, impayés par classe et par mois, export Excel. Montants en FCFA entiers.
+La comptabilité est tenue par l'école dans ses propres outils : ne crée ni frais, ni encaissements, ni reçus. Crée seulement des rappels de paiement : le COMPTABLE (ou l'ADMIN) choisit un élève et saisit le libellé (ex. « Mensualité d'octobre »), le montant en FCFA et la date de paiement normale ; le système calcule le retard en jours et prévient aussitôt les tuteurs (RAPPEL_PAIEMENT avant la date, RETARD_PAIEMENT après), en indiquant le total en attente si l'élève a plusieurs rappels ouverts. Le comptable peut relancer (retard recalculé) et marquer « réglé ». Liste des paiements en attente avec le retard de chacun et le total ; le parent voit ceux de ses enfants.
 ```
 
 ## Prompt 11 — Événements de l'école

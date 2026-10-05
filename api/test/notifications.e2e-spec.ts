@@ -484,7 +484,7 @@ describe('Moteur de notifications (e2e)', () => {
       .set(avec('secretariat'))
       .send({
         contenu:
-          'École : {montant} FCFA pour {prenom_eleve}, avant le {date_limite}.',
+          'École : {montant} FCFA pour {prenom_eleve}, avant le {date_echeance}.',
       })
       .expect(200);
 
@@ -493,7 +493,7 @@ describe('Moteur de notifications (e2e)', () => {
       ecoleId,
       type: 'RAPPEL_PAIEMENT',
       cible: { eleveIds: [awa] },
-      variables: { montant: '25 000', mois: 'octobre', date_limite: '05/11' },
+      variables: { montant: '25 000', mois: 'octobre', date_echeance: '05/11' },
       sourceId: source,
       cleDeduplication: `rappel-${source}`,
     });

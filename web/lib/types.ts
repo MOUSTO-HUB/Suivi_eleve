@@ -660,3 +660,41 @@ export const LIBELLES_STATUT_VALIDATION: Record<StatutValidation, string> = {
 
 /** Peut signaler un comportement. */
 export const peutSignaler = (role: Role) => peutFaireAppel(role);
+
+// --- Rappels de paiement ---
+
+export interface RappelPaiement {
+  id: string;
+  libelle: string;
+  montant: number;
+  dateEcheance: string;
+  statut: 'EN_COURS' | 'REGLE';
+  joursRetard: number;
+  nombreEnvois: number;
+  dernierEnvoiLe: string | null;
+  regleLe: string | null;
+  eleve: {
+    id: string;
+    prenoms: string;
+    nom: string;
+    matricule: string;
+    classe: { id: string; nom: string } | null;
+  };
+  auteur: { prenoms: string; nom: string } | null;
+}
+
+export interface ListeRappels extends Page<RappelPaiement> {
+  enAttente: { montant: number; eleves: number };
+}
+
+/** Signale et suit les paiements en attente. */
+export const peutRelancerPaiements = (role: Role) =>
+  role === 'COMPTABLE' || role === 'ADMIN';
+
+/** Voit les paiements en attente. */
+export const voitPaiements = (role: Role) =>
+  peutRelancerPaiements(role) || role === 'SECRETARIAT';
+
+/** « 25 000 FCFA » */
+export const fcfa = (montant: number) =>
+  `${montant.toLocaleString('fr-FR')} FCFA`;
