@@ -14,3 +14,4 @@ Thumbs.db
 .idea/
 *.tsbuildinfo
 .pnpm-store/
+api/src/generated/

@@ -17,12 +17,12 @@ Elle gère aussi le dossier de chaque élève et l'enregistrement de ses apparei
 
 ## Structure
 
-| Dossier   | Contenu                          | Technologie                          |
-| --------- | -------------------------------- | ------------------------------------ |
-| `api/`    | API REST                         | NestJS + PostgreSQL (Prisma à venir) |
-| `web/`    | Back-office et espace parents    | Next.js + Tailwind                   |
-| `mobile/` | Application parents et personnel | React Native (Expo)                  |
-| `docs/`   | Cahier des charges et prompts    | Markdown                             |
+| Dossier   | Contenu                          | Technologie                    |
+| --------- | -------------------------------- | ------------------------------ |
+| `api/`    | API REST                         | NestJS + Prisma 7 + PostgreSQL |
+| `web/`    | Back-office et espace parents    | Next.js + Tailwind             |
+| `mobile/` | Application parents et personnel | React Native (Expo)            |
+| `docs/`   | Cahier des charges et prompts    | Markdown                       |
 
 ## Lancer le projet en local
 
@@ -35,8 +35,10 @@ cp .env.example .env
 # 2. Dépendances
 pnpm install
 
-# 3. PostgreSQL et Redis
+# 3. PostgreSQL et Redis, puis tables et données de test
 pnpm db:up
+pnpm db:migrate
+pnpm db:seed
 
 # 4. Applications (un terminal chacune)
 pnpm dev:api      # http://localhost:3000/api/sante
@@ -48,14 +50,19 @@ Arrêter la base : `pnpm db:down`.
 
 ## Commandes utiles
 
-| Commande         | Rôle                            |
-| ---------------- | ------------------------------- |
-| `pnpm lint`      | Lint de toutes les applications |
-| `pnpm typecheck` | Vérification des types          |
-| `pnpm test`      | Tests unitaires de l'API        |
-| `pnpm build`     | Build de l'API et du web        |
-| `pnpm format`    | Formatage Prettier              |
+| Commande          | Rôle                                |
+| ----------------- | ----------------------------------- |
+| `pnpm lint`       | Lint de toutes les applications     |
+| `pnpm typecheck`  | Vérification des types              |
+| `pnpm test`       | Tests unitaires de l'API            |
+| `pnpm build`      | Build de l'API et du web            |
+| `pnpm format`     | Formatage Prettier                  |
+| `pnpm db:migrate` | Crée et applique les migrations     |
+| `pnpm db:seed`    | Données de test (relançable)        |
+| `pnpm db:studio`  | Explorer la base dans le navigateur |
+
+Le schéma de données est dans [`api/prisma/schema.prisma`](api/prisma/schema.prisma). Les données de test créent une école, l'année 2026-2027 (3 trimestres), 6 comptes du personnel, 2 classes, 20 élèves, 25 tuteurs et 10 appareils.
 
 ## État du projet
 
-Lot 1 en cours : socle du monorepo en place (prompt 1). Prochaine étape : schéma de base de données (prompt 2).
+Lot 1 en cours : socle du monorepo (prompt 1) et schéma de base de données (prompt 2) en place. Prochaine étape : authentification et rôles (prompt 3).

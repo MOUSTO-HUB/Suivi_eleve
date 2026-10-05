@@ -7,3 +7,5 @@ pnpm-lock.yaml
 mobile/assets
 docs
 web/next-env.d.ts
+api/src/generated
+api/prisma/migrations

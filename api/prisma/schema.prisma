@@ -1,0 +1,889 @@
+// Schéma de données Suivi_eleve — voir docs/CAHIER_DES_CHARGES.md, section 4.
+//
+// Conventions :
+// - modèles et champs en camelCase côté code, tables et colonnes en snake_case côté SQL ;
+// - chaque table porte cree_le, modifie_le et cree_par (id de l'utilisateur, sans clé étrangère) ;
+// - ecole_id est porté par les entités racines (multi-école futur) ; les entités enfants
+//   (notes, paiements, incidents…) héritent de l'école par leur parent ;
+// - montants en FCFA entiers (Int), notes et coefficients en Decimal.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Énumérations ────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  SECRETARIAT
+  ENSEIGNANT
+  SURVEILLANT
+  COMPTABLE
+  PARENT
+}
+
+enum Genre {
+  MASCULIN
+  FEMININ
+}
+
+enum StatutEleve {
+  ACTIF
+  ARCHIVE
+}
+
+enum LienTuteur {
+  PERE
+  MERE
+  TUTEUR_LEGAL
+  AUTRE
+}
+
+enum Langue {
+  FR
+  WO
+  EN
+}
+
+enum TypeAppareil {
+  TELEPHONE
+  TABLETTE
+  ORDINATEUR
+  AUTRE
+}
+
+enum StatutAppareil {
+  ACTIF
+  PERDU
+  TROUVE
+  CONFISQUE
+  RESTITUE
+}
+
+enum TypeIncidentAppareil {
+  DECLARE_PERDU
+  TROUVE
+  CONFISQUE
+  RESTITUE
+  USAGE_EN_CLASSE
+}
+
+enum TypeEvaluation {
+  INTERROGATION
+  DEVOIR
+  COMPOSITION
+  EXAMEN
+}
+
+enum DecisionFinAnnee {
+  ADMIS
+  REDOUBLE
+  EXCLU
+  ORIENTE
+}
+
+enum TypeComportement {
+  POSITIF
+  NEGATIF
+}
+
+enum CategorieComportement {
+  FELICITATIONS
+  ENCOURAGEMENT
+  RETARD
+  ABSENCE
+  INDISCIPLINE
+  FRAUDE
+  VIOLENCE
+  USAGE_APPAREIL
+  AUTRE
+}
+
+enum StatutValidation {
+  EN_ATTENTE
+  VALIDE
+  REJETE
+}
+
+enum TypeFrais {
+  INSCRIPTION
+  MENSUALITE
+  AUTRE
+}
+
+enum MotifReduction {
+  FRATRIE
+  BOURSE
+  AUTRE
+}
+
+enum StatutEcheance {
+  A_PAYER
+  PARTIEL
+  PAYE
+  EN_RETARD
+}
+
+enum ModePaiement {
+  ESPECES
+  MOBILE_MONEY
+  VIREMENT
+  CHEQUE
+}
+
+enum TypeAnnonce {
+  PAS_DE_COURS
+  LIBERATION_ANTICIPEE
+  EVENEMENT
+}
+
+enum MotifAnnonce {
+  GREVE
+  COUPURE_ELECTRICITE
+  INTEMPERIES
+  ABSENCE_ENSEIGNANT
+  AUTRE
+}
+
+enum CibleAnnonce {
+  ECOLE
+  CLASSES
+}
+
+enum StatutAnnonce {
+  BROUILLON
+  PROGRAMMEE
+  ENVOYEE
+  ANNULEE
+}
+
+enum TypeNotification {
+  LIBERATION_ANTICIPEE
+  PAS_DE_COURS
+  COMPORTEMENT
+  RAPPEL_PAIEMENT
+  RETARD_PAIEMENT
+  RECU_PAIEMENT
+  RESULTATS
+  DECISION_FIN_ANNEE
+  EVENEMENT
+  USAGE_APPAREIL
+  APPAREIL
+}
+
+enum CanalNotification {
+  SMS
+  EMAIL
+  PUSH
+}
+
+enum PrioriteNotification {
+  URGENTE
+  HAUTE
+  NORMALE
+  BASSE
+}
+
+enum StatutNotification {
+  EN_FILE
+  ENVOYEE
+  DELIVREE
+  ECHOUEE
+  LUE
+}
+
+enum PlateformePush {
+  ANDROID
+  IOS
+  WEB
+}
+
+enum ActionAudit {
+  CREATION
+  MODIFICATION
+  ARCHIVAGE
+  SUPPRESSION
+  CONNEXION
+  EXPORT
+}
+
+// ─── École et utilisateurs ───────────────────────────────────────────────────
+
+model Ecole {
+  id        String   @id @default(uuid(7))
+  nom       String
+  adresse   String?
+  telephone String?
+  email     String?
+  creeLe    DateTime @default(now()) @map("cree_le")
+  modifieLe DateTime @updatedAt @map("modifie_le")
+  creePar   String?  @map("cree_par")
+
+  utilisateurs    Utilisateur[]
+  anneesScolaires AnneeScolaire[]
+  classes         Classe[]
+  eleves          Eleve[]
+  tuteurs         Tuteur[]
+  appareils       Appareil[]
+  matieres        Matiere[]
+  frais           Frais[]
+  annonces        Annonce[]
+  notifications   Notification[]
+  modelesMessage  ModeleMessage[]
+  journalAudit    JournalAudit[]
+
+  @@map("ecoles")
+}
+
+model Utilisateur {
+  id                String    @id @default(uuid(7))
+  ecoleId           String    @map("ecole_id")
+  prenoms           String
+  nom               String
+  email             String?   @unique
+  telephone         String?   @unique
+  role              Role
+  motDePasseHash    String?   @map("mot_de_passe_hash")
+  actif             Boolean   @default(true)
+  derniereConnexion DateTime? @map("derniere_connexion")
+  creeLe            DateTime  @default(now()) @map("cree_le")
+  modifieLe         DateTime  @updatedAt @map("modifie_le")
+  creePar           String?   @map("cree_par")
+
+  ecole                 Ecole              @relation(fields: [ecoleId], references: [id])
+  tuteur                Tuteur?
+  classesPrincipales    Classe[]           @relation("EnseignantPrincipal")
+  evaluations           Evaluation[]
+  comportementsSignales Comportement[]     @relation("ComportementAuteur")
+  comportementsValides  Comportement[]     @relation("ComportementValidateur")
+  incidentsAppareil     IncidentAppareil[]
+  paiementsRecus        Paiement[]
+  annonces              Annonce[]
+  jetonsPush            JetonPush[]
+  journalAudit          JournalAudit[]
+
+  @@index([ecoleId, role])
+  @@map("utilisateurs")
+}
+
+model JetonPush {
+  id            String         @id @default(uuid(7))
+  utilisateurId String         @map("utilisateur_id")
+  jeton         String         @unique
+  plateforme    PlateformePush
+  creeLe        DateTime       @default(now()) @map("cree_le")
+  modifieLe     DateTime       @updatedAt @map("modifie_le")
+  creePar       String?        @map("cree_par")
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@index([utilisateurId])
+  @@map("jetons_push")
+}
+
+// ─── Année scolaire et classes ───────────────────────────────────────────────
+
+model AnneeScolaire {
+  id        String   @id @default(uuid(7))
+  ecoleId   String   @map("ecole_id")
+  libelle   String // ex. 2026-2027
+  dateDebut DateTime @map("date_debut") @db.Date
+  dateFin   DateTime @map("date_fin") @db.Date
+  active    Boolean  @default(false)
+  creeLe    DateTime @default(now()) @map("cree_le")
+  modifieLe DateTime @updatedAt @map("modifie_le")
+  creePar   String?  @map("cree_par")
+
+  ecole      Ecole              @relation(fields: [ecoleId], references: [id])
+  periodes   Periode[]
+  classes    Classe[]
+  frais      Frais[]
+  reductions Reduction[]
+  decisions  DecisionAnnuelle[]
+
+  @@unique([ecoleId, libelle])
+  @@map("annees_scolaires")
+}
+
+model Periode {
+  id              String   @id @default(uuid(7))
+  anneeScolaireId String   @map("annee_scolaire_id")
+  libelle         String // ex. Trimestre 1
+  ordre           Int
+  dateDebut       DateTime @map("date_debut") @db.Date
+  dateFin         DateTime @map("date_fin") @db.Date
+  creeLe          DateTime @default(now()) @map("cree_le")
+  modifieLe       DateTime @updatedAt @map("modifie_le")
+  creePar         String?  @map("cree_par")
+
+  anneeScolaire AnneeScolaire @relation(fields: [anneeScolaireId], references: [id], onDelete: Cascade)
+  evaluations   Evaluation[]
+  resultats     Resultat[]
+
+  @@unique([anneeScolaireId, ordre])
+  @@map("periodes")
+}
+
+model Classe {
+  id                    String   @id @default(uuid(7))
+  ecoleId               String   @map("ecole_id")
+  anneeScolaireId       String   @map("annee_scolaire_id")
+  nom                   String // ex. 6e A
+  niveau                String // ex. 6e
+  enseignantPrincipalId String?  @map("enseignant_principal_id")
+  creeLe                DateTime @default(now()) @map("cree_le")
+  modifieLe             DateTime @updatedAt @map("modifie_le")
+  creePar               String?  @map("cree_par")
+
+  ecole               Ecole              @relation(fields: [ecoleId], references: [id])
+  anneeScolaire       AnneeScolaire      @relation(fields: [anneeScolaireId], references: [id])
+  enseignantPrincipal Utilisateur?       @relation("EnseignantPrincipal", fields: [enseignantPrincipalId], references: [id], onDelete: SetNull)
+  eleves              Eleve[]
+  historiqueEleves    HistoriqueClasse[]
+  evaluations         Evaluation[]
+  frais               Frais[]
+  annonces            AnnonceClasse[]
+
+  @@unique([anneeScolaireId, nom])
+  @@index([ecoleId])
+  @@map("classes")
+}
+
+// ─── Élèves et tuteurs ───────────────────────────────────────────────────────
+
+model Eleve {
+  id              String      @id @default(uuid(7))
+  ecoleId         String      @map("ecole_id")
+  matricule       String      @unique // SE-AAAA-NNNN, généré par l'application
+  prenoms         String
+  nom             String
+  genre           Genre
+  dateNaissance   DateTime    @map("date_naissance") @db.Date // l'âge est calculé, jamais stocké
+  telephone       String? // E.164
+  photoUrl        String?     @map("photo_url")
+  statut          StatutEleve @default(ACTIF)
+  dateInscription DateTime    @default(now()) @map("date_inscription") @db.Date
+  classeId        String?     @map("classe_id")
+  creeLe          DateTime    @default(now()) @map("cree_le")
+  modifieLe       DateTime    @updatedAt @map("modifie_le")
+  creePar         String?     @map("cree_par")
+
+  ecole            Ecole              @relation(fields: [ecoleId], references: [id])
+  classe           Classe?            @relation(fields: [classeId], references: [id], onDelete: SetNull)
+  tuteurs          EleveTuteur[]
+  historiqueClasse HistoriqueClasse[]
+  appareils        Appareil[]
+  notes            Note[]
+  resultats        Resultat[]
+  decisions        DecisionAnnuelle[]
+  comportements    Comportement[]
+  echeances        Echeance[]
+  reductions       Reduction[]
+  reponsesAnnonce  ReponseAnnonce[]
+  notifications    Notification[]
+
+  @@index([ecoleId, statut])
+  @@index([classeId])
+  @@index([nom, prenoms])
+  @@map("eleves")
+}
+
+model HistoriqueClasse {
+  id        String    @id @default(uuid(7))
+  eleveId   String    @map("eleve_id")
+  classeId  String    @map("classe_id")
+  dateDebut DateTime  @map("date_debut") @db.Date
+  dateFin   DateTime? @map("date_fin") @db.Date
+  creeLe    DateTime  @default(now()) @map("cree_le")
+  modifieLe DateTime  @updatedAt @map("modifie_le")
+  creePar   String?   @map("cree_par")
+
+  eleve  Eleve  @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  classe Classe @relation(fields: [classeId], references: [id])
+
+  @@index([eleveId])
+  @@map("historique_classes")
+}
+
+model Tuteur {
+  id             String    @id @default(uuid(7))
+  ecoleId        String    @map("ecole_id")
+  prenoms        String
+  nom            String
+  contact1       String    @map("contact_1") // E.164, obligatoire
+  contact2       String?   @map("contact_2") // E.164
+  email          String?
+  langue         Langue    @default(FR)
+  consentementLe DateTime? @map("consentement_le")
+  utilisateurId  String?   @unique @map("utilisateur_id")
+  creeLe         DateTime  @default(now()) @map("cree_le")
+  modifieLe      DateTime  @updatedAt @map("modifie_le")
+  creePar        String?   @map("cree_par")
+
+  ecole         Ecole                    @relation(fields: [ecoleId], references: [id])
+  utilisateur   Utilisateur?             @relation(fields: [utilisateurId], references: [id], onDelete: SetNull)
+  eleves        EleveTuteur[]
+  preferences   PreferenceNotification[]
+  reponses      ReponseAnnonce[]
+  notifications Notification[]
+
+  @@unique([ecoleId, contact1])
+  @@index([nom, prenoms])
+  @@map("tuteurs")
+}
+
+model EleveTuteur {
+  eleveId   String     @map("eleve_id")
+  tuteurId  String     @map("tuteur_id")
+  lien      LienTuteur
+  principal Boolean    @default(false)
+  creeLe    DateTime   @default(now()) @map("cree_le")
+  modifieLe DateTime   @updatedAt @map("modifie_le")
+  creePar   String?    @map("cree_par")
+
+  eleve  Eleve  @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  tuteur Tuteur @relation(fields: [tuteurId], references: [id], onDelete: Cascade)
+
+  @@id([eleveId, tuteurId])
+  @@index([tuteurId])
+  @@map("eleves_tuteurs")
+}
+
+// ─── Appareils ───────────────────────────────────────────────────────────────
+
+model Appareil {
+  id                String         @id @default(uuid(7))
+  ecoleId           String         @map("ecole_id")
+  eleveId           String         @map("eleve_id")
+  type              TypeAppareil
+  marque            String?
+  modele            String?
+  couleur           String?
+  numeroSerie       String?        @map("numero_serie")
+  imei              String?
+  signesDistinctifs String?        @map("signes_distinctifs")
+  photoUrl          String?        @map("photo_url")
+  qrCode            String         @unique @default(uuid(7)) @map("qr_code") // jeton imprimé sur l'étiquette
+  statut            StatutAppareil @default(ACTIF)
+  creeLe            DateTime       @default(now()) @map("cree_le")
+  modifieLe         DateTime       @updatedAt @map("modifie_le")
+  creePar           String?        @map("cree_par")
+
+  ecole     Ecole              @relation(fields: [ecoleId], references: [id])
+  eleve     Eleve              @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  incidents IncidentAppareil[]
+
+  @@unique([ecoleId, imei])
+  @@index([numeroSerie])
+  @@index([eleveId])
+  @@map("appareils")
+}
+
+model IncidentAppareil {
+  id          String               @id @default(uuid(7))
+  appareilId  String               @map("appareil_id")
+  type        TypeIncidentAppareil
+  dateHeure   DateTime             @default(now()) @map("date_heure")
+  lieu        String?
+  auteurId    String?              @map("auteur_id")
+  commentaire String?
+  creeLe      DateTime             @default(now()) @map("cree_le")
+  modifieLe   DateTime             @updatedAt @map("modifie_le")
+  creePar     String?              @map("cree_par")
+
+  appareil Appareil     @relation(fields: [appareilId], references: [id], onDelete: Cascade)
+  auteur   Utilisateur? @relation(fields: [auteurId], references: [id], onDelete: SetNull)
+
+  @@index([appareilId, dateHeure])
+  @@map("incidents_appareil")
+}
+
+// ─── Notes et résultats ──────────────────────────────────────────────────────
+
+model Matiere {
+  id          String   @id @default(uuid(7))
+  ecoleId     String   @map("ecole_id")
+  nom         String
+  coefficient Decimal  @default(1) @db.Decimal(4, 2)
+  creeLe      DateTime @default(now()) @map("cree_le")
+  modifieLe   DateTime @updatedAt @map("modifie_le")
+  creePar     String?  @map("cree_par")
+
+  ecole       Ecole        @relation(fields: [ecoleId], references: [id])
+  evaluations Evaluation[]
+
+  @@unique([ecoleId, nom])
+  @@map("matieres")
+}
+
+model Evaluation {
+  id           String         @id @default(uuid(7))
+  classeId     String         @map("classe_id")
+  matiereId    String         @map("matiere_id")
+  periodeId    String         @map("periode_id")
+  enseignantId String?        @map("enseignant_id")
+  type         TypeEvaluation
+  titre        String
+  date         DateTime       @db.Date
+  bareme       Decimal        @default(20) @db.Decimal(5, 2)
+  coefficient  Decimal        @default(1) @db.Decimal(4, 2)
+  creeLe       DateTime       @default(now()) @map("cree_le")
+  modifieLe    DateTime       @updatedAt @map("modifie_le")
+  creePar      String?        @map("cree_par")
+
+  classe     Classe       @relation(fields: [classeId], references: [id])
+  matiere    Matiere      @relation(fields: [matiereId], references: [id])
+  periode    Periode      @relation(fields: [periodeId], references: [id])
+  enseignant Utilisateur? @relation(fields: [enseignantId], references: [id], onDelete: SetNull)
+  notes      Note[]
+
+  @@index([classeId, periodeId])
+  @@map("evaluations")
+}
+
+model Note {
+  id           String   @id @default(uuid(7))
+  evaluationId String   @map("evaluation_id")
+  eleveId      String   @map("eleve_id")
+  valeur       Decimal? @db.Decimal(5, 2) // null si absent
+  absent       Boolean  @default(false)
+  appreciation String?
+  creeLe       DateTime @default(now()) @map("cree_le")
+  modifieLe    DateTime @updatedAt @map("modifie_le")
+  creePar      String?  @map("cree_par")
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  eleve      Eleve      @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+
+  @@unique([evaluationId, eleveId])
+  @@index([eleveId])
+  @@map("notes")
+}
+
+model Resultat {
+  id           String    @id @default(uuid(7))
+  eleveId      String    @map("eleve_id")
+  periodeId    String    @map("periode_id")
+  moyenne      Decimal?  @db.Decimal(5, 2)
+  rang         Int?
+  appreciation String?
+  bulletinUrl  String?   @map("bulletin_url")
+  publie       Boolean   @default(false)
+  publieLe     DateTime? @map("publie_le")
+  creeLe       DateTime  @default(now()) @map("cree_le")
+  modifieLe    DateTime  @updatedAt @map("modifie_le")
+  creePar      String?   @map("cree_par")
+
+  eleve   Eleve   @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  periode Periode @relation(fields: [periodeId], references: [id])
+
+  @@unique([eleveId, periodeId])
+  @@map("resultats")
+}
+
+model DecisionAnnuelle {
+  id              String           @id @default(uuid(7))
+  eleveId         String           @map("eleve_id")
+  anneeScolaireId String           @map("annee_scolaire_id")
+  decision        DecisionFinAnnee
+  moyenneAnnuelle Decimal?         @map("moyenne_annuelle") @db.Decimal(5, 2)
+  observation     String?
+  publie          Boolean          @default(false)
+  publieLe        DateTime?        @map("publie_le")
+  creeLe          DateTime         @default(now()) @map("cree_le")
+  modifieLe       DateTime         @updatedAt @map("modifie_le")
+  creePar         String?          @map("cree_par")
+
+  eleve         Eleve         @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  anneeScolaire AnneeScolaire @relation(fields: [anneeScolaireId], references: [id])
+
+  @@unique([eleveId, anneeScolaireId])
+  @@map("decisions_annuelles")
+}
+
+// ─── Comportements ───────────────────────────────────────────────────────────
+
+model Comportement {
+  id            String                @id @default(uuid(7))
+  eleveId       String                @map("eleve_id")
+  type          TypeComportement
+  categorie     CategorieComportement
+  gravite       Int                   @default(1) // 1 à 3 ; 3 = validation de la direction
+  description   String
+  sanction      String?
+  convocationLe DateTime?             @map("convocation_le")
+  date          DateTime              @default(now())
+  statut        StatutValidation      @default(VALIDE)
+  auteurId      String?               @map("auteur_id")
+  valideParId   String?               @map("valide_par_id")
+  valideLe      DateTime?             @map("valide_le")
+  creeLe        DateTime              @default(now()) @map("cree_le")
+  modifieLe     DateTime              @updatedAt @map("modifie_le")
+  creePar       String?               @map("cree_par")
+
+  eleve     Eleve        @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  auteur    Utilisateur? @relation("ComportementAuteur", fields: [auteurId], references: [id], onDelete: SetNull)
+  validePar Utilisateur? @relation("ComportementValidateur", fields: [valideParId], references: [id], onDelete: SetNull)
+
+  @@index([eleveId, date])
+  @@index([statut])
+  @@map("comportements")
+}
+
+// ─── Frais et paiements ──────────────────────────────────────────────────────
+
+model Frais {
+  id              String    @id @default(uuid(7))
+  ecoleId         String    @map("ecole_id")
+  anneeScolaireId String    @map("annee_scolaire_id")
+  classeId        String?   @map("classe_id") // null = toutes les classes
+  type            TypeFrais
+  libelle         String
+  montant         Int // FCFA
+  jourEcheance    Int?      @map("jour_echeance") // ex. 5 = le 5 du mois
+  creeLe          DateTime  @default(now()) @map("cree_le")
+  modifieLe       DateTime  @updatedAt @map("modifie_le")
+  creePar         String?   @map("cree_par")
+
+  ecole         Ecole         @relation(fields: [ecoleId], references: [id])
+  anneeScolaire AnneeScolaire @relation(fields: [anneeScolaireId], references: [id])
+  classe        Classe?       @relation(fields: [classeId], references: [id])
+  echeances     Echeance[]
+
+  @@index([anneeScolaireId, classeId])
+  @@map("frais")
+}
+
+model Reduction {
+  id              String         @id @default(uuid(7))
+  eleveId         String         @map("eleve_id")
+  anneeScolaireId String         @map("annee_scolaire_id")
+  motif           MotifReduction
+  pourcentage     Int? // 0 à 100
+  montant         Int? // FCFA par échéance
+  commentaire     String?
+  creeLe          DateTime       @default(now()) @map("cree_le")
+  modifieLe       DateTime       @updatedAt @map("modifie_le")
+  creePar         String?        @map("cree_par")
+
+  eleve         Eleve         @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  anneeScolaire AnneeScolaire @relation(fields: [anneeScolaireId], references: [id])
+
+  @@index([eleveId])
+  @@map("reductions")
+}
+
+model Echeance {
+  id          String         @id @default(uuid(7))
+  eleveId     String         @map("eleve_id")
+  fraisId     String         @map("frais_id")
+  mois        DateTime       @db.Date // premier jour du mois concerné
+  montantDu   Int            @map("montant_du") // FCFA, réductions déduites
+  montantPaye Int            @default(0) @map("montant_paye")
+  dateLimite  DateTime       @map("date_limite") @db.Date
+  statut      StatutEcheance @default(A_PAYER)
+  creeLe      DateTime       @default(now()) @map("cree_le")
+  modifieLe   DateTime       @updatedAt @map("modifie_le")
+  creePar     String?        @map("cree_par")
+
+  eleve     Eleve      @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  frais     Frais      @relation(fields: [fraisId], references: [id])
+  paiements Paiement[]
+
+  @@unique([eleveId, fraisId, mois])
+  @@index([statut, dateLimite])
+  @@map("echeances")
+}
+
+model Paiement {
+  id         String       @id @default(uuid(7))
+  echeanceId String       @map("echeance_id")
+  numeroRecu String       @unique @map("numero_recu")
+  montant    Int // FCFA
+  mode       ModePaiement
+  reference  String? // référence Mobile Money, virement…
+  date       DateTime     @default(now())
+  recuParId  String?      @map("recu_par_id")
+  recuUrl    String?      @map("recu_url")
+  creeLe     DateTime     @default(now()) @map("cree_le")
+  modifieLe  DateTime     @updatedAt @map("modifie_le")
+  creePar    String?      @map("cree_par")
+
+  echeance Echeance     @relation(fields: [echeanceId], references: [id])
+  recuPar  Utilisateur? @relation(fields: [recuParId], references: [id], onDelete: SetNull)
+
+  @@index([echeanceId])
+  @@index([date])
+  @@map("paiements")
+}
+
+// ─── Annonces (pas de cours, libération anticipée, événements) ───────────────
+
+model Annonce {
+  id             String        @id @default(uuid(7))
+  ecoleId        String        @map("ecole_id")
+  type           TypeAnnonce
+  titre          String
+  message        String
+  motif          MotifAnnonce?
+  motifDetail    String?       @map("motif_detail")
+  dateDebut      DateTime      @map("date_debut") // heure de sortie pour une libération
+  dateFin        DateTime?     @map("date_fin")
+  lieu           String?
+  modalites      String?
+  pieceJointeUrl String?       @map("piece_jointe_url")
+  cible          CibleAnnonce  @default(ECOLE)
+  demandeReponse Boolean       @default(false) @map("demande_reponse")
+  statut         StatutAnnonce @default(BROUILLON)
+  programmeeLe   DateTime?     @map("programmee_le")
+  envoyeeLe      DateTime?     @map("envoyee_le")
+  auteurId       String?       @map("auteur_id")
+  creeLe         DateTime      @default(now()) @map("cree_le")
+  modifieLe      DateTime      @updatedAt @map("modifie_le")
+  creePar        String?       @map("cree_par")
+
+  ecole    Ecole            @relation(fields: [ecoleId], references: [id])
+  auteur   Utilisateur?     @relation(fields: [auteurId], references: [id], onDelete: SetNull)
+  classes  AnnonceClasse[]
+  reponses ReponseAnnonce[]
+
+  @@index([ecoleId, type, dateDebut])
+  @@index([statut, programmeeLe])
+  @@map("annonces")
+}
+
+model AnnonceClasse {
+  annonceId String   @map("annonce_id")
+  classeId  String   @map("classe_id")
+  creeLe    DateTime @default(now()) @map("cree_le")
+  modifieLe DateTime @updatedAt @map("modifie_le")
+  creePar   String?  @map("cree_par")
+
+  annonce Annonce @relation(fields: [annonceId], references: [id], onDelete: Cascade)
+  classe  Classe  @relation(fields: [classeId], references: [id], onDelete: Cascade)
+
+  @@id([annonceId, classeId])
+  @@map("annonces_classes")
+}
+
+model ReponseAnnonce {
+  id          String   @id @default(uuid(7))
+  annonceId   String   @map("annonce_id")
+  tuteurId    String   @map("tuteur_id")
+  eleveId     String   @map("eleve_id")
+  reponse     Boolean // participation ou autorisation : oui / non
+  commentaire String?
+  creeLe      DateTime @default(now()) @map("cree_le")
+  modifieLe   DateTime @updatedAt @map("modifie_le")
+  creePar     String?  @map("cree_par")
+
+  annonce Annonce @relation(fields: [annonceId], references: [id], onDelete: Cascade)
+  tuteur  Tuteur  @relation(fields: [tuteurId], references: [id], onDelete: Cascade)
+  eleve   Eleve   @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+
+  @@unique([annonceId, tuteurId, eleveId])
+  @@map("reponses_annonce")
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+
+model Notification {
+  id                   String               @id @default(uuid(7))
+  ecoleId              String               @map("ecole_id")
+  type                 TypeNotification
+  priorite             PrioriteNotification @default(NORMALE)
+  canal                CanalNotification
+  tuteurId             String               @map("tuteur_id")
+  eleveId              String?              @map("eleve_id")
+  destinataire         String // numéro, adresse email ou jeton push
+  sujet                String?
+  contenu              String
+  statut               StatutNotification   @default(EN_FILE)
+  essais               Int                  @default(0)
+  erreur               String?
+  fournisseur          String? // ex. orange, twilio, brevo, fcm
+  referenceFournisseur String?              @map("reference_fournisseur")
+  cout                 Int? // FCFA
+  sourceType           String?              @map("source_type") // ex. annonce, echeance, comportement
+  sourceId             String?              @map("source_id")
+  cleDeduplication     String?              @unique @map("cle_deduplication") // évite les relances en double
+  envoyeeLe            DateTime?            @map("envoyee_le")
+  delivreeLe           DateTime?            @map("delivree_le")
+  lueLe                DateTime?            @map("lue_le")
+  creeLe               DateTime             @default(now()) @map("cree_le")
+  modifieLe            DateTime             @updatedAt @map("modifie_le")
+  creePar              String?              @map("cree_par")
+
+  ecole  Ecole  @relation(fields: [ecoleId], references: [id])
+  tuteur Tuteur @relation(fields: [tuteurId], references: [id], onDelete: Cascade)
+  eleve  Eleve? @relation(fields: [eleveId], references: [id], onDelete: SetNull)
+
+  @@index([tuteurId, creeLe])
+  @@index([statut, priorite])
+  @@index([sourceType, sourceId])
+  @@index([referenceFournisseur])
+  @@map("notifications")
+}
+
+model PreferenceNotification {
+  id        String           @id @default(uuid(7))
+  tuteurId  String           @map("tuteur_id")
+  type      TypeNotification
+  sms       Boolean          @default(true)
+  email     Boolean          @default(true)
+  push      Boolean          @default(true)
+  creeLe    DateTime         @default(now()) @map("cree_le")
+  modifieLe DateTime         @updatedAt @map("modifie_le")
+  creePar   String?          @map("cree_par")
+
+  tuteur Tuteur @relation(fields: [tuteurId], references: [id], onDelete: Cascade)
+
+  @@unique([tuteurId, type])
+  @@map("preferences_notification")
+}
+
+model ModeleMessage {
+  id        String            @id @default(uuid(7))
+  ecoleId   String            @map("ecole_id")
+  type      TypeNotification
+  canal     CanalNotification
+  langue    Langue            @default(FR)
+  sujet     String? // email uniquement
+  contenu   String // variables : {prenom_eleve}, {classe}, {heure}, {motif}, {montant}…
+  creeLe    DateTime          @default(now()) @map("cree_le")
+  modifieLe DateTime          @updatedAt @map("modifie_le")
+  creePar   String?           @map("cree_par")
+
+  ecole Ecole @relation(fields: [ecoleId], references: [id])
+
+  @@unique([ecoleId, type, canal, langue])
+  @@map("modeles_message")
+}
+
+// ─── Audit ───────────────────────────────────────────────────────────────────
+
+model JournalAudit {
+  id            String      @id @default(uuid(7))
+  ecoleId       String      @map("ecole_id")
+  utilisateurId String?     @map("utilisateur_id")
+  action        ActionAudit
+  entite        String // ex. Eleve, Paiement
+  entiteId      String?     @map("entite_id")
+  details       Json?
+  ip            String?
+  creeLe        DateTime    @default(now()) @map("cree_le")
+
+  ecole       Ecole        @relation(fields: [ecoleId], references: [id])
+  utilisateur Utilisateur? @relation(fields: [utilisateurId], references: [id], onDelete: SetNull)
+
+  @@index([ecoleId, creeLe])
+  @@index([entite, entiteId])
+  @@map("journal_audit")
+}

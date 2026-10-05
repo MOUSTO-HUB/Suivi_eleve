@@ -10,6 +10,9 @@
   "scripts": {
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @suivi-eleve/api db:migrate",
+    "db:seed": "pnpm --filter @suivi-eleve/api db:seed",
+    "db:studio": "pnpm --filter @suivi-eleve/api db:studio",
     "dev:api": "pnpm --filter @suivi-eleve/api start:dev",
     "dev:web": "pnpm --filter @suivi-eleve/web dev",
     "dev:mobile": "pnpm --filter @suivi-eleve/mobile start",

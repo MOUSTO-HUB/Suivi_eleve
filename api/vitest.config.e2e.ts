@@ -7,5 +7,11 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    env: {
+      // Valeur par défaut = base du docker-compose ; un .env la remplace.
+      DATABASE_URL:
+        process.env.DATABASE_URL ??
+        'postgresql://suivi:suivi_dev@localhost:5432/suivi_eleve?schema=public',
+    },
   },
 });
