@@ -15,3 +15,4 @@ Thumbs.db
 *.tsbuildinfo
 .pnpm-store/
 api/src/generated/
+api/stockage/

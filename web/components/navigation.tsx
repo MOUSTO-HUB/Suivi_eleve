@@ -7,6 +7,7 @@ const LIENS = [
   { href: '/eleves', libelle: 'Élèves' },
   { href: '/tuteurs', libelle: 'Tuteurs' },
   { href: '/classes', libelle: 'Classes' },
+  { href: '/appareils', libelle: 'Appareils' },
 ];
 
 export function Navigation() {

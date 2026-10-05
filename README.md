@@ -75,4 +75,6 @@ Les deux renvoient un jeton d'accès (15 minutes, à passer dans `Authorization:
 
 ## État du projet
 
-Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Prochaine étape : appareils des élèves (prompt 5).
+Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 en cours : appareils des élèves avec étiquettes QR et signalements (prompt 5). Prochaine étape : moteur de notifications SMS, email et push (prompt 6).
+
+Les notifications aux parents (appareil trouvé, confisqué, usage en classe…) sont déjà enregistrées en file d'attente (table `notifications`, statut `EN_FILE`) ; leur envoi réel arrive avec le prompt 6.

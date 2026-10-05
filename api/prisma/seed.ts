@@ -99,6 +99,16 @@ const PRENOMS_TUTEURS = [
   'Nogaye',
 ];
 
+/** Ajoute la clé de Luhn à 14 chiffres pour former un IMEI valide. */
+const avecCleLuhn = (debut: string) => {
+  const somme = [...debut].reduce((total, c, i) => {
+    let chiffre = Number(c);
+    if (i % 2 === 1) chiffre = chiffre * 2 > 9 ? chiffre * 2 - 9 : chiffre * 2;
+    return total + chiffre;
+  }, 0);
+  return `${debut}${(10 - (somme % 10)) % 10}`;
+};
+
 const telephone = (i: number) =>
   `+22177${String(1000000 + i).padStart(7, '0')}`;
 
@@ -322,12 +332,19 @@ async function main() {
     if (i < 10) {
       const telephonePortable = i % 3 !== 2;
       const imei = telephonePortable
-        ? `35${String(1234567890000 + i).padStart(13, '0')}`
+        ? avecCleLuhn(`35${String(123456789000 + i).padStart(12, '0')}`)
         : null;
       const numeroSerie = `SN-${String(i + 1).padStart(5, '0')}`;
       const existant = await prisma.appareil.findFirst({
         where: { numeroSerie },
       });
+      if (existant && existant.imei !== imei) {
+        // Les premières versions du seed avaient des IMEI sans clé valide.
+        await prisma.appareil.update({
+          where: { id: existant.id },
+          data: { imei },
+        });
+      }
       if (!existant) {
         await prisma.appareil.create({
           data: {

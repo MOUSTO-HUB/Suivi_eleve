@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { BadgeStatut } from '@/components/appareils';
 import { ChampsTuteur } from '@/components/champs-eleve';
 import { FormulaireAction } from '@/components/formulaire-action';
 import {
@@ -16,9 +17,12 @@ import { lireApi, lireApiOuNull } from '@/lib/api';
 import { peutGererDossiers } from '@/lib/profil';
 import {
   dateFr,
+  designationAppareil,
   LIBELLES_LIEN,
+  type Appareil,
   type Classe,
   type EleveDetail,
+  type Page,
 } from '@/lib/types';
 import {
   ajouterTuteur,
@@ -56,7 +60,10 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
     peutGererDossiers(),
   ]);
   if (!eleve) notFound();
-  const classes = gestion ? await lireApi<Classe[]>('/classes') : [];
+  const [classes, appareils] = await Promise.all([
+    gestion ? lireApi<Classe[]>('/classes') : Promise.resolve([]),
+    lireApi<Page<Appareil>>(`/appareils?eleveId=${eleve.id}&parPage=100`),
+  ]);
   const archive = eleve.statut === 'ARCHIVE';
 
   return (
@@ -162,6 +169,46 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                   </FormulaireAction>
                 </div>
               </details>
+            )}
+          </Carte>
+
+          <Carte
+            titre="Appareils"
+            actions={
+              gestion &&
+              !archive && (
+                <Link
+                  className={styles.boutonSecondaire}
+                  href={`/appareils/nouveau?eleveId=${eleve.id}`}
+                >
+                  Ajouter un appareil
+                </Link>
+              )
+            }
+          >
+            {appareils.total === 0 ? (
+              <p className="text-sm text-zinc-500">
+                Aucun appareil enregistré.
+              </p>
+            ) : (
+              <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {appareils.elements.map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex items-center justify-between gap-3 py-2 text-sm"
+                  >
+                    <Link className={styles.lien} href={`/appareils/${a.id}`}>
+                      {designationAppareil(a)}
+                    </Link>
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono text-xs text-zinc-500">
+                        {a.codeCourt}
+                      </span>
+                      <BadgeStatut statut={a.statut} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </Carte>
         </div>

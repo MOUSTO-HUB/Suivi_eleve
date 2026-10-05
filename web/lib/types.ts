@@ -131,3 +131,131 @@ export const peutGerer = (role: Role) =>
 
 /** « 2014-03-15 » → « 15/03/2014 ». */
 export const dateFr = (jour: string) => jour.split('-').reverse().join('/');
+
+/** Date et heure à Dakar, ex. « 05/10/2026 14:30 ». */
+export const dateHeureFr = (iso: string) =>
+  new Date(iso).toLocaleString('fr-FR', {
+    timeZone: 'Africa/Dakar',
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+
+// --- Appareils ---
+
+export type TypeAppareil = 'TELEPHONE' | 'TABLETTE' | 'ORDINATEUR' | 'AUTRE';
+export type StatutAppareil =
+  'ACTIF' | 'PERDU' | 'TROUVE' | 'CONFISQUE' | 'RESTITUE';
+export type TypeSignalement =
+  'DECLARE_PERDU' | 'TROUVE' | 'CONFISQUE' | 'RESTITUE' | 'USAGE_EN_CLASSE';
+
+export interface Appareil {
+  id: string;
+  type: TypeAppareil;
+  marque: string | null;
+  modele: string | null;
+  couleur: string | null;
+  numeroSerie: string | null;
+  imei: string | null;
+  signesDistinctifs: string | null;
+  qrCode: string;
+  codeCourt: string;
+  statut: StatutAppareil;
+  aPhoto: boolean;
+  creeLe: string;
+  eleve: {
+    id: string;
+    matricule: string;
+    prenoms: string;
+    nom: string;
+    statut: StatutEleve;
+    classe: { id: string; nom: string } | null;
+  };
+}
+
+export interface AppareilDetail extends Appareil {
+  incidents: {
+    id: string;
+    type: TypeSignalement;
+    dateHeure: string;
+    lieu: string | null;
+    commentaire: string | null;
+    auteur: { prenoms: string; nom: string; role: Role } | null;
+  }[];
+}
+
+export interface AppareilScanne extends AppareilDetail {
+  tuteurs: {
+    prenoms: string;
+    nom: string;
+    contact1: string;
+    contact2: string | null;
+    lien: LienTuteur;
+    principal: boolean;
+  }[];
+}
+
+export const LIBELLES_TYPE_APPAREIL: Record<TypeAppareil, string> = {
+  TELEPHONE: 'Téléphone',
+  TABLETTE: 'Tablette',
+  ORDINATEUR: 'Ordinateur',
+  AUTRE: 'Autre',
+};
+
+export const LIBELLES_STATUT_APPAREIL: Record<StatutAppareil, string> = {
+  ACTIF: 'Actif',
+  PERDU: 'Perdu',
+  TROUVE: 'Trouvé',
+  CONFISQUE: 'Confisqué',
+  RESTITUE: 'Restitué',
+};
+
+export const LIBELLES_SIGNALEMENT: Record<TypeSignalement, string> = {
+  DECLARE_PERDU: 'Déclaré perdu',
+  TROUVE: 'Trouvé',
+  CONFISQUE: 'Confisqué',
+  RESTITUE: 'Restitué',
+  USAGE_EN_CLASSE: 'Utilisé en classe',
+};
+
+/**
+ * Signalements proposés selon le rôle et le statut (même règle que l'API,
+ * qui reste seule juge : ceci évite seulement d'afficher des choix voués à l'échec).
+ */
+const REGLES_SIGNALEMENT: Record<
+  TypeSignalement,
+  { depuis: StatutAppareil[]; roles: Role[] }
+> = {
+  DECLARE_PERDU: {
+    depuis: ['ACTIF', 'RESTITUE'],
+    roles: ['ADMIN', 'SECRETARIAT', 'SURVEILLANT', 'PARENT'],
+  },
+  TROUVE: {
+    depuis: ['ACTIF', 'PERDU', 'RESTITUE'],
+    roles: ['ADMIN', 'SECRETARIAT', 'ENSEIGNANT', 'SURVEILLANT', 'COMPTABLE'],
+  },
+  CONFISQUE: {
+    depuis: ['ACTIF', 'RESTITUE'],
+    roles: ['ADMIN', 'SECRETARIAT', 'ENSEIGNANT', 'SURVEILLANT'],
+  },
+  RESTITUE: {
+    depuis: ['PERDU', 'TROUVE', 'CONFISQUE'],
+    roles: ['ADMIN', 'SECRETARIAT', 'SURVEILLANT'],
+  },
+  USAGE_EN_CLASSE: {
+    depuis: ['ACTIF', 'RESTITUE'],
+    roles: ['ADMIN', 'ENSEIGNANT', 'SURVEILLANT'],
+  },
+};
+
+export const signalementsPossibles = (role: Role, statut: StatutAppareil) =>
+  (Object.keys(REGLES_SIGNALEMENT) as TypeSignalement[]).filter(
+    (t) =>
+      REGLES_SIGNALEMENT[t].roles.includes(role) &&
+      REGLES_SIGNALEMENT[t].depuis.includes(statut),
+  );
+
+/** « Téléphone Samsung Galaxy A15 noir » */
+export const designationAppareil = (a: Appareil) =>
+  [LIBELLES_TYPE_APPAREIL[a.type], a.marque, a.modele, a.couleur]
+    .filter(Boolean)
+    .join(' ');
