@@ -12,6 +12,14 @@ Spécifications : `docs/CAHIER_DES_CHARGES.md` · Étapes de développement : `d
 - Files d'envoi : Redis + BullMQ
 - Monorepo pnpm
 
+## Outillage
+
+- API : NestJS 12 en modules ES (imports locaux suffixés `.js`), lint oxlint, tests Vitest (`*.spec.ts`, e2e dans `api/test`). Routes sous le préfixe `/api`.
+- Web : Next.js 16 (App Router), lint ESLint, port 3001.
+- Mobile : Expo SDK 57 ; ajouter une dépendance avec `npx expo install`, jamais `pnpm add`.
+- Prettier commun à la racine (guillemets simples).
+- Vérifier avant de terminer une tâche : `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
+
 ## Rôles
 
 ADMIN, SECRETARIAT, ENSEIGNANT, SURVEILLANT, COMPTABLE, PARENT.
