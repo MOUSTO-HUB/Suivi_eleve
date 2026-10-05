@@ -54,6 +54,8 @@ Crée un module Notifications générique utilisé par tous les autres modules. 
 
 ```text
 Crée le module Annonces pour les types PAS_DE_COURS et LIBERATION_ANTICIPEE : formulaire web (cible : toute l'école, classes, ou un cours ; date, créneau ou heure de sortie ; motif obligatoire dans une liste + "autre"), envoi immédiat ou programmé. La libération anticipée est de priorité URGENTE (SMS + push en moins de 2 minutes). Affiche un suivi en temps réel : nombre de tuteurs notifiés, délivrés, échoués, ayant accusé réception. Exemple de SMS : "Suivi_eleve : les élèves de 6e A sont libérés à 11h00 (coupure d'électricité). Merci de prendre vos dispositions."
+
+Ajoute aussi les absences des élèves : appel d'une classe (date, créneau, matière, absents cochés) par un enseignant ou la vie scolaire ; chaque absence non justifiée prévient aussitôt les tuteurs (notification ABSENCE obligatoire, SMS + email + application) ; pas de doublon pour un même élève, jour et créneau ; justification par la vie scolaire, motif transmis par le parent, suppression d'une saisie erronée ; carte « Absences » sur la fiche élève.
 ```
 
 ## Prompt 8 — Résultats et admission

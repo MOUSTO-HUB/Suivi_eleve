@@ -7,6 +7,8 @@ const LIENS = [
   { href: '/eleves', libelle: 'Élèves' },
   { href: '/tuteurs', libelle: 'Tuteurs' },
   { href: '/classes', libelle: 'Classes' },
+  { href: '/absences', libelle: 'Absences' },
+  { href: '/annonces', libelle: 'Annonces', gestion: true },
   { href: '/appareils', libelle: 'Appareils' },
   { href: '/notifications', libelle: 'Notifications', gestion: true },
 ];

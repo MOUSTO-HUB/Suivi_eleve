@@ -83,6 +83,8 @@ export async function envoyerApi<T>(
           ? undefined
           : JSON.stringify(corps),
   });
+  // 204 : pas de corps (suppression…).
+  if (reponse.status === 204) return undefined as T;
   return (await reponse.json()) as T;
 }
 

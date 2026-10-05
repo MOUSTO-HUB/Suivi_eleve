@@ -265,6 +265,7 @@ export const designationAppareil = (a: Appareil) =>
 export type TypeNotification =
   | 'LIBERATION_ANTICIPEE'
   | 'PAS_DE_COURS'
+  | 'ABSENCE'
   | 'COMPORTEMENT'
   | 'RAPPEL_PAIEMENT'
   | 'RETARD_PAIEMENT'
@@ -327,6 +328,7 @@ export interface ModeleType {
 export const LIBELLES_TYPE_NOTIFICATION: Record<TypeNotification, string> = {
   LIBERATION_ANTICIPEE: 'Libération anticipée',
   PAS_DE_COURS: 'Pas de cours',
+  ABSENCE: 'Absence injustifiée',
   COMPORTEMENT: 'Comportement',
   RAPPEL_PAIEMENT: 'Rappel de paiement',
   RETARD_PAIEMENT: 'Retard de paiement',
@@ -353,3 +355,110 @@ export const LIBELLES_STATUT_NOTIFICATION: Record<StatutNotification, string> =
     ECHOUEE: 'Échouée',
     LUE: 'Lue',
   };
+
+// --- Annonces et absences ---
+
+export type MotifAnnonce =
+  | 'GREVE'
+  | 'COUPURE_ELECTRICITE'
+  | 'INTEMPERIES'
+  | 'ABSENCE_ENSEIGNANT'
+  | 'AUTRE';
+export type StatutAnnonce = 'BROUILLON' | 'PROGRAMMEE' | 'ENVOYEE' | 'ANNULEE';
+export type TypeAnnonce = 'PAS_DE_COURS' | 'LIBERATION_ANTICIPEE';
+
+export interface Annonce {
+  id: string;
+  type: TypeAnnonce;
+  titre: string;
+  message: string;
+  motif: MotifAnnonce | null;
+  motifDetail: string | null;
+  dateDebut: string;
+  creneau: string | null;
+  cible: 'ECOLE' | 'CLASSES';
+  statut: StatutAnnonce;
+  programmeeLe: string | null;
+  envoyeeLe: string | null;
+  creeLe: string;
+  auteur: { prenoms: string; nom: string } | null;
+  classes: { id: string; nom: string }[];
+}
+
+export interface AnnonceListe extends Annonce {
+  familles: number;
+  lues: number;
+}
+
+export interface AnnonceSuivie extends Annonce {
+  suivi: {
+    familles: number;
+    lues: number;
+    enCours: boolean;
+    parCanal: Partial<
+      Record<
+        'SMS' | 'EMAIL' | 'PUSH',
+        Partial<Record<StatutNotification, number>>
+      >
+    >;
+    nonLues: {
+      tuteur: { id: string; prenoms: string; nom: string; contact1: string };
+      eleve: {
+        id: string;
+        prenoms: string;
+        nom: string;
+        classe: { nom: string } | null;
+      } | null;
+    }[];
+  };
+}
+
+export const LIBELLES_MOTIF_ANNONCE: Record<MotifAnnonce, string> = {
+  GREVE: 'Grève',
+  COUPURE_ELECTRICITE: "Coupure d'électricité",
+  INTEMPERIES: 'Intempéries',
+  ABSENCE_ENSEIGNANT: "Absence d'enseignant",
+  AUTRE: 'Autre (préciser)',
+};
+
+export const LIBELLES_STATUT_ANNONCE: Record<StatutAnnonce, string> = {
+  BROUILLON: 'En cours d’envoi',
+  PROGRAMMEE: 'Programmée',
+  ENVOYEE: 'Envoyée',
+  ANNULEE: 'Annulée',
+};
+
+export interface Absence {
+  id: string;
+  date: string;
+  creneau: string;
+  matiere: string | null;
+  justifiee: boolean;
+  motif: string | null;
+  justificationParent: string | null;
+  justifieeLe: string | null;
+  creeLe: string;
+  eleve: {
+    id: string;
+    matricule: string;
+    prenoms: string;
+    nom: string;
+    classe: { id: string; nom: string } | null;
+  };
+  signalePar: { prenoms: string; nom: string; role: Role } | null;
+  justifieePar: { prenoms: string; nom: string } | null;
+}
+
+/** Peut justifier ou supprimer une absence (vie scolaire). */
+export const peutJustifier = (role: Role) =>
+  role === 'ADMIN' || role === 'SECRETARIAT' || role === 'SURVEILLANT';
+
+/** Peut faire l'appel. */
+export const peutFaireAppel = (role: Role) =>
+  peutJustifier(role) || role === 'ENSEIGNANT';
+
+/** Date du jour à Dakar (AAAA-MM-JJ). */
+export const aujourdHui = () =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Dakar' }).format(
+    new Date(),
+  );

@@ -95,6 +95,13 @@ Le système couvre huit modules ; chaque exigence porte un identifiant (EF-xx) r
 - **EF-71** Calendrier des événements dans l'application ; rappel automatique la veille.
 - **EF-72** Demande de participation ou d'autorisation parentale avec réponse oui/non.
 
+### 3.8 bis Absences des élèves (ajout du 05/10/2026)
+
+- **EF-75** Faire l'appel d'une classe : date, créneau (ex. 08h-10h), matière, élèves absents cochés. Réservé aux enseignants, à la vie scolaire et à la direction.
+- **EF-76** Une absence non justifiée prévient aussitôt les tuteurs (SMS, email, application), sans possibilité de désactiver ce message. Une absence déjà connue de l'école peut être notée « justifiée » : aucun message n'est alors envoyé.
+- **EF-77** Une même absence (élève, date, créneau) n'est jamais notée ni signalée deux fois.
+- **EF-78** Le parent consulte les absences de ses enfants et transmet un motif ; la vie scolaire justifie l'absence ou la supprime si elle a été saisie par erreur.
+
 ### 3.9 Moteur de notifications (commun)
 
 - **EF-80** Chaque notification part sur les canaux choisis : SMS, email, push. Le SMS est court (160 caractères) ; l'email et l'application portent le détail.
@@ -108,6 +115,7 @@ Le système couvre huit modules ; chaque exigence porte un identifiant (EF-xx) r
 | --- | --- | --- | --- | --- | --- |
 | Libération anticipée | Oui | Oui | Oui | Urgente | Oui |
 | Pas de cours | Oui | Oui | Oui | Haute | Oui |
+| Absence injustifiée de l'élève | Oui | Oui | Oui | Haute | Oui |
 | Comportement marquant | Oui | Oui | Oui | Haute | Oui |
 | Retard de paiement | Oui | Oui | Oui | Normale | Oui |
 | Résultats et admission | Oui (résumé) | Oui (bulletin) | Oui | Normale | Non |
@@ -135,6 +143,7 @@ Quinze entités suffisent à la version 1 ; l'élève est au centre, relié à s
 | Paiement | id, echeance_id, montant, mode, reference, date, recu_par, recu_url | 1 échéance |
 | Annonce | id, type (pas de cours, libération, événement), titre, message, motif, date_debut, date_fin, cible (école/classes), auteur_id | N classes ciblées |
 | Notification | id, type, tuteur_id, eleve_id, canal, contenu, statut, envoye_le, lu_le, cout, reference_fournisseur | 1 tuteur |
+| Absence | id, eleve_id, date, creneau, matiere, justifiee, motif, justification_parent, signale_par, justifiee_par | 1 élève |
 | Utilisateur | id, nom, email, telephone, role, mot_de_passe_hash, actif, derniere_connexion | 1 rôle |
 
 Toutes les tables portent `cree_le`, `modifie_le` et `cree_par` ; un journal d'audit trace chaque modification sensible.

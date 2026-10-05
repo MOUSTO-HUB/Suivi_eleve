@@ -5,12 +5,8 @@ import {
   type OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  Queue,
-  UnrecoverableError,
-  Worker,
-  type ConnectionOptions,
-} from 'bullmq';
+import { Queue, UnrecoverableError, Worker } from 'bullmq';
+import { optionsFile, traitementActif } from '../common/redis.js';
 import {
   CanalNotification,
   StatutNotification,
@@ -44,8 +40,6 @@ export class EnvoiService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(EnvoiService.name);
   private readonly files = new Map<CanalEnvoye, Queue>();
   private readonly travailleurs: Worker[] = [];
-  private readonly connexion: ConnectionOptions;
-  private readonly prefixe: string;
   private readonly essais: number;
   private readonly delai: number;
 
@@ -54,11 +48,6 @@ export class EnvoiService implements OnModuleInit, OnModuleDestroy {
     private readonly canaux: CanauxService,
     private readonly config: ConfigService,
   ) {
-    this.connexion = {
-      url: config.get<string>('REDIS_URL', 'redis://localhost:6379'),
-      maxRetriesPerRequest: null,
-    };
-    this.prefixe = config.get<string>('BULLMQ_PREFIXE', 'suivi');
     this.essais = Number(config.get('NOTIFICATIONS_ESSAIS', 3));
     this.delai = Number(config.get('NOTIFICATIONS_DELAI_ESSAI_MS', 30_000));
   }
@@ -69,8 +58,7 @@ export class EnvoiService implements OnModuleInit, OnModuleDestroy {
       this.files.set(
         canal,
         new Queue(nom, {
-          connection: this.connexion,
-          prefix: this.prefixe,
+          ...optionsFile(this.config),
           defaultJobOptions: {
             attempts: this.essais,
             backoff: { type: 'exponential', delay: this.delai },
@@ -80,9 +68,7 @@ export class EnvoiService implements OnModuleInit, OnModuleDestroy {
         }),
       );
       // Le traitement peut tourner dans un processus séparé (NOTIFICATIONS_TRAITEMENT=non).
-      if (
-        this.config.get<string>('NOTIFICATIONS_TRAITEMENT', 'oui') !== 'non'
-      ) {
+      if (traitementActif(this.config)) {
         const travailleur = new Worker<{ notificationId: string }>(
           nom,
           (job) =>
@@ -90,7 +76,7 @@ export class EnvoiService implements OnModuleInit, OnModuleDestroy {
               job.data.notificationId,
               job.attemptsMade + 1 >= (job.opts.attempts ?? 1),
             ),
-          { connection: this.connexion, prefix: this.prefixe, concurrency: 5 },
+          { ...optionsFile(this.config), concurrency: 5 },
         );
         travailleur.on('error', (e) =>
           this.logger.error(`File ${nom} : ${e.message}`),

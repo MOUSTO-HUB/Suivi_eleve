@@ -26,6 +26,12 @@ export const REGLES_TYPE: Record<TypeNotification, RegleType> = {
     priorite: 'HAUTE',
     obligatoire: true,
   },
+  // Absence injustifiée d'un élève : la famille doit toujours être prévenue.
+  ABSENCE: {
+    canaux: [SMS, EMAIL, PUSH],
+    priorite: 'HAUTE',
+    obligatoire: true,
+  },
   COMPORTEMENT: {
     canaux: [SMS, EMAIL, PUSH],
     priorite: 'HAUTE',

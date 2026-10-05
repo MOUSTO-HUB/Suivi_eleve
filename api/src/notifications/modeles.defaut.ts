@@ -26,11 +26,28 @@ export const MODELES_PAR_DEFAUT: Record<
     },
     EMAIL: {
       sujet: 'Libération anticipée – {classe}',
-      contenu: `${salutation}Les élèves de {classe} sont libérés aujourd'hui à {heure} ({motif}). Merci de prendre vos dispositions pour {prenom_eleve}.${signature}`,
+      contenu: `${salutation}Les élèves de {classe} sont libérés aujourd'hui à {heure} ({motif}). Merci de prendre vos dispositions pour {prenom_eleve}.{details}${signature}`,
     },
     PUSH: {
       sujet: 'Libération anticipée',
       contenu: '{classe} : sortie à {heure} ({motif}).',
+    },
+  },
+  ABSENCE: {
+    SMS: {
+      contenu:
+        "Suivi_eleve : {prenom_eleve} ({classe}) est absent(e) le {date} ({creneau}) sans justification. Merci de contacter l'école.",
+    },
+    EMAIL: {
+      sujet: 'Absence de {prenom_eleve} le {date}',
+      contenu: `${salutation}{prenom_eleve} ({classe}) a été noté(e) absent(e) le {date} ({creneau}{matiere}), sans justification connue de l'école.
+
+Merci de nous indiquer le motif de cette absence, par l'application ou auprès de la vie scolaire.${signature}`,
+    },
+    PUSH: {
+      sujet: 'Absence de {prenom_eleve}',
+      contenu:
+        'Absent(e) le {date} ({creneau}). Merci de justifier cette absence.',
     },
   },
   PAS_DE_COURS: {

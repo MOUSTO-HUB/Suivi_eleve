@@ -167,6 +167,7 @@ enum StatutAnnonce {
 enum TypeNotification {
   LIBERATION_ANTICIPEE
   PAS_DE_COURS
+  ABSENCE
   COMPORTEMENT
   RAPPEL_PAIEMENT
   RETARD_PAIEMENT
@@ -269,6 +270,8 @@ model Utilisateur {
   annonces               Annonce[]
   jetonsPush             JetonPush[]
   jetonsRafraichissement JetonRafraichissement[]
+  absencesSignalees      Absence[]               @relation("AbsenceSignaleur")
+  absencesJustifiees     Absence[]               @relation("AbsenceJustificateur")
   journalAudit           JournalAudit[]
 
   @@index([ecoleId, role])
@@ -424,6 +427,7 @@ model Eleve {
   reductions       Reduction[]
   reponsesAnnonce  ReponseAnnonce[]
   notifications    Notification[]
+  absences         Absence[]
 
   @@index([ecoleId, statut])
   @@index([classeId])
@@ -772,6 +776,7 @@ model Annonce {
   motifDetail    String?       @map("motif_detail")
   dateDebut      DateTime      @map("date_debut") // heure de sortie pour une libération
   dateFin        DateTime?     @map("date_fin")
+  creneau        String? // pas de cours : « toute la journée », « de 8h à 10h »…
   lieu           String?
   modalites      String?
   pieceJointeUrl String?       @map("piece_jointe_url")
@@ -925,4 +930,32 @@ model JournalAudit {
   @@index([ecoleId, creeLe])
   @@index([entite, entiteId])
   @@map("journal_audit")
+}
+
+// ─── Absences des élèves ─────────────────────────────────────────────────────
+
+// Absence relevée à l'appel. Non justifiée : les tuteurs sont prévenus aussitôt.
+model Absence {
+  id                  String    @id @default(uuid(7))
+  eleveId             String    @map("eleve_id")
+  date                DateTime  @db.Date
+  creneau             String // ex. « 08h-10h », « matinée », « journée »
+  matiere             String?
+  justifiee           Boolean   @default(false)
+  motif               String? // motif retenu par l'école
+  justificationParent String?   @map("justification_parent") // motif transmis par la famille
+  justifieeLe         DateTime? @map("justifiee_le")
+  justifieeParId      String?   @map("justifiee_par_id")
+  signaleParId        String?   @map("signale_par_id")
+  creeLe              DateTime  @default(now()) @map("cree_le")
+  modifieLe           DateTime  @updatedAt @map("modifie_le")
+  creePar             String?   @map("cree_par")
+
+  eleve        Eleve        @relation(fields: [eleveId], references: [id], onDelete: Cascade)
+  signalePar   Utilisateur? @relation("AbsenceSignaleur", fields: [signaleParId], references: [id], onDelete: SetNull)
+  justifieePar Utilisateur? @relation("AbsenceJustificateur", fields: [justifieeParId], references: [id], onDelete: SetNull)
+
+  @@unique([eleveId, date, creneau])
+  @@index([date])
+  @@map("absences")
 }

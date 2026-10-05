@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AbsencesModule } from './absences/absences.module.js';
+import { AnnoncesModule } from './annonces/annonces.module.js';
 import { AppController } from './app.controller.js';
 import { AppareilsModule } from './appareils/appareils.module.js';
 import { AppService } from './app.service.js';
@@ -25,6 +27,8 @@ import { TuteursModule } from './tuteurs/tuteurs.module.js';
     TuteursModule,
     ElevesModule,
     AppareilsModule,
+    AnnoncesModule,
+    AbsencesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

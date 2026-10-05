@@ -19,6 +19,7 @@ import {
   dateFr,
   designationAppareil,
   LIBELLES_LIEN,
+  type Absence,
   type Appareil,
   type Classe,
   type EleveDetail,
@@ -60,9 +61,12 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
     peutGererDossiers(),
   ]);
   if (!eleve) notFound();
-  const [classes, appareils] = await Promise.all([
+  const [classes, appareils, absences] = await Promise.all([
     gestion ? lireApi<Classe[]>('/classes') : Promise.resolve([]),
     lireApi<Page<Appareil>>(`/appareils?eleveId=${eleve.id}&parPage=100`),
+    lireApi<Page<Absence> & { nonJustifiees: number }>(
+      `/absences?eleveId=${eleve.id}&parPage=5`,
+    ),
   ]);
   const archive = eleve.statut === 'ARCHIVE';
 
@@ -214,6 +218,35 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
         </div>
 
         <div className="flex flex-col gap-6">
+          <Carte titre="Absences">
+            <p className="text-sm">
+              {absences.total} absence(s), dont{' '}
+              <span
+                className={
+                  absences.nonJustifiees
+                    ? 'font-semibold text-red-700 dark:text-red-400'
+                    : ''
+                }
+              >
+                {absences.nonJustifiees} non justifiée(s)
+              </span>
+            </p>
+            {absences.elements.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-1 text-sm">
+                {absences.elements.map((a) => (
+                  <li key={a.id} className="flex justify-between gap-2">
+                    <span>
+                      {dateFr(a.date)} · {a.creneau}
+                    </span>
+                    <Badge couleur={a.justifiee ? 'vert' : 'orange'}>
+                      {a.justifiee ? 'Justifiée' : 'Non justifiée'}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Carte>
+
           <Carte titre="Historique des classes">
             <ol className="flex flex-col gap-3 text-sm">
               {eleve.historiqueClasse.map((h) => (
