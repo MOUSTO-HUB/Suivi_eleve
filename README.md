@@ -54,7 +54,7 @@ Arrêter la base : `pnpm db:down`.
 | ----------------------------------------- | ------------------------------------- |
 | `pnpm lint`                               | Lint de toutes les applications       |
 | `pnpm typecheck`                          | Vérification des types                |
-| `pnpm test`                               | Tests unitaires de l'API              |
+| `pnpm test`                               | Tests unitaires (API et mobile)       |
 | `pnpm --filter @suivi-eleve/api test:e2e` | Tests de bout en bout (base démarrée) |
 | `pnpm build`                              | Build de l'API et du web              |
 | `pnpm format`                             | Formatage Prettier                    |
@@ -73,9 +73,25 @@ Le schéma de données est dans [`api/prisma/schema.prisma`](api/prisma/schema.p
 
 Les deux renvoient un jeton d'accès (15 minutes, à passer dans `Authorization: Bearer …`) et un jeton de rafraîchissement (30 jours, `POST /api/auth/rafraichir`). `GET /api/auth/moi` renvoie l'utilisateur connecté.
 
+## Application mobile
+
+L'application (`mobile/`, Expo Router) a deux espaces, choisis selon le compte :
+
+- **Parents** (connexion par numéro + code SMS) : accueil avec les derniers messages et le choix de l'enfant, messages (accusé de lecture à l'ouverture, 50 derniers gardés hors ligne), événements (calendrier, réponse oui/non, pièce jointe), résultats publiés et bulletins PDF, comportement, absences (motif transmis à l'école), paiements en attente, appareils (déclarer une perte), préférences des messages.
+- **Personnel** (email + mot de passe) : scanner l'étiquette QR d'un appareil (ou saisir son code), voir l'élève et appeler ses tuteurs, signaler un usage en classe, une confiscation…, signaler un comportement.
+
+Sur un téléphone, l'API doit être joignable par son adresse sur le réseau local (Expo ne lit pas le `.env` de la racine) :
+
+```bash
+# mobile/.env.local (non versionné)
+EXPO_PUBLIC_API_URL=http://192.168.1.20:3000/api
+```
+
+Expo Go suffit pour tout tester, sauf les notifications push : depuis le SDK 53, elles exigent un build de développement (`npx expo run:android` ou `eas build --profile development`) avec Firebase configuré. Le jeton FCM de l'appareil est alors enregistré automatiquement auprès de l'API après la connexion.
+
 ## État du projet
 
-Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 terminé : appareils des élèves (prompt 5), moteur de notifications SMS, email et push (prompt 6), absence de cours, libération anticipée et absences injustifiées des élèves (prompt 7). Lot 3 en cours : résultats saisis par les professeurs, bulletins PDF et décisions de fin d'année (prompt 8), comportements marquants avec validation des cas graves et convocations (prompt 9), rappels de paiement avec retard calculé (prompt 10, la comptabilité restant dans les outils de l'école), événements de l'école avec calendrier, pièce jointe, rappel la veille à 18h et réponses oui/non des parents (prompt 11). Prochaine étape : application mobile parents (prompt 12).
+Lot 1 terminé : socle (prompt 1), base de données (prompt 2), authentification (prompt 3), élèves, tuteurs et classes avec import/export et back-office web (prompt 4). Lot 2 terminé : appareils des élèves (prompt 5), moteur de notifications SMS, email et push (prompt 6), absence de cours, libération anticipée et absences injustifiées des élèves (prompt 7). Lot 3 terminé : résultats saisis par les professeurs, bulletins PDF et décisions de fin d'année (prompt 8), comportements marquants avec validation des cas graves et convocations (prompt 9), rappels de paiement avec retard calculé (prompt 10, la comptabilité restant dans les outils de l'école), événements de l'école avec calendrier, pièce jointe, rappel la veille à 18h et réponses oui/non des parents (prompt 11). Lot 4 en cours : application mobile parents et personnel (prompt 12). Prochaine étape : espace parents web, sécurité et mise en production (prompt 13).
 
 ## Notifications
 

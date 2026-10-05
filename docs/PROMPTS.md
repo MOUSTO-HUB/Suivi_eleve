@@ -85,7 +85,7 @@ Crée le type d'annonce EVENEMENT : titre, description, date/heure, lieu, public
 ## Prompt 12 — Application mobile parents
 
 ```text
-Dans /mobile (Expo), crée l'application parents : connexion par numéro + OTP, choix de l'enfant si plusieurs, écrans Accueil (dernières notifications par icône de type), Notifications (liste + détail + accusé de réception), Résultats (moyennes, bulletins PDF), Comportement, Paiements (échéances, reçus, retards), Appareils (liste, déclarer perdu), Événements (calendrier, répondre), Préférences (canaux par type). Notifications push via Firebase, cache hors ligne des 50 dernières notifications, interface simple en français avec gros boutons. Ajoute un mode PERSONNEL pour enseignants et surveillants : scan QR d'un appareil, signalement de comportement ou d'usage en classe.
+Dans /mobile (Expo), crée l'application parents : connexion par numéro + OTP, choix de l'enfant si plusieurs, écrans Accueil (dernières notifications par icône de type), Notifications (liste + détail + accusé de réception), Résultats (moyennes publiées, bulletins PDF), Comportement, Absences (donner le motif), Paiements (rappels en attente et retard calculé, sans reçus : la comptabilité reste dans les outils de l'école), Appareils (liste, déclarer perdu), Événements (calendrier, répondre), Préférences (canaux par type). Notifications push via Firebase, cache hors ligne des 50 dernières notifications, interface simple en français avec gros boutons. Ajoute un mode PERSONNEL pour enseignants et surveillants : scan QR d'un appareil, signalement de comportement ou d'usage en classe.
 ```
 
 ## Prompt 13 — Espace parents web, sécurité et mise en production

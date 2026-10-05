@@ -400,6 +400,9 @@ export class NotificationsService {
           contenu: true,
           creeLe: true,
           lueLe: true,
+          // Lien vers l'objet concerné (ex. événement auquel répondre).
+          sourceType: true,
+          sourceId: true,
           eleve: { select: { id: true, prenoms: true } },
         },
         orderBy: { creeLe: 'desc' },

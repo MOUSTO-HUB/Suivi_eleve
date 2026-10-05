@@ -238,6 +238,16 @@ describe('Événements (e2e)', () => {
       id: sortie.id,
       enfants: [{ id: eleves.Awa, reponse: null }],
     });
+    // Le message de l'application mène à l'événement (réponse depuis le mobile).
+    const mes = await http()
+      .get('/api/notifications/mes')
+      .set(avec('parentAwa'))
+      .expect(200);
+    expect(mes.body.elements[0]).toMatchObject({
+      type: 'EVENEMENT',
+      sourceType: 'annonce',
+      sourceId: sortie.id,
+    });
     const piece = await http()
       .get(`/api/evenements/${sortie.id}/piece-jointe`)
       .set(avec('parentAwa'))
