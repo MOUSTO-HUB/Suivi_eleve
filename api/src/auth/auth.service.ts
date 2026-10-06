@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,6 +9,10 @@ import { hash, verify } from '@node-rs/argon2';
 import { createHash, randomBytes } from 'node:crypto';
 import { AuditService } from '../audit/audit.service.js';
 import { ActionAudit, Role } from '../generated/prisma/enums.js';
+import {
+  EtatEcolesService,
+  MESSAGE_ECOLE_SUSPENDUE,
+} from '../plateforme/etat-ecoles.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type {
   ChargeJeton,
@@ -24,7 +29,8 @@ const empreinte = (jeton: string) =>
 interface UtilisateurSession {
   id: string;
   role: Role;
-  ecoleId: string;
+  /** null : concepteur (SUPER_ADMIN), sans école. */
+  ecoleId: string | null;
   tuteur?: { id: string } | null;
 }
 
@@ -38,6 +44,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
     private readonly audit: AuditService,
+    private readonly etatEcoles: EtatEcolesService,
   ) {}
 
   async connexionPersonnel(
@@ -65,24 +72,20 @@ export class AuthService {
     return this.ouvrirSession(utilisateur);
   }
 
-  /** Enregistre la connexion et émet une nouvelle paire de jetons. */
+  /** Émet une nouvelle paire de jetons puis enregistre la connexion. */
   async ouvrirSession(utilisateur: UtilisateurSession): Promise<Session> {
+    const session = await this.emettreJetons(utilisateur);
     await this.prisma.utilisateur.update({
       where: { id: utilisateur.id },
       data: { derniereConnexion: new Date() },
     });
     await this.audit.journaliser(
-      {
-        id: utilisateur.id,
-        role: utilisateur.role,
-        ecoleId: utilisateur.ecoleId,
-        tuteurId: utilisateur.tuteur?.id ?? null,
-      },
+      session.utilisateur,
       ActionAudit.CONNEXION,
       'Utilisateur',
       utilisateur.id,
     );
-    return this.emettreJetons(utilisateur);
+    return session;
   }
 
   async rafraichir(jeton: string): Promise<Session> {
@@ -181,11 +184,18 @@ export class AuthService {
   private async emettreJetons(
     utilisateur: UtilisateurSession,
   ): Promise<Session> {
+    // École suspendue (abonnement) : connexion et renouvellement refusés.
+    if (
+      utilisateur.ecoleId &&
+      (await this.etatEcoles.estSuspendue(utilisateur.ecoleId))
+    ) {
+      throw new ForbiddenException(MESSAGE_ECOLE_SUSPENDUE);
+    }
     const tuteurId = utilisateur.tuteur?.id ?? null;
     const charge: ChargeJeton = {
       sub: utilisateur.id,
       role: utilisateur.role,
-      ecoleId: utilisateur.ecoleId,
+      ecoleId: utilisateur.ecoleId ?? '',
       ...(tuteurId ? { tuteurId } : {}),
     };
     const jetonAcces = await this.jwt.signAsync(charge);
@@ -205,7 +215,7 @@ export class AuthService {
       utilisateur: {
         id: utilisateur.id,
         role: utilisateur.role,
-        ecoleId: utilisateur.ecoleId,
+        ecoleId: utilisateur.ecoleId ?? '',
         tuteurId,
       },
     };

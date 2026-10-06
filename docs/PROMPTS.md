@@ -105,3 +105,9 @@ Rends le site installable (PWA) sur PC, Android et iPhone : manifeste, icônes, 
 ```text
 Ajoute une tâche quotidienne (BullMQ, 9h heure de Dakar) qui relance les familles sans action du comptable, tant qu'un rappel de paiement n'est pas réglé : rappel 3 jours avant la date, relance le lendemain de la date, puis 7 jours après le dernier envoi (manuel ou automatique), 4 relances automatiques au plus. Règle pure testée, compteur des relances automatiques, prochaine relance affichée au comptable.
 ```
+
+## Prompt 16 — Espace concepteur et abonnements des écoles
+
+```text
+Ajoute le rôle SUPER_ADMIN (concepteur, sans école) et son espace web /plateforme : créer une école (pays Guinée, Côte d'Ivoire ou Sénégal) avec son année scolaire et son compte de direction, enregistrer les paiements d'abonnement (150 000 GNF par mois ou 1 500 000 GNF par an, sans TVA), suspendre ou réactiver, tableau de bord (écoles par état, encaissements). 1 mois d'essai, bandeau à la direction 7 jours avant la fin, 15 jours de grâce puis suspension : plus de connexion ni d'envoi, données conservées. Le concepteur n'accède à aucune route des écoles ni aux données des élèves. Premier compte concepteur par la ligne de commande.
+```

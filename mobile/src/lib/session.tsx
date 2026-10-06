@@ -9,6 +9,7 @@ import {
 } from 'react';
 import {
   envoyer,
+  ErreurApi,
   fermerSession,
   lire,
   ouvrirSession,
@@ -85,12 +86,21 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
         );
       },
       connexionPersonnel: async (email, motDePasse) => {
-        await ouvrir(
-          await envoyer<Session>('/auth/connexion', 'POST', {
-            email,
-            motDePasse,
-          }),
-        );
+        const session = await envoyer<Session>('/auth/connexion', 'POST', {
+          email,
+          motDePasse,
+        });
+        // Le concepteur administre les écoles depuis le site web seulement.
+        if (session.utilisateur.role === 'SUPER_ADMIN') {
+          await envoyer('/auth/deconnexion', 'POST', {
+            jetonRafraichissement: session.jetonRafraichissement,
+          }).catch(() => undefined);
+          throw new ErreurApi(
+            403,
+            "L'espace concepteur s'utilise sur le site web de Suivi_eleve.",
+          );
+        }
+        await ouvrir(session);
       },
       deconnexion: async () => {
         await desinscrirePush();

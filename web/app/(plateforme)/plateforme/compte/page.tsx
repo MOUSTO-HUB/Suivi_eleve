@@ -1,0 +1,60 @@
+import type { Metadata } from 'next';
+import { changerMotDePasse } from '@/app/(admin)/compte/actions';
+import { FormulaireAction } from '@/components/formulaire-action';
+import { Carte, Champ, EnTete, Saisie } from '@/components/ui';
+import { profilCourant } from '@/lib/profil';
+
+export const metadata: Metadata = {
+  title: 'Mon compte · Concepteur · Suivi_eleve',
+};
+
+export default async function MonCompteConcepteur() {
+  const profil = await profilCourant();
+  return (
+    <>
+      <EnTete
+        titre="Mon compte"
+        sousTitre={`${profil.prenoms} ${profil.nom} · Concepteur${profil.email ? ` · ${profil.email}` : ''}`}
+      />
+      <div className="max-w-md">
+        <Carte titre="Changer mon mot de passe">
+          <FormulaireAction
+            action={changerMotDePasse}
+            libelle="Changer le mot de passe"
+            reinitialiserSiSucces
+          >
+            <Champ libelle="Mot de passe actuel">
+              <Saisie
+                type="password"
+                name="actuel"
+                autoComplete="current-password"
+                required
+              />
+            </Champ>
+            <Champ
+              libelle="Nouveau mot de passe"
+              aide="Au moins 10 caractères, avec des lettres et des chiffres."
+            >
+              <Saisie
+                type="password"
+                name="nouveau"
+                autoComplete="new-password"
+                minLength={10}
+                required
+              />
+            </Champ>
+            <Champ libelle="Confirmer le nouveau mot de passe">
+              <Saisie
+                type="password"
+                name="confirmation"
+                autoComplete="new-password"
+                minLength={10}
+                required
+              />
+            </Champ>
+          </FormulaireAction>
+        </Carte>
+      </div>
+    </>
+  );
+}

@@ -15,6 +15,7 @@ import { NotificationsModule } from './notifications/notifications.module.js';
 import { EvenementsModule } from './evenements/evenements.module.js';
 import { PaiementsModule } from './paiements/paiements.module.js';
 import { SecuriteModule } from './securite/securite.module.js';
+import { PlateformeModule } from './plateforme/plateforme.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { ResultatsModule } from './resultats/resultats.module.js';
 import { StockageModule } from './stockage/stockage.module.js';
@@ -27,6 +28,7 @@ import { UtilisateursModule } from './utilisateurs/utilisateurs.module.js';
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../.env'] }),
     PrismaModule,
     AuditModule,
+    PlateformeModule,
     SecuriteModule,
     NotificationsModule,
     StockageModule,

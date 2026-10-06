@@ -10,16 +10,21 @@ import { ipRequete } from '../securite/contexte-requete.js';
 export class AuditService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * `ecoleId` : école concernée par une action du concepteur (qui n'a pas
+   * d'école) ; sinon celle de l'utilisateur. Connexion du concepteur : aucune.
+   */
   async journaliser(
     utilisateur: UtilisateurConnecte,
     action: ActionAudit,
     entite: string,
     entiteId?: string,
     details?: Prisma.InputJsonValue,
+    ecoleId?: string,
   ): Promise<void> {
     await this.prisma.journalAudit.create({
       data: {
-        ecoleId: utilisateur.ecoleId,
+        ecoleId: ecoleId ?? (utilisateur.ecoleId || null),
         utilisateurId: utilisateur.id,
         action,
         entite,

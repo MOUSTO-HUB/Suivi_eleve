@@ -6,7 +6,8 @@ export type Role =
   | 'ENSEIGNANT'
   | 'SURVEILLANT'
   | 'COMPTABLE'
-  | 'PARENT';
+  | 'PARENT'
+  | 'SUPER_ADMIN';
 export type Genre = 'MASCULIN' | 'FEMININ';
 export type LienTuteur = 'PERE' | 'MERE' | 'TUTEUR_LEGAL' | 'AUTRE';
 export type StatutEleve = 'ACTIF' | 'ARCHIVE';
@@ -130,6 +131,7 @@ export const LIBELLES_ROLE: Record<Role, string> = {
   SURVEILLANT: 'Surveillant',
   COMPTABLE: 'Comptabilité',
   PARENT: 'Parent',
+  SUPER_ADMIN: 'Concepteur',
 };
 
 /** Rôles qui peuvent inscrire et modifier les dossiers. */
@@ -856,4 +858,136 @@ export function lienMessage(n: NotificationParent): string | null {
 
 /** Page d'accueil selon le rôle. */
 export const accueilDuRole = (role: string) =>
-  role === 'PARENT' ? '/parent' : '/eleves';
+  role === 'PARENT'
+    ? '/parent'
+    : role === 'SUPER_ADMIN'
+      ? '/plateforme'
+      : '/eleves';
+
+// --- Espace concepteur et abonnements des écoles ---
+
+export type Pays = 'GN' | 'CI' | 'SN';
+export const LIBELLES_PAYS: Record<Pays, string> = {
+  GN: 'Guinée',
+  CI: 'Côte d’Ivoire',
+  SN: 'Sénégal',
+};
+
+export type EtatAbonnement =
+  'ESSAI' | 'ACTIF' | 'A_RENOUVELER' | 'EN_RETARD' | 'SUSPENDUE';
+export const LIBELLES_ETAT_ABONNEMENT: Record<EtatAbonnement, string> = {
+  ESSAI: 'Essai gratuit',
+  ACTIF: 'Actif',
+  A_RENOUVELER: 'À renouveler',
+  EN_RETARD: 'En retard',
+  SUSPENDUE: 'Suspendue',
+};
+export const COULEUR_ETAT_ABONNEMENT: Record<
+  EtatAbonnement,
+  'gris' | 'vert' | 'orange'
+> = {
+  ESSAI: 'gris',
+  ACTIF: 'vert',
+  A_RENOUVELER: 'orange',
+  EN_RETARD: 'orange',
+  SUSPENDUE: 'orange',
+};
+
+export type FormuleAbonnement = 'MENSUEL' | 'ANNUEL';
+export const LIBELLES_FORMULE: Record<FormuleAbonnement, string> = {
+  MENSUEL: 'Mensuel (1 mois)',
+  ANNUEL: 'Annuel (12 mois, 2 offerts)',
+};
+export type MoyenPaiementAbonnement =
+  | 'ORANGE_MONEY'
+  | 'MTN_MOBILE_MONEY'
+  | 'WAVE'
+  | 'VIREMENT'
+  | 'ESPECES'
+  | 'AUTRE';
+export const LIBELLES_MOYEN: Record<MoyenPaiementAbonnement, string> = {
+  ORANGE_MONEY: 'Orange Money',
+  MTN_MOBILE_MONEY: 'MTN Mobile Money',
+  WAVE: 'Wave',
+  VIREMENT: 'Virement',
+  ESPECES: 'Espèces',
+  AUTRE: 'Autre',
+};
+
+/** « 150 000 GNF » */
+export const gnf = (montant: number) =>
+  `${montant.toLocaleString('fr-FR')} GNF`;
+
+export interface SituationAbonnement {
+  etat: EtatAbonnement;
+  essai: boolean;
+  /** Jours avant la fin (0 : dernier jour ; négatif : en retard). */
+  joursRestants: number;
+  finGrace: string;
+}
+
+export interface EcolePlateforme {
+  id: string;
+  nom: string;
+  pays: Pays;
+  adresse: string | null;
+  telephone: string | null;
+  email: string | null;
+  creeLe: string;
+  finAbonnement: string;
+  suspendueLe: string | null;
+  motifSuspension: string | null;
+  abonnement: SituationAbonnement;
+  eleves: number;
+  familles: number;
+}
+
+export interface PaiementAbonnement {
+  id: string;
+  formule: FormuleAbonnement;
+  montant: number;
+  moyen: MoyenPaiementAbonnement;
+  reference: string | null;
+  payeLe: string;
+  periodeDebut: string;
+  periodeFin: string;
+  enregistreur?: { prenoms: string; nom: string } | null;
+}
+
+export interface DetailEcolePlateforme extends EcolePlateforme {
+  tarifs: Record<FormuleAbonnement, number>;
+  classes: number;
+  personnel: number;
+  direction: {
+    id: string;
+    prenoms: string;
+    nom: string;
+    email: string | null;
+    actif: boolean;
+    derniereConnexion: string | null;
+  }[];
+  paiements: PaiementAbonnement[];
+}
+
+export interface TableauDeBordPlateforme {
+  ecoles: { total: number; parEtat: Record<EtatAbonnement, number> };
+  eleves: number;
+  familles: number;
+  encaissements: { mois: number; annee: number };
+  aRelancer: EcolePlateforme[];
+  tarifs: Record<FormuleAbonnement, number>;
+  regles: {
+    joursEssai: number;
+    joursAvertissement: number;
+    joursGrace: number;
+  };
+}
+
+/** Abonnement vu par la direction de l'école. */
+export interface MonAbonnement {
+  nom: string;
+  finAbonnement: string;
+  abonnement: SituationAbonnement;
+  tarifs: Record<FormuleAbonnement, number>;
+  paiements: PaiementAbonnement[];
+}

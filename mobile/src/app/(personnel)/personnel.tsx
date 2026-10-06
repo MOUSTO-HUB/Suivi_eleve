@@ -11,6 +11,7 @@ const LIBELLES_ROLE: Record<Role, string> = {
   SURVEILLANT: 'Surveillant',
   COMPTABLE: 'Comptabilité',
   PARENT: 'Parent',
+  SUPER_ADMIN: 'Concepteur',
 };
 
 /** Rôles qui peuvent signaler un comportement (même règle que l'API). */

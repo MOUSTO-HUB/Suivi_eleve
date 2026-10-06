@@ -1,7 +1,8 @@
-// Première mise en service : l'école, l'année scolaire (3 trimestres) et le
-// premier compte de la direction. À lancer une seule fois sur une base vide :
-//   node dist/cli/initialiser.js --ecole "Collège X" --prenoms Awa --nom Diop \
-//     --email direction@college-x.sn [--annee 2026]
+// Compte du concepteur (SUPER_ADMIN), qui crée ensuite les écoles depuis le site
+// (espace /plateforme). À lancer à la première mise en service :
+//   node dist/cli/initialiser.js --prenoms Awa --nom Diop --email moi@exemple.com
+// Relancé avec l'email d'un concepteur existant : nouveau mot de passe provisoire
+// (mot de passe oublié). Les sessions ouvertes de ce compte sont fermées.
 import { hash } from '@node-rs/argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { parseArgs } from 'node:util';
@@ -10,11 +11,9 @@ import { motDePasseProvisoire } from '../utilisateurs/utilisateurs.regles.js';
 
 const { values } = parseArgs({
   options: {
-    ecole: { type: 'string' },
     prenoms: { type: 'string' },
     nom: { type: 'string' },
     email: { type: 'string' },
-    annee: { type: 'string' },
   },
 });
 
@@ -23,14 +22,10 @@ function arreter(message: string): never {
   process.exit(1);
 }
 
-const { ecole: nomEcole, prenoms, nom } = values;
 const email = values.email?.trim().toLowerCase();
-if (!nomEcole || !prenoms || !nom || !email)
-  arreter('indiquez --ecole, --prenoms, --nom et --email.');
+if (!email)
+  arreter('indiquez --email (et --prenoms, --nom pour un nouveau compte).');
 if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) arreter('email invalide.');
-const debut = Number(values.annee ?? new Date().getUTCFullYear());
-if (!Number.isInteger(debut) || debut < 2020 || debut > 2100)
-  arreter('--annee doit être une année de rentrée, ex. 2026.');
 if (!process.env.DATABASE_URL) arreter('DATABASE_URL est absent.');
 
 const prisma = new PrismaClient({
@@ -38,67 +33,43 @@ const prisma = new PrismaClient({
 });
 
 try {
-  if ((await prisma.ecole.count()) > 0)
-    arreter(
-      "une école existe déjà : l'initialisation ne sert qu'une fois (gérez ensuite les comptes depuis le site, menu Personnel).",
-    );
-
   const motDePasse = motDePasseProvisoire();
-  const ecole = await prisma.ecole.create({ data: { nom: nomEcole } });
-  const annee = await prisma.anneeScolaire.create({
-    data: {
-      ecoleId: ecole.id,
-      libelle: `${debut}-${debut + 1}`,
-      dateDebut: new Date(Date.UTC(debut, 9, 1)),
-      dateFin: new Date(Date.UTC(debut + 1, 6, 15)),
-      active: true,
-    },
-  });
-  const trimestres: [string, Date, Date][] = [
-    [
-      'Trimestre 1',
-      new Date(Date.UTC(debut, 9, 1)),
-      new Date(Date.UTC(debut, 11, 20)),
-    ],
-    [
-      'Trimestre 2',
-      new Date(Date.UTC(debut + 1, 0, 4)),
-      new Date(Date.UTC(debut + 1, 2, 31)),
-    ],
-    [
-      'Trimestre 3',
-      new Date(Date.UTC(debut + 1, 3, 12)),
-      new Date(Date.UTC(debut + 1, 6, 15)),
-    ],
-  ];
-  for (const [i, [libelle, dateDebut, dateFin]] of trimestres.entries()) {
-    await prisma.periode.create({
+  const existant = await prisma.utilisateur.findUnique({ where: { email } });
+
+  if (existant) {
+    if (existant.role !== Role.SUPER_ADMIN)
+      arreter('cet email appartient au compte d’une école, pas au concepteur.');
+    await prisma.utilisateur.update({
+      where: { id: existant.id },
+      data: { motDePasseHash: await hash(motDePasse), actif: true },
+    });
+    await prisma.jetonRafraichissement.updateMany({
+      where: { utilisateurId: existant.id, revoqueLe: null },
+      data: { revoqueLe: new Date() },
+    });
+    console.log(
+      `Nouveau mot de passe provisoire pour ${email} : ${motDePasse}`,
+    );
+  } else {
+    const { prenoms, nom } = values;
+    if (!prenoms || !nom)
+      arreter('indiquez --prenoms et --nom pour créer le compte concepteur.');
+    await prisma.utilisateur.create({
       data: {
-        anneeScolaireId: annee.id,
-        ordre: i + 1,
-        libelle,
-        dateDebut,
-        dateFin,
+        ecoleId: null,
+        prenoms,
+        nom,
+        email,
+        role: Role.SUPER_ADMIN,
+        motDePasseHash: await hash(motDePasse),
       },
     });
+    console.log(`Compte concepteur créé : ${email}`);
+    console.log(`Mot de passe provisoire : ${motDePasse}`);
   }
-  await prisma.utilisateur.create({
-    data: {
-      ecoleId: ecole.id,
-      prenoms,
-      nom,
-      email,
-      role: Role.ADMIN,
-      motDePasseHash: await hash(motDePasse),
-    },
-  });
-
   console.log(
-    `École « ${nomEcole} » créée, année ${annee.libelle} (3 trimestres).`,
+    'Connectez-vous sur le site (onglet « Personnel de l’école ») : espace concepteur, menu « Mon compte » pour changer le mot de passe.',
   );
-  console.log(`Compte de la direction : ${email}`);
-  console.log(`Mot de passe provisoire : ${motDePasse}`);
-  console.log('À changer dès la première connexion (menu « Mon compte »).');
 } finally {
   await prisma.$disconnect();
 }

@@ -6,7 +6,8 @@ export type Role =
   | 'ENSEIGNANT'
   | 'SURVEILLANT'
   | 'COMPTABLE'
-  | 'PARENT';
+  | 'PARENT'
+  | 'SUPER_ADMIN';
 
 export interface Utilisateur {
   id: string;

@@ -23,7 +23,7 @@ Suivi_eleve est une application web et mobile qui informe les parents en temps r
 
 ## 2. Acteurs et rôles
 
-Six rôles se partagent l'application ; chaque utilisateur n'accède qu'aux données de son rôle et, pour un parent, à celles de ses propres enfants.
+Six rôles se partagent l'application dans chaque école, plus le concepteur qui administre les écoles abonnées ; chaque utilisateur n'accède qu'aux données de son rôle et, pour un parent, à celles de ses propres enfants.
 
 | Rôle | Support principal | Peut faire |
 | --- | --- | --- |
@@ -33,6 +33,7 @@ Six rôles se partagent l'application ; chaque utilisateur n'accède qu'aux donn
 | Surveillant | Mobile | Rechercher un appareil (numéro de série, IMEI, description), déclarer un appareil trouvé, confisqué ou restitué |
 | Comptable | Web | Signaler les paiements en attente, suivre les retards, relancer, marquer « réglé » |
 | Parent / Tuteur | Mobile et web | Consulter le dossier de ses enfants, recevoir et relire les notifications, choisir ses canaux, accuser réception |
+| Concepteur (super administrateur) | Web | Créer les écoles et leur compte de direction, enregistrer les paiements d'abonnement, suspendre ou réactiver une école ; aucun accès aux données des élèves |
 
 L'élève n'a pas de compte en version 1 ; un accès élève en lecture seule est envisageable en version 2.
 
@@ -104,6 +105,17 @@ La comptabilité de l'école est tenue dans ses propres outils ; l'application n
 - **EF-76** Une absence non justifiée prévient aussitôt les tuteurs (SMS, email, application), sans possibilité de désactiver ce message. Une absence déjà connue de l'école peut être notée « justifiée » : aucun message n'est alors envoyé.
 - **EF-77** Une même absence (élève, date, créneau) n'est jamais notée ni signalée deux fois.
 - **EF-78** Le parent consulte les absences de ses enfants et transmet un motif ; la vie scolaire justifie l'absence ou la supprime si elle a été saisie par erreur.
+
+### 3.8 ter Espace concepteur et abonnements des écoles (ajout du 06/10/2026)
+
+Le concepteur de l'application (super administrateur) administre toutes les écoles abonnées. Il ne voit jamais les données des élèves ni des familles : seulement les écoles, leurs abonnements et des chiffres globaux.
+
+- **EF-90** Le concepteur crée une école (nom, pays : Guinée, Côte d'Ivoire ou Sénégal, contacts) et son compte de direction ; le mot de passe provisoire est affiché une seule fois. L'année scolaire et ses trois trimestres sont créés avec l'école.
+- **EF-91** Tarif : 150 000 GNF par mois et par école, sans TVA ; ou 1 500 000 GNF par an (10 mois payés, 2 offerts). Une nouvelle école a 1 mois d'essai gratuit.
+- **EF-92** Le concepteur enregistre chaque paiement reçu (formule mensuelle ou annuelle, moyen : Orange Money, MTN Mobile Money, Wave, virement, espèces, autre ; référence ; date). L'abonnement est prolongé d'1 mois ou d'1 an à partir de la fin de la période précédente (ou du jour du paiement si l'école était déjà suspendue).
+- **EF-93** États d'une école : essai, actif, à renouveler (7 derniers jours), en retard (15 jours de grâce après la fin), suspendue (après la grâce, ou suspendue à la main par le concepteur). La direction voit un bandeau d'avertissement dès 7 jours avant la fin.
+- **EF-94** École suspendue : plus aucune connexion (personnel et parents), plus aucun envoi de message ; toutes les données sont conservées et tout revient dès le paiement ou la réactivation.
+- **EF-95** Tableau de bord du concepteur : nombre d'écoles par état, élèves et familles suivis, encaissements du mois et de l'année, écoles à relancer.
 
 ### 3.9 Moteur de notifications (commun)
 

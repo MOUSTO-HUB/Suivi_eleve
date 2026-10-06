@@ -226,6 +226,41 @@ describe('Sécurité (e2e)', () => {
     expect(sansRoles).toEqual(OUVERTES_A_TOUS_CONNECTES);
   });
 
+  it('cloisonne le concepteur et les écoles', async () => {
+    // Concepteur : sans école. Il n'entre que sur ses routes (et son profil).
+    const concepteur = {
+      Authorization: `Bearer ${app.get(JwtService).sign({ sub: randomUUID(), role: Role.SUPER_ADMIN, ecoleId: '' })}`,
+    };
+    const ouvertesAuConcepteur = ['GET /api/auth/moi'];
+    const fuites: string[] = [];
+    for (const r of routes.filter((x) => !x.publique)) {
+      const cle = `${r.methode} ${r.chemin}`;
+      const reserveeAuConcepteur =
+        r.roles?.length === 1 && r.roles[0] === Role.SUPER_ADMIN;
+      if (reserveeAuConcepteur) {
+        // La direction d'une école n'entre jamais dans l'espace concepteur.
+        const reponse = await appeler(r.methode, remplir(r.chemin)).set(
+          avec('direction'),
+        );
+        if (reponse.status !== 403)
+          fuites.push(`direction ${cle} → ${reponse.status}`);
+      } else if (
+        !r.roles?.includes(Role.SUPER_ADMIN) &&
+        !ouvertesAuConcepteur.includes(cle)
+      ) {
+        const reponse = await appeler(r.methode, remplir(r.chemin)).set(
+          concepteur,
+        );
+        if (reponse.status !== 403)
+          fuites.push(`concepteur ${cle} → ${reponse.status}`);
+      }
+    }
+    expect(fuites).toEqual([]);
+    expect(
+      routes.filter((r) => r.roles?.includes(Role.SUPER_ADMIN)).length,
+    ).toBeGreaterThan(5);
+  });
+
   describe('cloisonnement des familles', () => {
     beforeAll(async () => {
       // Connexion réelle du parent d'Awa (code lu en base après remplacement).

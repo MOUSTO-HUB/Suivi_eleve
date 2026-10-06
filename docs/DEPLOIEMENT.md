@@ -71,19 +71,27 @@ source ~/.bashrc
 
 ## 4. Première mise en service
 
-Créer l'école, l'année scolaire (3 trimestres) et le compte de la direction — **une seule fois** :
+Créer **ton compte de concepteur** (super administrateur), une seule fois :
 
 ```bash
 suivi exec api node dist/cli/initialiser.js \
-  --ecole "Collège Exemple de Dakar" \
-  --prenoms "Awa" --nom "Diop" \
-  --email direction@mon-ecole.sn \
-  --annee 2026
+  --prenoms "Prénom" --nom "Nom" \
+  --email moi@mon-domaine.com
 ```
 
-La commande affiche un **mot de passe provisoire**. Ensuite, sur le site :
+La commande affiche un **mot de passe provisoire**. Mot de passe oublié : relancer la même commande avec le même email (sans `--prenoms`/`--nom`) donne un nouveau mot de passe provisoire.
 
-1. se connecter (onglet *Personnel de l'école*) puis changer le mot de passe (clic sur son nom → *Mon compte*) ;
+Sur le site, se connecter (onglet *Personnel de l'école*) : on arrive dans l'**espace concepteur**. Changer d'abord le mot de passe (clic sur son nom → *Mon compte*), puis pour chaque école abonnée :
+
+1. **Nouvelle école** : nom, pays (Guinée, Côte d'Ivoire, Sénégal), compte de la direction. L'école démarre avec **1 mois d'essai gratuit** ; son année scolaire et ses 3 trimestres sont créés. Le mot de passe provisoire de la direction s'affiche une seule fois : le lui transmettre.
+2. À chaque paiement reçu (Orange Money, MTN, Wave, virement, espèces) : fiche de l'école → **Enregistrer un paiement reçu** (150 000 GNF le mois, 1 500 000 GNF l'année). L'abonnement est prolongé aussitôt.
+3. Le **tableau de bord** liste les écoles à relancer. La direction voit un bandeau 7 jours avant la fin ; après 15 jours de retard l'école est suspendue (plus de connexion ni d'envoi, données conservées) jusqu'au paiement. Une école peut aussi être suspendue ou réactivée à la main.
+
+Mettre dans `.env.production` le contact affiché aux écoles pour renouveler : `CONTACT_ABONNEMENT="+224 6xx xx xx xx (WhatsApp)"`.
+
+La direction de chaque école, sur le site :
+
+1. se connecter puis changer le mot de passe (clic sur son nom → *Mon compte*) ;
 2. menu **Personnel** : créer les comptes (secrétariat, enseignants, surveillants, comptabilité) ; chaque compte reçoit un mot de passe provisoire à lui transmettre ;
 3. menu **Classes** puis **Élèves** : créer les classes, importer les élèves et tuteurs (modèle Excel fourni) ;
 4. menu **Résultats → Matières** : matières et professeurs par classe.

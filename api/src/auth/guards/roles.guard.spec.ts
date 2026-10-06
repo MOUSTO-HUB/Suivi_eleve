@@ -2,6 +2,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../../generated/prisma/enums.js';
 import type { UtilisateurConnecte } from '../auth.types.js';
+import { OuvertAuConcepteur } from '../decorators/ouvert-au-concepteur.decorator.js';
 import { Roles } from '../decorators/roles.decorator.js';
 import { contexteHttp } from './contexte.test-utils.js';
 import { RolesGuard } from './roles.guard.js';
@@ -11,6 +12,12 @@ class Controleur {
 
   @Roles(Role.ADMIN, Role.COMPTABLE)
   finances() {}
+
+  @OuvertAuConcepteur()
+  monProfil() {}
+
+  @Roles(Role.SUPER_ADMIN)
+  ecoles() {}
 }
 
 const utilisateur = (role: Role): UtilisateurConnecte => ({
@@ -66,5 +73,32 @@ describe('RolesGuard', () => {
       'route',
     );
     expect(() => garde.canActivate(refuse)).toThrow(ForbiddenException);
+  });
+
+  describe('concepteur (SUPER_ADMIN, sans école)', () => {
+    const concepteur = { ...utilisateur(Role.SUPER_ADMIN), ecoleId: '' };
+    const essai = (methode: string) => () =>
+      garde.canActivate(
+        contexteHttp({ utilisateur: concepteur }, Controleur, methode),
+      );
+
+    it('entre sur ses routes et sur son profil', () => {
+      expect(essai('ecoles')()).toBe(true);
+      expect(essai('monProfil')()).toBe(true);
+    });
+
+    it('est refusé sur toute route des écoles, même sans @Roles', () => {
+      expect(essai('libre')).toThrow(ForbiddenException);
+      expect(essai('finances')).toThrow(ForbiddenException);
+    });
+
+    it('la direction d’une école est refusée sur les routes du concepteur', () => {
+      const ctx = contexteHttp(
+        { utilisateur: utilisateur(Role.ADMIN) },
+        Controleur,
+        'ecoles',
+      );
+      expect(() => garde.canActivate(ctx)).toThrow(ForbiddenException);
+    });
   });
 });

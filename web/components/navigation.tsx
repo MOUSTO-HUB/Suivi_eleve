@@ -29,6 +29,7 @@ const LIENS: { href: string; libelle: string; roles?: Role[] }[] = [
   { href: '/notifications', libelle: 'Notifications', roles: GESTION },
   { href: '/personnel', libelle: 'Personnel', roles: ['ADMIN'] },
   { href: '/journal', libelle: 'Journal', roles: ['ADMIN'] },
+  { href: '/abonnement', libelle: 'Abonnement', roles: ['ADMIN'] },
 ];
 
 export function Navigation({ role }: { role: Role }) {

@@ -13,6 +13,7 @@ import {
   type TypeNotification,
 } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { EtatEcolesService } from '../plateforme/etat-ecoles.service.js';
 import { EnvoiService } from './envoi.service.js';
 import {
   MODELES_PAR_DEFAUT,
@@ -62,6 +63,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly envoi: EnvoiService,
+    private readonly etatEcoles: EtatEcolesService,
     config: ConfigService,
   ) {
     this.plafondSms = Number(config.get('SMS_PLAFOND_MENSUEL', 0)) || 0;
@@ -71,6 +73,14 @@ export class NotificationsService {
     const regle = REGLES_TYPE[demande.type];
     const canaux = demande.canaux ?? regle.canaux;
     const priorite = demande.priorite ?? regle.priorite;
+
+    // École suspendue (abonnement) : aucun message ne part, rien n'est mis en file.
+    if (await this.etatEcoles.estSuspendue(demande.ecoleId)) {
+      this.logger.warn(
+        `École ${demande.ecoleId} suspendue : notification ${demande.type} non envoyée.`,
+      );
+      return { tuteurs: 0, envois: 0 };
+    }
 
     const { eleveIds, classeIds, ecole } = demande.cible;
     const eleves = await this.prisma.eleve.findMany({

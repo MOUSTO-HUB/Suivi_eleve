@@ -5,6 +5,7 @@ import { AuthService } from './auth.service.js';
 import type { Session, UtilisateurConnecte } from './auth.types.js';
 import { Public } from './decorators/public.decorator.js';
 import { Roles } from './decorators/roles.decorator.js';
+import { OuvertAuConcepteur } from './decorators/ouvert-au-concepteur.decorator.js';
 import { UtilisateurCourant } from './decorators/utilisateur-courant.decorator.js';
 import {
   ConnexionDto,
@@ -72,7 +73,8 @@ export class AuthController {
     await this.auth.deconnexion(dto.jetonRafraichissement);
   }
 
-  /** Tout utilisateur connecté : son profil (et, pour un parent, le consentement). */
+  /** Tout utilisateur connecté, concepteur compris : son profil (et, pour un parent, le consentement). */
+  @OuvertAuConcepteur()
   @Get('moi')
   moi(@UtilisateurCourant() utilisateur: UtilisateurConnecte) {
     return this.auth.profil(utilisateur.id);

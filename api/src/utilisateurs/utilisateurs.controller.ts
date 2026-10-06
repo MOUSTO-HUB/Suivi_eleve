@@ -58,9 +58,9 @@ export class UtilisateursController {
     return this.utilisateurs.reinitialiser(u, id);
   }
 
-  /** Tout le personnel : changer son propre mot de passe. */
+  /** Tout le personnel, et le concepteur : changer son propre mot de passe. */
   @Post('moi/mot-de-passe')
-  @Roles(...PERSONNEL)
+  @Roles(...PERSONNEL, Role.SUPER_ADMIN)
   @HttpCode(204)
   async changerMotDePasse(
     @UtilisateurCourant() u: UtilisateurConnecte,

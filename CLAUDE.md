@@ -23,13 +23,13 @@ Spécifications : `docs/CAHIER_DES_CHARGES.md` · Étapes de développement : `d
 - Mobile : Expo SDK 57 ; ajouter une dépendance avec `npx expo install`, jamais `pnpm add`.
 - Prettier commun à la racine (guillemets simples).
 - Sécurité : `api/test/securite.e2e-spec.ts` inventorie toutes les routes. Une nouvelle route doit porter `@Roles(...)` (ou `@Public()`), sinon être ajoutée, avec sa justification, à `OUVERTES_A_TOUS_CONNECTES`. Les routes d'authentification passent par `LimiteurService` (Redis). L'API croit `X-Forwarded-For` seulement d'un relais privé ; le site le transmet (`transmettreIp`). Actions sensibles : `AuditService.journaliser` (l'IP est ajoutée automatiquement).
-- Comptes : le personnel est créé par la direction (`/utilisateurs`, mot de passe provisoire affiché une fois) ; la première école et son compte de direction par `node dist/cli/initialiser.js`. Les parents n'ont pas de compte à créer (code SMS) et acceptent le texte de consentement (`VERSION_CONSENTEMENT`) à la première connexion.
+- Comptes : le personnel est créé par la direction (`/utilisateurs`, mot de passe provisoire affiché une fois). Le concepteur (SUPER_ADMIN, `ecoleId` nul, compte créé par `node dist/cli/initialiser.js`) crée les écoles et leur direction dans l'espace web `/plateforme` (module `api/src/plateforme`) et enregistre les paiements d'abonnement (150 000 GNF/mois ou 1 500 000 GNF/an, règles dans `abonnements.regles.ts`). Il n'entre que sur les routes `@Roles(Role.SUPER_ADMIN)` ou `@OuvertAuConcepteur()` (RolesGuard), jamais sur les données des écoles. École suspendue (`EtatEcolesService`) : ni session, ni code SMS, ni notification. Les parents n'ont pas de compte à créer (code SMS) et acceptent le texte de consentement (`VERSION_CONSENTEMENT`) à la première connexion.
 - Production : `docker-compose.prod.yml` (Caddy, API, site, PostgreSQL, Redis, sauvegarde chiffrée), guide `docs/DEPLOIEMENT.md`, CI `.github/workflows/ci.yml`, mobile `mobile/eas.json`.
 - Vérifier avant de terminer une tâche : `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm format:check`.
 
 ## Rôles
 
-ADMIN, SECRETARIAT, ENSEIGNANT, SURVEILLANT, COMPTABLE, PARENT.
+ADMIN, SECRETARIAT, ENSEIGNANT, SURVEILLANT, COMPTABLE, PARENT dans chaque école ; SUPER_ADMIN (concepteur, sans école) administre les écoles abonnées.
 
 ## Règles
 

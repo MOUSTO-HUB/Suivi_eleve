@@ -7,6 +7,7 @@ import {
 import { hash, verify } from '@node-rs/argon2';
 import { randomInt } from 'node:crypto';
 import { Role } from '../generated/prisma/enums.js';
+import { EtatEcolesService } from '../plateforme/etat-ecoles.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { SmsSender } from '../sms/sms.sender.js';
 import { AuthService } from './auth.service.js';
@@ -26,6 +27,7 @@ export class OtpService {
     private readonly prisma: PrismaService,
     private readonly sms: SmsSender,
     private readonly auth: AuthService,
+    private readonly etatEcoles: EtatEcolesService,
   ) {}
 
   /** Ne révèle jamais si le numéro est connu : la réponse est la même dans tous les cas. */
@@ -44,7 +46,8 @@ export class OtpService {
     }
 
     const tuteur = await this.trouverTuteur(telephone);
-    if (!tuteur) return;
+    // École suspendue : pas de SMS (la réponse reste la même).
+    if (!tuteur || (await this.etatEcoles.estSuspendue(tuteur.ecoleId))) return;
 
     const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
     const codeHash = await hash(code);

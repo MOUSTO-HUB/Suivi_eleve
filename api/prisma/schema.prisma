@@ -21,12 +21,34 @@ datasource db {
 // ─── Énumérations ────────────────────────────────────────────────────────────
 
 enum Role {
+  SUPER_ADMIN // concepteur de l'application : administre les écoles, sans école rattachée
   ADMIN
   SECRETARIAT
   ENSEIGNANT
   SURVEILLANT
   COMPTABLE
   PARENT
+}
+
+/// Pays des écoles : monnaie et indicatif téléphonique (Guinée, Côte d'Ivoire, Sénégal).
+enum Pays {
+  GN
+  CI
+  SN
+}
+
+enum FormuleAbonnement {
+  MENSUEL
+  ANNUEL
+}
+
+enum MoyenPaiementAbonnement {
+  ORANGE_MONEY
+  MTN_MOBILE_MONEY
+  WAVE
+  VIREMENT
+  ESPECES
+  AUTRE
 }
 
 enum Genre {
@@ -191,33 +213,39 @@ enum ActionAudit {
 // ─── École et utilisateurs ───────────────────────────────────────────────────
 
 model Ecole {
-  id        String   @id @default(uuid(7))
-  nom       String
-  adresse   String?
-  telephone String?
-  email     String?
-  creeLe    DateTime @default(now()) @map("cree_le")
-  modifieLe DateTime @updatedAt @map("modifie_le")
-  creePar   String?  @map("cree_par")
+  id              String    @id @default(uuid(7))
+  nom             String
+  adresse         String?
+  telephone       String?
+  email           String?
+  pays            Pays      @default(SN)
+  // Abonnement : payé (ou essai) jusqu'à ce jour inclus ; voir abonnements.regles.ts.
+  finAbonnement   DateTime  @default(dbgenerated("(CURRENT_DATE + 29)")) @map("fin_abonnement") @db.Date
+  suspendueLe     DateTime? @map("suspendue_le") // suspension à la main par le concepteur
+  motifSuspension String?   @map("motif_suspension")
+  creeLe          DateTime  @default(now()) @map("cree_le")
+  modifieLe       DateTime  @updatedAt @map("modifie_le")
+  creePar         String?   @map("cree_par")
 
-  utilisateurs    Utilisateur[]
-  anneesScolaires AnneeScolaire[]
-  classes         Classe[]
-  eleves          Eleve[]
-  tuteurs         Tuteur[]
-  appareils       Appareil[]
-  matieres        Matiere[]
-  annonces        Annonce[]
-  notifications   Notification[]
-  modelesMessage  ModeleMessage[]
-  journalAudit    JournalAudit[]
+  utilisateurs        Utilisateur[]
+  anneesScolaires     AnneeScolaire[]
+  classes             Classe[]
+  eleves              Eleve[]
+  tuteurs             Tuteur[]
+  appareils           Appareil[]
+  matieres            Matiere[]
+  annonces            Annonce[]
+  notifications       Notification[]
+  modelesMessage      ModeleMessage[]
+  journalAudit        JournalAudit[]
+  paiementsAbonnement PaiementAbonnement[]
 
   @@map("ecoles")
 }
 
 model Utilisateur {
   id                String    @id @default(uuid(7))
-  ecoleId           String    @map("ecole_id")
+  ecoleId           String?   @map("ecole_id") // null : concepteur (SUPER_ADMIN)
   prenoms           String
   nom               String
   email             String?   @unique
@@ -230,21 +258,22 @@ model Utilisateur {
   modifieLe         DateTime  @updatedAt @map("modifie_le")
   creePar           String?   @map("cree_par")
 
-  ecole                  Ecole                   @relation(fields: [ecoleId], references: [id])
-  tuteur                 Tuteur?
-  classesPrincipales     Classe[]                @relation("EnseignantPrincipal")
-  comportementsSignales  Comportement[]          @relation("ComportementAuteur")
-  comportementsValides   Comportement[]          @relation("ComportementValidateur")
-  incidentsAppareil      IncidentAppareil[]
-  annonces               Annonce[]
-  jetonsPush             JetonPush[]
-  jetonsRafraichissement JetonRafraichissement[]
-  absencesSignalees      Absence[]               @relation("AbsenceSignaleur")
-  absencesJustifiees     Absence[]               @relation("AbsenceJustificateur")
-  enseignements          Enseignement[]
-  moyennesSaisies        MoyenneMatiere[]
-  rappelsPaiement        RappelPaiement[]
-  journalAudit           JournalAudit[]
+  ecole                     Ecole?                  @relation(fields: [ecoleId], references: [id], onDelete: Restrict)
+  tuteur                    Tuteur?
+  classesPrincipales        Classe[]                @relation("EnseignantPrincipal")
+  comportementsSignales     Comportement[]          @relation("ComportementAuteur")
+  comportementsValides      Comportement[]          @relation("ComportementValidateur")
+  incidentsAppareil         IncidentAppareil[]
+  annonces                  Annonce[]
+  jetonsPush                JetonPush[]
+  paiementsAbonnementSaisis PaiementAbonnement[]
+  jetonsRafraichissement    JetonRafraichissement[]
+  absencesSignalees         Absence[]               @relation("AbsenceSignaleur")
+  absencesJustifiees        Absence[]               @relation("AbsenceJustificateur")
+  enseignements             Enseignement[]
+  moyennesSaisies           MoyenneMatiere[]
+  rappelsPaiement           RappelPaiement[]
+  journalAudit              JournalAudit[]
 
   @@index([ecoleId, role])
   @@map("utilisateurs")
@@ -315,10 +344,10 @@ model AnneeScolaire {
   modifieLe DateTime @updatedAt @map("modifie_le")
   creePar   String?  @map("cree_par")
 
-  ecole      Ecole              @relation(fields: [ecoleId], references: [id])
-  periodes   Periode[]
-  classes    Classe[]
-  decisions  DecisionAnnuelle[]
+  ecole     Ecole              @relation(fields: [ecoleId], references: [id])
+  periodes  Periode[]
+  classes   Classe[]
+  decisions DecisionAnnuelle[]
 
   @@unique([ecoleId, libelle])
   @@map("annees_scolaires")
@@ -802,7 +831,7 @@ model ModeleMessage {
 
 model JournalAudit {
   id            String      @id @default(uuid(7))
-  ecoleId       String      @map("ecole_id")
+  ecoleId       String?     @map("ecole_id") // null : action du concepteur hors école (connexion)
   utilisateurId String?     @map("utilisateur_id")
   action        ActionAudit
   entite        String // ex. Eleve, RappelPaiement
@@ -811,7 +840,7 @@ model JournalAudit {
   ip            String?
   creeLe        DateTime    @default(now()) @map("cree_le")
 
-  ecole       Ecole        @relation(fields: [ecoleId], references: [id])
+  ecole       Ecole?       @relation(fields: [ecoleId], references: [id], onDelete: Restrict)
   utilisateur Utilisateur? @relation(fields: [utilisateurId], references: [id], onDelete: SetNull)
 
   @@index([ecoleId, creeLe])
@@ -874,4 +903,29 @@ model RappelPaiement {
   @@index([eleveId, statut])
   @@index([statut, dateEcheance])
   @@map("rappels_paiement")
+}
+
+// ─── Abonnements des écoles (espace concepteur) ──────────────────────────────
+
+/// Paiement d'abonnement reçu par le concepteur (hors application : Mobile Money, virement…).
+model PaiementAbonnement {
+  id            String                  @id @default(uuid(7))
+  ecoleId       String                  @map("ecole_id")
+  formule       FormuleAbonnement
+  montant       Int // GNF, sans TVA
+  moyen         MoyenPaiementAbonnement
+  reference     String? // ex. numéro de transaction Orange Money
+  payeLe        DateTime                @map("paye_le") @db.Date
+  // Période couverte par ce paiement (jours inclus).
+  periodeDebut  DateTime                @map("periode_debut") @db.Date
+  periodeFin    DateTime                @map("periode_fin") @db.Date
+  enregistrePar String?                 @map("enregistre_par")
+  creeLe        DateTime                @default(now()) @map("cree_le")
+
+  ecole        Ecole        @relation(fields: [ecoleId], references: [id])
+  enregistreur Utilisateur? @relation(fields: [enregistrePar], references: [id], onDelete: SetNull)
+
+  @@index([ecoleId, payeLe])
+  @@index([payeLe])
+  @@map("paiements_abonnement")
 }
