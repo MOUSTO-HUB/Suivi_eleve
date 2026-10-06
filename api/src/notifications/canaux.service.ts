@@ -157,12 +157,25 @@ export class CanauxService {
     return valeur;
   }
 
+  /**
+   * Fournisseurs factices refusés en production, sauf « console » quand
+   * ENVOIS_SIMULES=oui : phase d'essai sans comptes SMS/email/push, les
+   * messages (et les codes de connexion) sont seulement écrits dans les logs.
+   */
   private interditEnProduction(nom: string, canal: string) {
-    if (this.config.get<string>('NODE_ENV') === 'production') {
-      throw new Error(
-        `${canal}=${nom} est interdit en production : configurez un fournisseur réel.`,
+    if (this.config.get<string>('NODE_ENV') !== 'production') return;
+    if (
+      nom === 'console' &&
+      this.config.get<string>('ENVOIS_SIMULES') === 'oui'
+    ) {
+      this.logger.warn(
+        `${canal}=console en production (ENVOIS_SIMULES=oui) : aucun message n'est réellement envoyé, ils sont écrits dans les logs.`,
       );
+      return;
     }
+    throw new Error(
+      `${canal}=${nom} est interdit en production : configurez un fournisseur réel (ou ENVOIS_SIMULES=oui pour une phase d'essai avec « console »).`,
+    );
   }
 
   private creerSms(nom: string): FournisseurSms {

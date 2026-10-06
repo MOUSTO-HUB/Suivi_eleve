@@ -52,6 +52,10 @@ Remplir au minimum :
 - `SAUVEGARDE_PHRASE` : phrase secrète des sauvegardes, **à noter aussi hors du serveur** (coffre-fort de mots de passe) : sans elle, aucune sauvegarde ne peut être relue ;
 - les fournisseurs SMS, email et push (voir § 6). En production, l'API refuse de démarrer avec les fournisseurs `console` ou `simulation`.
 
+**Phase d'essai sans fournisseurs** (comptes SMS, email, Firebase pas encore ouverts) : `ENVOIS_SIMULES=oui`, `SMS_FOURNISSEUR=console`, `SMS_FOURNISSEUR_SECOURS=` (vide), `EMAIL_FOURNISSEUR=console`, `PUSH_FOURNISSEUR=console`. Aucun message ne part : ils sont écrits dans les logs, y compris les codes de connexion des parents (`suivi logs api | grep 'connexion est'`). Les notifications du site installé (Web Push) fonctionnent, elles, réellement. Repasser à `ENVOIS_SIMULES=non` avec de vrais fournisseurs avant d'accueillir des familles.
+
+**Sans nom de domaine** : `DOMAINE` peut être le nom fourni par l'hébergeur, par exemple `vps-1a2b3c4d.vps.ovh.net` (espace client OVH, page du VPS). Le certificat HTTPS est obtenu de la même façon. Passer à un vrai domaine plus tard : changer `DOMAINE`, puis `suivi up -d` ; le faire avant d'imprimer des étiquettes QR ou de publier l'application mobile, qui contiennent l'adresse.
+
 Démarrer (la première construction prend quelques minutes) :
 
 ```bash
