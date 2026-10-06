@@ -2,10 +2,12 @@ import { depuisJour } from '../common/dates.js';
 import { MODELES_PAR_DEFAUT } from '../notifications/modeles.defaut.js';
 import { preparerSms, rendre } from '../notifications/notifications.regles.js';
 import {
+  doitRelancer,
   dureeFr,
   joursDeRetard,
   libelleDansPhrase,
   montantFr,
+  prochaineRelanceAuto,
   typeRappel,
   variablesPaiement,
 } from './paiements.regles.js';
@@ -63,5 +65,75 @@ describe('paiements', () => {
     expect(sms).toBe(
       "Suivi_eleve : mensualité d'octobre 2026 de Mame Diarra (25 000 FCFA) à régler depuis le 05/10/2026 : 35 jours de retard. Merci de régulariser.",
     );
+  });
+});
+
+describe('relances automatiques', () => {
+  // Date de paiement normale : 10 novembre 2026.
+  const echeance = depuisJour('2026-11-10');
+  const jour = (j: string) => new Date(`${j}T09:00:00Z`);
+  const rappel = (
+    dernierEnvoi: string | null,
+    relancesAuto = 0,
+    statut: 'EN_COURS' | 'REGLE' = 'EN_COURS',
+  ) => ({
+    statut,
+    dateEcheance: echeance,
+    dernierEnvoiLe: dernierEnvoi ? jour(dernierEnvoi) : null,
+    relancesAuto,
+  });
+
+  it('rappelle 3 jours avant la date, une seule fois', () => {
+    const signaleTot = rappel('2026-11-01');
+    expect(doitRelancer(signaleTot, jour('2026-11-06'))).toBe(false);
+    expect(doitRelancer(signaleTot, jour('2026-11-07'))).toBe(true);
+    expect(doitRelancer(signaleTot, jour('2026-11-08'))).toBe(true);
+    // Déjà rappelé le 7 : rien le 8 ni le 9.
+    expect(doitRelancer(rappel('2026-11-07'), jour('2026-11-08'))).toBe(false);
+    // Signalé 2 jours avant : le message de création suffit.
+    expect(doitRelancer(rappel('2026-11-08'), jour('2026-11-09'))).toBe(false);
+  });
+
+  it('ne relance pas le jour même de la date', () => {
+    expect(doitRelancer(rappel('2026-11-07'), jour('2026-11-10'))).toBe(false);
+  });
+
+  it('relance le lendemain de la date, puis toutes les semaines', () => {
+    expect(doitRelancer(rappel('2026-11-07'), jour('2026-11-11'))).toBe(true);
+    expect(doitRelancer(rappel('2026-11-11', 1), jour('2026-11-17'))).toBe(
+      false,
+    );
+    expect(doitRelancer(rappel('2026-11-11', 1), jour('2026-11-18'))).toBe(
+      true,
+    );
+    // Une tâche manquée (serveur arrêté) est rattrapée le jour suivant.
+    expect(doitRelancer(rappel('2026-11-11', 1), jour('2026-11-20'))).toBe(
+      true,
+    );
+  });
+
+  it('compte 7 jours après une relance manuelle du comptable', () => {
+    // Signalé en retard le 15 (message manuel) : prochaine relance le 22.
+    expect(doitRelancer(rappel('2026-11-15'), jour('2026-11-16'))).toBe(false);
+    expect(doitRelancer(rappel('2026-11-15'), jour('2026-11-22'))).toBe(true);
+  });
+
+  it('s’arrête après 4 relances automatiques ou une fois réglé', () => {
+    expect(doitRelancer(rappel('2026-12-02', 4), jour('2026-12-20'))).toBe(
+      false,
+    );
+    expect(
+      doitRelancer(rappel('2026-11-07', 0, 'REGLE'), jour('2026-11-11')),
+    ).toBe(false);
+  });
+
+  it('donne le jour de la prochaine relance automatique', () => {
+    const date = (r: ReturnType<typeof rappel>, aujourdHui: string) =>
+      prochaineRelanceAuto(r, jour(aujourdHui))?.toISOString().slice(0, 10) ??
+      null;
+    expect(date(rappel('2026-11-01'), '2026-11-02')).toBe('2026-11-07');
+    expect(date(rappel('2026-11-07'), '2026-11-08')).toBe('2026-11-11');
+    expect(date(rappel('2026-11-11', 1), '2026-11-12')).toBe('2026-11-18');
+    expect(date(rappel('2026-12-02', 4), '2026-12-03')).toBeNull();
   });
 });

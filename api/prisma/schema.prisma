@@ -1036,6 +1036,7 @@ model RappelPaiement {
   dateEcheance   DateTime     @map("date_echeance") @db.Date // date de paiement normale
   statut         StatutRappel @default(EN_COURS)
   nombreEnvois   Int          @default(0) @map("nombre_envois")
+  relancesAuto   Int          @default(0) @map("relances_auto") // envoyées par la tâche quotidienne, après la date
   dernierEnvoiLe DateTime?    @map("dernier_envoi_le")
   regleLe        DateTime?    @map("regle_le")
   auteurId       String?      @map("auteur_id")

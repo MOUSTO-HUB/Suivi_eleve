@@ -1,12 +1,18 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
+  type OnModuleDestroy,
+  type OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Queue, Worker } from 'bullmq';
 import { AuditService } from '../audit/audit.service.js';
 import type { UtilisateurConnecte } from '../auth/auth.types.js';
 import { depuisJour, versJour } from '../common/dates.js';
 import { page, sauter } from '../common/pagination.js';
+import { optionsFile, traitementActif } from '../common/redis.js';
 import { Prisma } from '../generated/prisma/client.js';
 import {
   ActionAudit,
@@ -18,10 +24,16 @@ import { NotificationsService } from '../notifications/notifications.service.js'
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { CreerRappelDto, FiltreRappelsDto } from './paiements.dto.js';
 import {
+  doitRelancer,
   joursDeRetard,
+  JOURS_RAPPEL_AVANT,
+  prochaineRelanceAuto,
   typeRappel,
   variablesPaiement,
 } from './paiements.regles.js';
+
+/** Relances automatiques : chaque jour à 9h, heure de Dakar. */
+const HORAIRE_RELANCES = '0 9 * * *';
 
 const selection = {
   id: true,
@@ -30,6 +42,7 @@ const selection = {
   dateEcheance: true,
   statut: true,
   nombreEnvois: true,
+  relancesAuto: true,
   dernierEnvoiLe: true,
   regleLe: true,
   creeLe: true,
@@ -55,20 +68,100 @@ const formater = (r: RappelBrut) => ({
     r.statut === StatutRappel.EN_COURS
       ? Math.max(0, joursDeRetard(r.dateEcheance))
       : 0,
+  prochaineRelanceAuto: (() => {
+    const jour = prochaineRelanceAuto(r);
+    return jour ? versJour(jour) : null;
+  })(),
 });
 
 /**
  * Rappels de paiement : la comptabilité reste dans les outils de l'école. Le
  * comptable signale un paiement en attente ; la famille est prévenue, avec le
- * retard calculé depuis la date de paiement normale.
+ * retard calculé depuis la date de paiement normale, puis relancée
+ * automatiquement chaque jour où la règle `doitRelancer` le prévoit.
  */
 @Injectable()
-export class PaiementsService {
+export class PaiementsService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PaiementsService.name);
+  private file?: Queue;
+  private travailleur?: Worker;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly audit: AuditService,
+    private readonly config: ConfigService,
   ) {}
+
+  async onModuleInit() {
+    if (!traitementActif(this.config)) return;
+    this.file = new Queue('paiements', optionsFile(this.config));
+    // Une seule tâche planifiée, même avec plusieurs instances de l'API.
+    await this.file.upsertJobScheduler(
+      'relances-quotidiennes',
+      { pattern: HORAIRE_RELANCES, tz: 'Africa/Dakar' },
+      { name: 'relances', opts: { removeOnComplete: 30, removeOnFail: 100 } },
+    );
+    this.travailleur = new Worker(
+      'paiements',
+      () => this.relancerAutomatiquement(),
+      optionsFile(this.config),
+    );
+    this.travailleur.on('error', (e) =>
+      this.logger.error(`File paiements : ${e.message}`),
+    );
+  }
+
+  async onModuleDestroy() {
+    await this.travailleur?.close();
+    await this.file?.close();
+  }
+
+  /**
+   * Tâche quotidienne : rappel 3 jours avant la date, puis relances après la
+   * date (lendemain, puis toutes les semaines, 4 au plus). Rend le nombre de
+   * familles relancées. `ecoleId` limite la relance à une école (tests).
+   */
+  async relancerAutomatiquement(
+    aujourdHui = new Date(),
+    ecoleId?: string,
+  ): Promise<number> {
+    const horizon = new Date(
+      depuisJour(versJour(aujourdHui)).getTime() +
+        JOURS_RAPPEL_AVANT * 24 * 3600 * 1000,
+    );
+    const candidats = await this.prisma.rappelPaiement.findMany({
+      where: {
+        statut: StatutRappel.EN_COURS,
+        dateEcheance: { lte: horizon },
+        eleve: { statut: StatutEleve.ACTIF, ecoleId },
+      },
+      select: {
+        id: true,
+        statut: true,
+        dateEcheance: true,
+        dernierEnvoiLe: true,
+        relancesAuto: true,
+        eleve: { select: { ecoleId: true } },
+      },
+    });
+    let relances = 0;
+    for (const r of candidats.filter((c) => doitRelancer(c, aujourdHui))) {
+      try {
+        await this.prevenir(r.id, r.eleve.ecoleId, null, aujourdHui, {
+          automatique: joursDeRetard(r.dateEcheance, aujourdHui) > 0,
+        });
+        relances++;
+      } catch (e) {
+        this.logger.error(
+          `Relance automatique du rappel ${r.id} : ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+    if (relances)
+      this.logger.log(`${relances} relance(s) de paiement automatique(s).`);
+    return relances;
+  }
 
   async creer(u: UtilisateurConnecte, dto: CreerRappelDto) {
     const eleve = await this.prisma.eleve.findFirst({
@@ -118,9 +211,34 @@ export class PaiementsService {
     if (rappel.statut !== StatutRappel.EN_COURS) {
       throw new BadRequestException('Ce paiement est déjà marqué réglé.');
     }
+    const tuteurs = await this.prevenir(id, u.ecoleId, u.id);
+    return { ...(await this.detail(u, id)), famillesPrevenues: tuteurs };
+  }
+
+  /**
+   * Message à la famille (rappel ou retard selon le jour), avec le total des
+   * autres paiements en attente de l'élève. Rend le nombre de tuteurs prévenus.
+   */
+  private async prevenir(
+    id: string,
+    ecoleId: string,
+    creePar: string | null,
+    aujourdHui = new Date(),
+    { automatique = false } = {},
+  ): Promise<number> {
+    const rappel = await this.prisma.rappelPaiement.findUniqueOrThrow({
+      where: { id },
+      select: {
+        libelle: true,
+        montant: true,
+        dateEcheance: true,
+        nombreEnvois: true,
+        eleveId: true,
+      },
+    });
     const autres = await this.prisma.rappelPaiement.findMany({
       where: {
-        eleveId: rappel.eleve.id,
+        eleveId: rappel.eleveId,
         statut: StatutRappel.EN_COURS,
         id: { not: id },
       },
@@ -128,20 +246,24 @@ export class PaiementsService {
     });
     const numero = rappel.nombreEnvois + 1;
     const { tuteurs } = await this.notifications.notifier({
-      ecoleId: u.ecoleId,
-      type: typeRappel(joursDeRetard(rappel.dateEcheance)),
-      cible: { eleveIds: [rappel.eleve.id] },
-      variables: variablesPaiement(rappel, autres),
+      ecoleId,
+      type: typeRappel(joursDeRetard(rappel.dateEcheance, aujourdHui)),
+      cible: { eleveIds: [rappel.eleveId] },
+      variables: variablesPaiement(rappel, autres, aujourdHui),
       sourceType: 'rappel_paiement',
       sourceId: id,
       cleDeduplication: `rappel_paiement:${id}:${numero}`,
-      creePar: u.id,
+      creePar: creePar ?? undefined,
     });
     await this.prisma.rappelPaiement.update({
       where: { id },
-      data: { nombreEnvois: numero, dernierEnvoiLe: new Date() },
+      data: {
+        nombreEnvois: numero,
+        dernierEnvoiLe: aujourdHui,
+        ...(automatique ? { relancesAuto: { increment: 1 } } : {}),
+      },
     });
-    return { ...(await this.detail(u, id)), famillesPrevenues: tuteurs };
+    return tuteurs;
   }
 
   /** Paiement constaté par le comptable : plus aucune relance. */

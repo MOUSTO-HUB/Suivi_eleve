@@ -99,3 +99,9 @@ Ajoute dans /web l'espace parents (mêmes fonctions que le mobile). Puis fais un
 ```text
 Rends le site installable (PWA) sur PC, Android et iPhone : manifeste, icônes, service worker avec page hors ligne (aucune donnée d'élève en cache), bandeau d'installation (bouton natif, mode d'emploi sur iPhone). Ajoute les notifications Web Push du site : clés VAPID, abonnement du navigateur enregistré comme jeton push (plateforme WEB), envoi chiffré par le moteur de notifications vers les seuls services push des navigateurs, bouton d'activation dans les préférences du parent, clic qui ouvre le message, abonnement coupé à la déconnexion.
 ```
+
+## Prompt 15 — Relances de paiement automatiques
+
+```text
+Ajoute une tâche quotidienne (BullMQ, 9h heure de Dakar) qui relance les familles sans action du comptable, tant qu'un rappel de paiement n'est pas réglé : rappel 3 jours avant la date, relance le lendemain de la date, puis 7 jours après le dernier envoi (manuel ou automatique), 4 relances automatiques au plus. Règle pure testée, compteur des relances automatiques, prochaine relance affichée au comptable.
+```

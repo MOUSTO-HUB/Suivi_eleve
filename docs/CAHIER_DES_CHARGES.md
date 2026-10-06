@@ -89,6 +89,7 @@ La comptabilité de l'école est tenue dans ses propres outils ; l'application n
 - **EF-61** Le système calcule le retard en jours depuis cette date ; la famille est prévenue aussitôt (rappel avant la date, retard après), avec le total des sommes en attente pour l'élève s'il y en a plusieurs.
 - **EF-62** Le comptable peut relancer (retard recalculé) puis marquer le paiement « réglé » une fois constaté ; plus aucun message ne part ensuite.
 - **EF-63** Liste des paiements en attente avec le retard de chacun et le montant total en attente ; le parent voit les paiements en attente de ses enfants.
+- **EF-64** Relances automatiques (tâche quotidienne à 9h, heure de Dakar) tant que le paiement n'est pas réglé : rappel 3 jours avant la date, relance le lendemain de la date, puis 7 jours après le dernier envoi (manuel ou automatique), 4 relances automatiques au plus ; ensuite seul le comptable relance.
 
 ### 3.8 Événements de l'école
 

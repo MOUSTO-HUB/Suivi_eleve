@@ -56,3 +56,55 @@ export function variablesPaiement(
       : '',
   };
 }
+
+// ─── Relances automatiques (tâche quotidienne) ───────────────────────────────
+
+/** Rappel automatique quelques jours avant la date de paiement normale. */
+export const JOURS_RAPPEL_AVANT = 3;
+/** Après la date : relance le lendemain, puis tous les 7 jours après le dernier envoi. */
+export const INTERVALLE_RELANCES_JOURS = 7;
+/** Au-delà, seul le comptable relance (à la main). */
+export const RELANCES_AUTO_MAX = 4;
+
+export interface EtatRelance {
+  statut: 'EN_COURS' | 'REGLE';
+  dateEcheance: Date;
+  dernierEnvoiLe: Date | null;
+  relancesAuto: number;
+}
+
+/**
+ * Faut-il prévenir la famille aujourd'hui, sans action du comptable ?
+ * - 3 jours avant la date (si rien n'est parti depuis ce moment) ;
+ * - à partir du lendemain de la date : si rien n'est parti depuis le début du
+ *   retard, puis 7 jours après le dernier envoi (manuel ou automatique),
+ *   dans la limite de 4 relances automatiques.
+ */
+export function doitRelancer(r: EtatRelance, aujourdHui = new Date()): boolean {
+  if (r.statut !== 'EN_COURS') return false;
+  const jour = joursDeRetard(r.dateEcheance, aujourdHui);
+  // Jour du dernier envoi, compté depuis la date de paiement (négatif : avant).
+  const dernier =
+    r.dernierEnvoiLe && joursDeRetard(r.dateEcheance, r.dernierEnvoiLe);
+  const rienDepuis = (debut: number) => dernier === null || dernier < debut;
+
+  if (jour < 0)
+    return jour >= -JOURS_RAPPEL_AVANT && rienDepuis(-JOURS_RAPPEL_AVANT);
+  if (jour === 0 || r.relancesAuto >= RELANCES_AUTO_MAX) return false;
+  return rienDepuis(1) || jour - dernier! >= INTERVALLE_RELANCES_JOURS;
+}
+
+/** Jour de la prochaine relance automatique (null : plus aucune de prévue). */
+export function prochaineRelanceAuto(
+  r: EtatRelance,
+  aujourdHui = new Date(),
+): Date | null {
+  // Au plus un an d'avance (rappel 3 jours avant une date lointaine).
+  for (let i = 0; i <= 366; i++) {
+    const jour = new Date(
+      depuisJour(versJour(aujourdHui)).getTime() + i * JOUR_MS,
+    );
+    if (doitRelancer(r, jour)) return jour;
+  }
+  return null;
+}

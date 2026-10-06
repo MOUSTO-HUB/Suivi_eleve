@@ -1,13 +1,17 @@
 // Rappels de paiement : montant et date normale saisis par le comptable, retard calculé.
 import { INestApplication } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { Queue } from 'bullmq';
 import { randomInt, randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
 import { configurerApplication } from '../src/app.setup.js';
+import { optionsFile } from '../src/common/redis.js';
 import { Genre, LienTuteur, Role } from '../src/generated/prisma/enums.js';
+import { PaiementsService } from '../src/paiements/paiements.service.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
 
 process.env.BULLMQ_PREFIXE = `e2e-paiements-${randomUUID()}`;
@@ -271,5 +275,87 @@ describe('Rappels de paiement (e2e)', () => {
       .post(`/api/rappels-paiement/${parent.body.elements[0].id}/regler`)
       .set(avec('parent'))
       .expect(403);
+  });
+
+  it('relance automatiquement : 3 jours avant, le lendemain, puis chaque semaine', async () => {
+    const service = app.get(PaiementsService);
+    const echeance = jour(10);
+    const { body } = await http()
+      .post('/api/rappels-paiement')
+      .set(avec('comptable'))
+      .send({
+        eleveId: ali,
+        libelle: 'Mensualité de décembre',
+        montant: 20000,
+        dateEcheance: echeance,
+      })
+      .expect(201);
+    expect(body.prochaineRelanceAuto).toBe(jour(7));
+    // Tâche quotidienne de 9h, « jouée » à la date voulue (n jours plus tard).
+    const tache = (n: number) =>
+      service.relancerAutomatiquement(
+        new Date(`${jour(n)}T09:00:00Z`),
+        ecoleId,
+      );
+    const types = async () => (await sms(body.id)).map((m) => m.type);
+
+    await tache(6);
+    expect(await types()).toEqual(['RAPPEL_PAIEMENT']);
+    await tache(7); // 3 jours avant la date
+    await tache(8);
+    expect(await types()).toEqual(['RAPPEL_PAIEMENT', 'RAPPEL_PAIEMENT']);
+    await tache(10); // le jour même : rien
+    await tache(11); // le lendemain : retard
+    await tache(12);
+    expect(await types()).toEqual([
+      'RAPPEL_PAIEMENT',
+      'RAPPEL_PAIEMENT',
+      'RETARD_PAIEMENT',
+    ]);
+    const [, , retard] = await sms(body.id);
+    expect(retard.contenu).toContain('1 jour de retard');
+    await tache(18); // une semaine après
+    expect(await sms(body.id)).toHaveLength(4);
+
+    const { body: liste } = await http()
+      .get(`/api/rappels-paiement?eleveId=${ali}`)
+      .set(avec('comptable'))
+      .expect(200);
+    expect(
+      (liste.elements as { id: string }[]).find((r) => r.id === body.id),
+    ).toMatchObject({
+      relancesAuto: 2,
+      nombreEnvois: 4,
+      prochaineRelanceAuto: jour(25),
+    });
+
+    // Au-delà de 4 relances automatiques, plus rien ; ni une fois réglé.
+    await prisma.rappelPaiement.update({
+      where: { id: body.id },
+      data: { relancesAuto: 4 },
+    });
+    await tache(40);
+    expect(await sms(body.id)).toHaveLength(4);
+    await prisma.rappelPaiement.update({
+      where: { id: body.id },
+      data: { relancesAuto: 0, statut: 'REGLE' },
+    });
+    await tache(45);
+    expect(await sms(body.id)).toHaveLength(4);
+  });
+
+  it('programme la tâche quotidienne de relance à 9h, heure de Dakar', async () => {
+    const file = new Queue('paiements', optionsFile(app.get(ConfigService)));
+    try {
+      const tache = await file.getJobScheduler('relances-quotidiennes');
+      expect(tache).toMatchObject({
+        pattern: '0 9 * * *',
+        tz: 'Africa/Dakar',
+      });
+      // Prochain passage : un jour à 9h00 (Dakar = UTC+0).
+      expect(new Date(tache!.next!).toISOString()).toMatch(/T09:00:00\.000Z$/);
+    } finally {
+      await file.close();
+    }
   });
 });

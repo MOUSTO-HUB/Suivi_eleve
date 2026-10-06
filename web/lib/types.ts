@@ -683,6 +683,10 @@ export interface RappelPaiement {
   statut: 'EN_COURS' | 'REGLE';
   joursRetard: number;
   nombreEnvois: number;
+  /** Envois de la tâche quotidienne après la date (4 au plus). */
+  relancesAuto: number;
+  /** Jour (AAAA-MM-JJ) de la prochaine relance automatique, null s'il n'y en a plus. */
+  prochaineRelanceAuto: string | null;
   dernierEnvoiLe: string | null;
   regleLe: string | null;
   eleve: {

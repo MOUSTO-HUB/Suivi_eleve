@@ -81,7 +81,7 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
     <>
       <EnTete
         titre="Paiements"
-        sousTitre="Rappels aux familles pour les paiements en attente. La comptabilité reste tenue dans les outils de l'école."
+        sousTitre="Rappels aux familles pour les paiements en attente. Les familles sont relancées automatiquement 3 jours avant la date, le lendemain, puis chaque semaine (4 relances automatiques au plus). La comptabilité reste tenue dans les outils de l'école."
       />
 
       <div className="mb-6 grid gap-6 lg:grid-cols-3">
@@ -252,6 +252,13 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
               {r.dernierEnvoiLe && (
                 <span className="block text-xs text-zinc-500">
                   dernier : {dateHeureFr(r.dernierEnvoiLe)}
+                </span>
+              )}
+              {r.statut === 'EN_COURS' && (
+                <span className="block text-xs text-zinc-500">
+                  {r.prochaineRelanceAuto
+                    ? `prochain automatique : ${dateFr(r.prochaineRelanceAuto)}`
+                    : 'relances automatiques terminées'}
                 </span>
               )}
             </td>
