@@ -88,8 +88,8 @@ async function rafraichir(jeton: string): Promise<Session | null> {
 }
 
 export const config = {
-  // Tout sauf les fichiers statiques de Next et les images.
+  // Tout sauf les fichiers statiques de Next, les images et les fichiers de l'application installable.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|svg|ico)$).*)',
+    '/((?!_next/static|_next/image|sw\\.js$|manifest\\.webmanifest$|hors-ligne\\.html$|.*\\.(?:png|svg|ico)$).*)',
   ],
 };

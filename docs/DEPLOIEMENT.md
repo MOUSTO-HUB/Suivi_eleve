@@ -218,3 +218,13 @@ Une correction du code JavaScript peut être envoyée sans repasser par les stor
 ```bash
 npx eas-cli@latest update --channel production --message "Correction …"
 ```
+
+## 11. Site installable (PWA)
+
+Le site s'installe comme une application, sans passer par un store :
+
+- **PC (Chrome, Edge)** : bouton **Installer** dans le bandeau vert en haut du site, ou icône d'installation dans la barre d'adresse.
+- **Android (Chrome)** : bouton **Installer** du bandeau, ou menu ⋮ → **Installer l'application** / **Ajouter à l'écran d'accueil**.
+- **iPhone, iPad (Safari)** : bouton **Partager** → **Sur l'écran d'accueil** (le bandeau l'explique). L'application s'ouvre alors en plein écran.
+
+Il faut que le site soit servi en **HTTPS** (c'est le cas avec Caddy). Le service worker (`web/public/sw.js`) n'affiche qu'une page « hors ligne » quand internet manque : aucune page ni donnée d'élève n'est gardée en cache sur l'appareil. Pour forcer la mise à jour des fichiers mis en cache, changer `CACHE` dans `sw.js`.
