@@ -31,7 +31,7 @@ Six rôles se partagent l'application ; chaque utilisateur n'accède qu'aux donn
 | Secrétariat / Vie scolaire | Web | Inscrire les élèves et tuteurs, enregistrer les appareils, déclarer absence de cours et libération anticipée, publier les événements |
 | Enseignant | Web et mobile | Saisir notes et appréciations, signaler un comportement marquant, signaler un appareil utilisé en classe |
 | Surveillant | Mobile | Rechercher un appareil (numéro de série, IMEI, description), déclarer un appareil trouvé, confisqué ou restitué |
-| Comptable | Web | Définir les frais mensuels, enregistrer les paiements, suivre les retards, déclencher les relances |
+| Comptable | Web | Signaler les paiements en attente, suivre les retards, relancer, marquer « réglé » |
 | Parent / Tuteur | Mobile et web | Consulter le dossier de ses enfants, recevoir et relire les notifications, choisir ses canaux, accuser réception |
 
 L'élève n'a pas de compte en version 1 ; un accès élève en lecture seule est envisageable en version 2.
@@ -144,8 +144,7 @@ Quinze entités suffisent à la version 1 ; l'élève est au centre, relié à s
 | MoyenneMatiere | eleve_id, periode_id, matiere_id, moyenne (saisie), appreciation, saisie_par | N par élève et période |
 | Resultat | eleve_id, periode, moyenne, rang, decision, bulletin_url, publie | 1 élève |
 | Comportement | id, eleve_id, type (positif/négatif), categorie, gravite, description, sanction, auteur_id, valide_par, date | 1 élève |
-| Frais / Echeance | frais : classe_id, type, montant ; echeance : eleve_id, mois, montant_du, date_limite, statut (payé, partiel, en retard) | 1 élève |
-| Paiement | id, echeance_id, montant, mode, reference, date, recu_par, recu_url | 1 échéance |
+| RappelPaiement | eleve_id, libelle, montant, date_echeance, statut (en cours, réglé), nombre_envois, relances_auto, dernier_envoi_le, regle_le, auteur_id (la comptabilité reste dans les outils de l'école) | 1 élève |
 | Annonce | id, type (pas de cours, libération, événement), titre, message, motif, date_debut, date_fin, lieu, modalites, piece_jointe_url, cible (école/classes), question, statut, programmee_le, envoyee_le, rappel_envoye_le, auteur_id | N classes ciblées |
 | ReponseAnnonce | annonce_id, tuteur_id, eleve_id, reponse (oui/non), commentaire | unique par événement, tuteur et élève |
 | Notification | id, type, tuteur_id, eleve_id, canal, contenu, statut, envoye_le, lu_le, cout, reference_fournisseur | 1 tuteur |

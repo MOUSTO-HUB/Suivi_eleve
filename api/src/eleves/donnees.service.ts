@@ -158,7 +158,6 @@ export class DonneesService {
       this.prisma.resultat.deleteMany({ where: { eleveId: id } }),
       this.prisma.decisionAnnuelle.deleteMany({ where: { eleveId: id } }),
       this.prisma.rappelPaiement.deleteMany({ where: { eleveId: id } }),
-      this.prisma.note.deleteMany({ where: { eleveId: id } }),
       this.prisma.appareil.deleteMany({ where: { eleveId: id } }),
       this.prisma.eleveTuteur.deleteMany({ where: { eleveId: id } }),
       // L'année de naissance reste pour les statistiques ; le reste disparaît.

@@ -75,13 +75,6 @@ enum TypeIncidentAppareil {
   USAGE_EN_CLASSE
 }
 
-enum TypeEvaluation {
-  INTERROGATION
-  DEVOIR
-  COMPOSITION
-  EXAMEN
-}
-
 enum DecisionFinAnnee {
   ADMIS
   REDOUBLE
@@ -112,35 +105,9 @@ enum StatutValidation {
   REJETE
 }
 
-enum TypeFrais {
-  INSCRIPTION
-  MENSUALITE
-  AUTRE
-}
-
-enum MotifReduction {
-  FRATRIE
-  BOURSE
-  AUTRE
-}
-
 enum StatutRappel {
   EN_COURS
   REGLE
-}
-
-enum StatutEcheance {
-  A_PAYER
-  PARTIEL
-  PAYE
-  EN_RETARD
-}
-
-enum ModePaiement {
-  ESPECES
-  MOBILE_MONEY
-  VIREMENT
-  CHEQUE
 }
 
 enum TypeAnnonce {
@@ -240,7 +207,6 @@ model Ecole {
   tuteurs         Tuteur[]
   appareils       Appareil[]
   matieres        Matiere[]
-  frais           Frais[]
   annonces        Annonce[]
   notifications   Notification[]
   modelesMessage  ModeleMessage[]
@@ -267,11 +233,9 @@ model Utilisateur {
   ecole                  Ecole                   @relation(fields: [ecoleId], references: [id])
   tuteur                 Tuteur?
   classesPrincipales     Classe[]                @relation("EnseignantPrincipal")
-  evaluations            Evaluation[]
   comportementsSignales  Comportement[]          @relation("ComportementAuteur")
   comportementsValides   Comportement[]          @relation("ComportementValidateur")
   incidentsAppareil      IncidentAppareil[]
-  paiementsRecus         Paiement[]
   annonces               Annonce[]
   jetonsPush             JetonPush[]
   jetonsRafraichissement JetonRafraichissement[]
@@ -354,8 +318,6 @@ model AnneeScolaire {
   ecole      Ecole              @relation(fields: [ecoleId], references: [id])
   periodes   Periode[]
   classes    Classe[]
-  frais      Frais[]
-  reductions Reduction[]
   decisions  DecisionAnnuelle[]
 
   @@unique([ecoleId, libelle])
@@ -374,7 +336,6 @@ model Periode {
   creePar         String?  @map("cree_par")
 
   anneeScolaire AnneeScolaire    @relation(fields: [anneeScolaireId], references: [id], onDelete: Cascade)
-  evaluations   Evaluation[]
   resultats     Resultat[]
   moyennes      MoyenneMatiere[]
 
@@ -398,8 +359,6 @@ model Classe {
   enseignantPrincipal Utilisateur?       @relation("EnseignantPrincipal", fields: [enseignantPrincipalId], references: [id], onDelete: SetNull)
   eleves              Eleve[]
   historiqueEleves    HistoriqueClasse[]
-  evaluations         Evaluation[]
-  frais               Frais[]
   annonces            AnnonceClasse[]
   enseignements       Enseignement[]
 
@@ -432,12 +391,9 @@ model Eleve {
   tuteurs          EleveTuteur[]
   historiqueClasse HistoriqueClasse[]
   appareils        Appareil[]
-  notes            Note[]
   resultats        Resultat[]
   decisions        DecisionAnnuelle[]
   comportements    Comportement[]
-  echeances        Echeance[]
-  reductions       Reduction[]
   reponsesAnnonce  ReponseAnnonce[]
   notifications    Notification[]
   absences         Absence[]
@@ -573,7 +529,6 @@ model Matiere {
   creePar     String?  @map("cree_par")
 
   ecole         Ecole            @relation(fields: [ecoleId], references: [id])
-  evaluations   Evaluation[]
   enseignements Enseignement[]
   moyennes      MoyenneMatiere[]
 
@@ -621,50 +576,6 @@ model MoyenneMatiere {
   @@unique([eleveId, periodeId, matiereId])
   @@index([periodeId, matiereId])
   @@map("moyennes_matieres")
-}
-
-model Evaluation {
-  id           String         @id @default(uuid(7))
-  classeId     String         @map("classe_id")
-  matiereId    String         @map("matiere_id")
-  periodeId    String         @map("periode_id")
-  enseignantId String?        @map("enseignant_id")
-  type         TypeEvaluation
-  titre        String
-  date         DateTime       @db.Date
-  bareme       Decimal        @default(20) @db.Decimal(5, 2)
-  coefficient  Decimal        @default(1) @db.Decimal(4, 2)
-  creeLe       DateTime       @default(now()) @map("cree_le")
-  modifieLe    DateTime       @updatedAt @map("modifie_le")
-  creePar      String?        @map("cree_par")
-
-  classe     Classe       @relation(fields: [classeId], references: [id])
-  matiere    Matiere      @relation(fields: [matiereId], references: [id])
-  periode    Periode      @relation(fields: [periodeId], references: [id])
-  enseignant Utilisateur? @relation(fields: [enseignantId], references: [id], onDelete: SetNull)
-  notes      Note[]
-
-  @@index([classeId, periodeId])
-  @@map("evaluations")
-}
-
-model Note {
-  id           String   @id @default(uuid(7))
-  evaluationId String   @map("evaluation_id")
-  eleveId      String   @map("eleve_id")
-  valeur       Decimal? @db.Decimal(5, 2) // null si absent
-  absent       Boolean  @default(false)
-  appreciation String?
-  creeLe       DateTime @default(now()) @map("cree_le")
-  modifieLe    DateTime @updatedAt @map("modifie_le")
-  creePar      String?  @map("cree_par")
-
-  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
-  eleve      Eleve      @relation(fields: [eleveId], references: [id], onDelete: Cascade)
-
-  @@unique([evaluationId, eleveId])
-  @@index([eleveId])
-  @@map("notes")
 }
 
 model Resultat {
@@ -736,93 +647,6 @@ model Comportement {
   @@index([eleveId, date])
   @@index([statut])
   @@map("comportements")
-}
-
-// ─── Frais et paiements ──────────────────────────────────────────────────────
-
-model Frais {
-  id              String    @id @default(uuid(7))
-  ecoleId         String    @map("ecole_id")
-  anneeScolaireId String    @map("annee_scolaire_id")
-  classeId        String?   @map("classe_id") // null = toutes les classes
-  type            TypeFrais
-  libelle         String
-  montant         Int // FCFA
-  jourEcheance    Int?      @map("jour_echeance") // ex. 5 = le 5 du mois
-  creeLe          DateTime  @default(now()) @map("cree_le")
-  modifieLe       DateTime  @updatedAt @map("modifie_le")
-  creePar         String?   @map("cree_par")
-
-  ecole         Ecole         @relation(fields: [ecoleId], references: [id])
-  anneeScolaire AnneeScolaire @relation(fields: [anneeScolaireId], references: [id])
-  classe        Classe?       @relation(fields: [classeId], references: [id])
-  echeances     Echeance[]
-
-  @@index([anneeScolaireId, classeId])
-  @@map("frais")
-}
-
-model Reduction {
-  id              String         @id @default(uuid(7))
-  eleveId         String         @map("eleve_id")
-  anneeScolaireId String         @map("annee_scolaire_id")
-  motif           MotifReduction
-  pourcentage     Int? // 0 à 100
-  montant         Int? // FCFA par échéance
-  commentaire     String?
-  creeLe          DateTime       @default(now()) @map("cree_le")
-  modifieLe       DateTime       @updatedAt @map("modifie_le")
-  creePar         String?        @map("cree_par")
-
-  eleve         Eleve         @relation(fields: [eleveId], references: [id], onDelete: Cascade)
-  anneeScolaire AnneeScolaire @relation(fields: [anneeScolaireId], references: [id])
-
-  @@index([eleveId])
-  @@map("reductions")
-}
-
-model Echeance {
-  id          String         @id @default(uuid(7))
-  eleveId     String         @map("eleve_id")
-  fraisId     String         @map("frais_id")
-  mois        DateTime       @db.Date // premier jour du mois concerné
-  montantDu   Int            @map("montant_du") // FCFA, réductions déduites
-  montantPaye Int            @default(0) @map("montant_paye")
-  dateLimite  DateTime       @map("date_limite") @db.Date
-  statut      StatutEcheance @default(A_PAYER)
-  creeLe      DateTime       @default(now()) @map("cree_le")
-  modifieLe   DateTime       @updatedAt @map("modifie_le")
-  creePar     String?        @map("cree_par")
-
-  eleve     Eleve      @relation(fields: [eleveId], references: [id], onDelete: Cascade)
-  frais     Frais      @relation(fields: [fraisId], references: [id])
-  paiements Paiement[]
-
-  @@unique([eleveId, fraisId, mois])
-  @@index([statut, dateLimite])
-  @@map("echeances")
-}
-
-model Paiement {
-  id         String       @id @default(uuid(7))
-  echeanceId String       @map("echeance_id")
-  numeroRecu String       @unique @map("numero_recu")
-  montant    Int // FCFA
-  mode       ModePaiement
-  reference  String? // référence Mobile Money, virement…
-  date       DateTime     @default(now())
-  recuParId  String?      @map("recu_par_id")
-  recuUrl    String?      @map("recu_url")
-  creeLe     DateTime     @default(now()) @map("cree_le")
-  modifieLe  DateTime     @updatedAt @map("modifie_le")
-  creePar    String?      @map("cree_par")
-
-  echeance Echeance     @relation(fields: [echeanceId], references: [id])
-  recuPar  Utilisateur? @relation(fields: [recuParId], references: [id], onDelete: SetNull)
-
-  @@index([echeanceId])
-  @@index([date])
-  @@map("paiements")
 }
 
 // ─── Annonces (pas de cours, libération anticipée, événements) ───────────────
@@ -981,7 +805,7 @@ model JournalAudit {
   ecoleId       String      @map("ecole_id")
   utilisateurId String?     @map("utilisateur_id")
   action        ActionAudit
-  entite        String // ex. Eleve, Paiement
+  entite        String // ex. Eleve, RappelPaiement
   entiteId      String?     @map("entite_id")
   details       Json?
   ip            String?
