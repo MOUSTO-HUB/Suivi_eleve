@@ -1,10 +1,18 @@
+import { profilCourant } from '@/lib/profil';
 import { Champ, Liste, Saisie } from './ui';
 import { LIBELLES_LIEN, type Eleve, type LienTuteur } from '@/lib/types';
 
-const AIDE_TELEPHONE = 'Format international, ex. +221 77 123 45 67';
+/** Aide à la saisie avec l'indicatif du pays de l'école, ex. « +224 621 12 34 56 ». */
+async function aideTelephone() {
+  const ecole = (await profilCourant()).ecole;
+  return ecole
+    ? `Format international, ex. +${ecole.indicatif} ${ecole.exempleTelephone}`
+    : "Format international, avec l'indicatif du pays";
+}
 
 /** Champs d'identité d'un élève (inscription et modification). */
-export function ChampsIdentite({ eleve }: { eleve?: Eleve }) {
+export async function ChampsIdentite({ eleve }: { eleve?: Eleve }) {
+  const AIDE_TELEPHONE = await aideTelephone();
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Champ libelle="Prénoms" obligatoire>
@@ -51,7 +59,7 @@ export function ChampsIdentite({ eleve }: { eleve?: Eleve }) {
 }
 
 /** Champs d'un tuteur ; `prefixe` distingue plusieurs tuteurs dans un même formulaire. */
-export function ChampsTuteur({
+export async function ChampsTuteur({
   prefixe = '',
   obligatoire = false,
   lienParDefaut = 'PERE',
@@ -60,6 +68,7 @@ export function ChampsTuteur({
   obligatoire?: boolean;
   lienParDefaut?: LienTuteur;
 }) {
+  const AIDE_TELEPHONE = await aideTelephone();
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <Champ libelle="Prénoms" obligatoire={obligatoire}>

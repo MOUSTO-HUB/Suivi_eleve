@@ -12,6 +12,7 @@ import { AuditService } from '../audit/audit.service.js';
 import type { UtilisateurConnecte } from '../auth/auth.types.js';
 import { depuisJour, versJour } from '../common/dates.js';
 import { page, sauter } from '../common/pagination.js';
+import { PAYS } from '../common/pays.js';
 import { optionsFile, traitementActif } from '../common/redis.js';
 import { Prisma } from '../generated/prisma/client.js';
 import {
@@ -234,6 +235,7 @@ export class PaiementsService implements OnModuleInit, OnModuleDestroy {
         dateEcheance: true,
         nombreEnvois: true,
         eleveId: true,
+        eleve: { select: { ecole: { select: { pays: true } } } },
       },
     });
     const autres = await this.prisma.rappelPaiement.findMany({
@@ -249,7 +251,12 @@ export class PaiementsService implements OnModuleInit, OnModuleDestroy {
       ecoleId,
       type: typeRappel(joursDeRetard(rappel.dateEcheance, aujourdHui)),
       cible: { eleveIds: [rappel.eleveId] },
-      variables: variablesPaiement(rappel, autres, aujourdHui),
+      variables: variablesPaiement(
+        rappel,
+        autres,
+        PAYS[rappel.eleve.ecole.pays].monnaie,
+        aujourdHui,
+      ),
       sourceType: 'rappel_paiement',
       sourceId: id,
       cleDeduplication: `rappel_paiement:${id}:${numero}`,

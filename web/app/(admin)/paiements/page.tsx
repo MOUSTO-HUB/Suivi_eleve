@@ -20,7 +20,7 @@ import {
   aujourdHui,
   dateFr,
   dateHeureFr,
-  fcfa,
+  montant,
   peutRelancerPaiements,
   type Classe,
   type ClasseDetail,
@@ -62,6 +62,7 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
   if (filtres.classeId) requete.set('classeId', filtres.classeId);
 
   const profil = await profilCourant();
+  const monnaie = profil.ecole?.monnaie ?? 'FCFA';
   const comptable = peutRelancerPaiements(profil.role);
   const [rappels, classes, classe] = await Promise.all([
     lireApi<ListeRappels>(`/rappels-paiement?${requete.toString()}`),
@@ -87,7 +88,7 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
       <div className="mb-6 grid gap-6 lg:grid-cols-3">
         <Carte titre="En attente">
           <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
-            {fcfa(rappels.enAttente.montant)}
+            {montant(rappels.enAttente.montant, monnaie)}
           </p>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             pour {rappels.enAttente.eleves} élève(s)
@@ -155,7 +156,7 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
                         ))}
                       </datalist>
                     </Champ>
-                    <Champ libelle="Montant (FCFA)" obligatoire>
+                    <Champ libelle={`Montant (${monnaie})`} obligatoire>
                       <Saisie
                         name="montant"
                         inputMode="numeric"
@@ -229,7 +230,9 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
               </span>
             </td>
             <td className={cellule}>{r.libelle}</td>
-            <td className={`${cellule} font-medium`}>{fcfa(r.montant)}</td>
+            <td className={`${cellule} font-medium`}>
+              {montant(r.montant, monnaie)}
+            </td>
             <td className={cellule}>{dateFr(r.dateEcheance)}</td>
             <td className={cellule}>
               {r.statut === 'REGLE' ? (

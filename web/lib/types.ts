@@ -26,6 +26,15 @@ export interface Profil {
   nom: string;
   email: string | null;
   role: Role;
+  /** École et réglages de son pays (null : concepteur, sans école). */
+  ecole: {
+    nom: string;
+    pays: Pays;
+    nomPays: string;
+    monnaie: Monnaie;
+    indicatif: string;
+    exempleTelephone: string;
+  } | null;
   /** Parent : texte d'information à accepter (null pour le personnel). */
   consentement: {
     version: string;
@@ -713,9 +722,10 @@ export const peutRelancerPaiements = (role: Role) =>
 export const voitPaiements = (role: Role) =>
   peutRelancerPaiements(role) || role === 'SECRETARIAT';
 
-/** « 25 000 FCFA » */
-export const fcfa = (montant: number) =>
-  `${montant.toLocaleString('fr-FR')} FCFA`;
+/** « 25 000 FCFA », « 150 000 GNF » : montant dans la monnaie de l'école. */
+export type Monnaie = 'GNF' | 'FCFA';
+export const montant = (valeur: number, monnaie: Monnaie) =>
+  `${valeur.toLocaleString('fr-FR')} ${monnaie}`;
 
 // --- Événements ---
 

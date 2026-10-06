@@ -64,6 +64,7 @@ services:
       NODE_ENV: production
       API_URL: http://api:3100/api
       CONTACT_ABONNEMENT: ${CONTACT_ABONNEMENT:-}
+      PAYS_PAR_DEFAUT: ${PAYS_PAR_DEFAUT:-GN}
     depends_on: [api]
     <<: *journaux
 

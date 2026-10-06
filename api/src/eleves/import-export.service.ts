@@ -4,6 +4,7 @@ import { AuditService } from '../audit/audit.service.js';
 import type { UtilisateurConnecte } from '../auth/auth.types.js';
 import { ClassesService } from '../classes/classes.service.js';
 import { versJour } from '../common/dates.js';
+import { exempleInternational, PAYS } from '../common/pays.js';
 import { ActionAudit, LienTuteur } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type { ExportElevesDto } from './eleves.dto.js';
@@ -154,6 +155,8 @@ export class ImportExportService {
     );
     const contexte = {
       classes: new Map(classes.map((c) => [normaliserEntete(c.nom), c.id])),
+      // Numéros saisis sans indicatif : celui du pays de l'école.
+      indicatif: PAYS[await this.paysEcole(u.ecoleId)].indicatif,
     };
 
     const rapport: RapportImport = {
@@ -270,8 +273,17 @@ export class ImportExportService {
     };
   }
 
+  private async paysEcole(ecoleId: string) {
+    const ecole = await this.prisma.ecole.findUniqueOrThrow({
+      where: { id: ecoleId },
+      select: { pays: true },
+    });
+    return ecole.pays;
+  }
+
   /** Modèle Excel à remplir : en-têtes attendus et une ligne d'exemple. */
-  async modele(): Promise<FichierExport> {
+  async modele(u: UtilisateurConnecte): Promise<FichierExport> {
+    const pays = await this.paysEcole(u.ecoleId);
     const exemple = [
       'Awa',
       'Diop',
@@ -282,9 +294,9 @@ export class ImportExportService {
       'Malick',
       'Diop',
       'père',
-      '+221771234567',
+      exempleInternational(pays),
       '',
-      'malick.diop@exemple.sn',
+      'malick.diop@exemple.com',
     ];
     return {
       contenu: await versXlsx('Élèves', [...COLONNES_IMPORT], [exemple]),

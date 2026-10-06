@@ -37,9 +37,9 @@ export function quandFr(iso: string, maintenant = new Date()): string {
   return dateFr(iso);
 }
 
-/** « 25 000 FCFA » (espaces simples pour tous les téléphones). */
-export const fcfa = (montant: number) =>
-  `${String(montant).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} FCFA`;
+/** « 25 000 FCFA », « 150 000 GNF » (espaces simples pour tous les téléphones). */
+export const montant = (valeur: number, monnaie: string) =>
+  `${String(valeur).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} ${monnaie}`;
 
 /** « 14,50 » ; « — » si absent. */
 export const noteFr = (n: number | null | undefined) =>
@@ -204,11 +204,43 @@ export const LIBELLES_CATEGORIE: Record<string, string> = Object.fromEntries([
   ['ABSENCE', 'Absence'],
 ]);
 
-/** Le numéro saisi par le parent, ramené au format international (Sénégal par défaut). */
-export function telephoneE164(saisie: string): string {
+/** Pays des écoles (même table que api/src/common/pays.ts). */
+export type Pays = 'GN' | 'CI' | 'SN';
+export const PAYS: Record<
+  Pays,
+  { nom: string; indicatif: string; chiffres: number; exemple: string }
+> = {
+  GN: { nom: 'Guinée', indicatif: '224', chiffres: 9, exemple: '621 12 34 56' },
+  CI: {
+    nom: "Côte d'Ivoire",
+    indicatif: '225',
+    chiffres: 10,
+    exemple: '07 12 34 56 78',
+  },
+  SN: {
+    nom: 'Sénégal',
+    indicatif: '221',
+    chiffres: 9,
+    exemple: '77 123 45 67',
+  },
+};
+
+export const estPays = (v: unknown): v is Pays =>
+  typeof v === 'string' && v in PAYS;
+
+/**
+ * Le numéro saisi par le parent, ramené au format international avec
+ * l'indicatif du pays choisi. Un numéro déjà international reste tel quel.
+ */
+export function telephoneE164(saisie: string, pays: Pays): string {
+  const { indicatif, chiffres } = PAYS[pays];
   let n = saisie.replace(/[\s.()-]/g, '');
   if (n.startsWith('00')) n = `+${n.slice(2)}`;
-  if (/^\d{9}$/.test(n)) n = `+221${n}`;
-  else if (/^221\d{9}$/.test(n)) n = `+${n}`;
+  if (n.startsWith('+')) return n;
+  if (/^\d+$/.test(n)) {
+    if (n.length === chiffres) return `+${indicatif}${n}`;
+    if (n.length === indicatif.length + chiffres && n.startsWith(indicatif))
+      return `+${n}`;
+  }
   return n;
 }

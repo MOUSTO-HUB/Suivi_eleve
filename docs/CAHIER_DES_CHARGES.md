@@ -116,6 +116,7 @@ Le concepteur de l'application (super administrateur) administre toutes les éco
 - **EF-93** États d'une école : essai, actif, à renouveler (7 derniers jours), en retard (15 jours de grâce après la fin), suspendue (après la grâce, ou suspendue à la main par le concepteur). La direction voit un bandeau d'avertissement dès 7 jours avant la fin.
 - **EF-94** École suspendue : plus aucune connexion (personnel et parents), plus aucun envoi de message ; toutes les données sont conservées et tout revient dès le paiement ou la réactivation.
 - **EF-95** Tableau de bord du concepteur : nombre d'écoles par état, élèves et familles suivis, encaissements du mois et de l'année, écoles à relancer.
+- **EF-96** Chaque école a un pays (Guinée, Côte d'Ivoire, Sénégal) qui fixe la monnaie de ses montants (GNF ou FCFA) et l'indicatif ajouté aux numéros saisis sans (+224, +225, +221). À la connexion, le parent choisit son pays ; le dernier choix est retenu sur l'appareil. Les trois pays sont à l'heure GMT toute l'année.
 
 ### 3.9 Moteur de notifications (commun)
 

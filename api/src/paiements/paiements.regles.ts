@@ -37,22 +37,24 @@ export const typeRappel = (jours: number) =>
     ? TypeNotification.RETARD_PAIEMENT
     : TypeNotification.RAPPEL_PAIEMENT;
 
-/** Variables des messages de paiement. */
+/** Variables des messages de paiement ; `monnaie` : GNF ou FCFA selon le pays de l'école. */
 export function variablesPaiement(
   rappel: { libelle: string; montant: number; dateEcheance: Date },
   autres: { montant: number }[],
+  monnaie: string,
   aujourdHui = new Date(),
 ): Record<string, string> {
   const total = rappel.montant + autres.reduce((s, a) => s + a.montant, 0);
   return {
     libelle: libelleDansPhrase(rappel.libelle),
     montant: montantFr(rappel.montant),
+    monnaie,
     date_echeance: jourFr(rappel.dateEcheance),
     jours_retard: dureeFr(
       Math.max(0, joursDeRetard(rappel.dateEcheance, aujourdHui)),
     ),
     total: autres.length
-      ? `\n\nAu total, ${montantFr(total)} FCFA restent en attente pour cet élève (${autres.length + 1} paiements).`
+      ? `\n\nAu total, ${montantFr(total)} ${monnaie} restent en attente pour cet élève (${autres.length + 1} paiements).`
       : '',
   };
 }

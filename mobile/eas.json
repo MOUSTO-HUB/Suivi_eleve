@@ -6,7 +6,8 @@
   "build": {
     "base": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://suivi.mon-ecole.sn/api"
+        "EXPO_PUBLIC_API_URL": "https://suivi.mon-ecole.sn/api",
+        "EXPO_PUBLIC_PAYS_PAR_DEFAUT": "GN"
       }
     },
     "development": {

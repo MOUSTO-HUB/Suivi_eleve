@@ -15,7 +15,10 @@ const COLONNES = [
   ['telephone', "téléphone de l'élève"],
   ['tuteur_prenoms, tuteur_nom', 'obligatoires'],
   ['lien_tuteur', 'père, mère, tuteur ou autre'],
-  ['contact_tuteur_1', 'obligatoire, ex. 77 123 45 67 ou +221771234567'],
+  [
+    'contact_tuteur_1',
+    "obligatoire, numéro local (indicatif du pays de l'école ajouté) ou international, ex. +224621123456",
+  ],
   ['contact_tuteur_2, email_tuteur', 'facultatifs'],
 ];
 

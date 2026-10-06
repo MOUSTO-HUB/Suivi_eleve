@@ -4,6 +4,12 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { transmettreIp, type EtatFormulaire } from '@/lib/api';
 import {
+  estPays,
+  paysParDefaut,
+  TELEPHONE_PAYS,
+  telephoneE164,
+} from '@/lib/pays';
+import {
   API_URL,
   COOKIE_ACCES,
   COOKIE_RAFRAICHISSEMENT,
@@ -20,15 +26,6 @@ const cheminSur = (suite: FormDataEntryValue | null, defaut: string) =>
   typeof suite === 'string' && suite.startsWith('/') && !suite.startsWith('//')
     ? suite
     : defaut;
-
-/** « 77 123 45 67 » → « +221771234567 » (Sénégal par défaut). */
-function telephoneE164(saisie: string): string {
-  let n = saisie.replace(/[\s.()-]/g, '');
-  if (n.startsWith('00')) n = `+${n.slice(2)}`;
-  if (/^\d{9}$/.test(n)) n = `+221${n}`;
-  else if (/^221\d{9}$/.test(n)) n = `+${n}`;
-  return n;
-}
 
 /** Appel public de l'API d'authentification, avec l'IP du visiteur. */
 async function appelAuth(
@@ -99,14 +96,23 @@ export async function demanderCode(
   _etat: Etat,
   donnees: FormData,
 ): Promise<Etat> {
-  const telephone = telephoneE164(String(donnees.get('telephone') ?? ''));
+  const choix = donnees.get('pays');
+  const pays = estPays(choix) ? choix : paysParDefaut();
+  const telephone = telephoneE164(String(donnees.get('telephone') ?? ''), pays);
+  // Le pays choisi est proposé à la prochaine connexion.
+  (await cookies()).set('pays', pays, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 365 * 24 * 3600,
+    path: '/',
+  });
   const reponse = await appelAuth('/auth/otp/demande', { telephone });
   if (!reponse) return HORS_LIGNE;
   if (!reponse.ok) {
     return {
       erreur:
         (await message(reponse)) ||
-        'Numéro invalide : saisissez par exemple 77 123 45 67.',
+        `Numéro invalide : saisissez par exemple ${TELEPHONE_PAYS[pays].exemple}.`,
     };
   }
   redirect(

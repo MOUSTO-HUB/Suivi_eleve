@@ -121,7 +121,10 @@ describe('lecture des valeurs', () => {
 });
 
 describe('analyserLigne', () => {
-  const contexte = { classes: new Map([['6e_a', 'classe-6a']]) };
+  const contexte = {
+    classes: new Map([['6e_a', 'classe-6a']]),
+    indicatif: '221',
+  };
 
   it('produit une demande de création complète', () => {
     const resultat = analyserLigne(

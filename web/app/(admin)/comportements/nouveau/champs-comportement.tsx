@@ -118,7 +118,7 @@ export function ChampsComportement({ direction }: { direction: boolean }) {
           </Champ>
           <Champ
             libelle="Convoquer les parents le"
-            aide="Heure de Dakar ; facultatif."
+            aide="Heure locale (GMT) ; facultatif."
           >
             <Saisie type="datetime-local" name="convocationLe" />
           </Champ>

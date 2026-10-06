@@ -36,8 +36,8 @@ ADMIN, SECRETARIAT, ENSEIGNANT, SURVEILLANT, COMPTABLE, PARENT dans chaque écol
 - Interface et messages en français.
 - Un parent ne voit que ses enfants (vérifié côté serveur).
 - Jamais de suppression définitive d'un élève (archivage).
-- Numéros de téléphone au format E.164.
-- Montants en FCFA entiers.
+- Numéros de téléphone au format E.164 ; numéro saisi sans indicatif : celui du pays de l'école (ou choisi par le parent à la connexion).
+- Montants entiers dans la monnaie du pays de l'école : GNF (Guinée) ou FCFA (Côte d'Ivoire, Sénégal) ; table `api/src/common/pays.ts` (copiée dans `web/lib/pays.ts` et `mobile/src/lib/format.ts`), variable `{monnaie}` des modèles. Abonnements au service : toujours en GNF.
 
 ## Toujours
 

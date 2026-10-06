@@ -74,48 +74,50 @@ Merci de nous indiquer le motif de cette absence, par l'application ou auprès d
     PUSH: { sujet: 'Comportement de {prenom_eleve}', contenu: '{resume}' },
   },
   // Paiements : le comptable saisit {libelle}, {montant} et {date_echeance} ;
+  // {monnaie} (GNF ou FCFA) vient du pays de l'école ;
   // {jours_retard} est calculé (« 12 jours ») ; {total} résume les autres sommes en attente.
   RAPPEL_PAIEMENT: {
     SMS: {
       contenu:
-        'Suivi_eleve : rappel, {libelle} de {prenom_eleve} : {montant} FCFA à régler avant le {date_echeance}.',
+        'Suivi_eleve : rappel, {libelle} de {prenom_eleve} : {montant} {monnaie} à régler avant le {date_echeance}.',
     },
     // Tournures neutres : le libellé peut être singulier (mensualité) ou pluriel (frais).
     EMAIL: {
       sujet: 'Rappel de paiement : {libelle}',
-      contenu: `${salutation}Pour rappel, le paiement suivant est attendu pour {prenom_eleve} avant le {date_echeance} : {libelle}, {montant} FCFA.{total}${signature}`,
+      contenu: `${salutation}Pour rappel, le paiement suivant est attendu pour {prenom_eleve} avant le {date_echeance} : {libelle}, {montant} {monnaie}.{total}${signature}`,
     },
     PUSH: {
       sujet: 'Rappel de paiement',
-      contenu: '{libelle} : {montant} FCFA à régler avant le {date_echeance}.',
+      contenu:
+        '{libelle} : {montant} {monnaie} à régler avant le {date_echeance}.',
     },
   },
   RETARD_PAIEMENT: {
     SMS: {
       contenu:
-        'Suivi_eleve : {libelle} de {prenom_eleve} ({montant} FCFA) à régler depuis le {date_echeance} : {jours_retard} de retard. Merci de régulariser.',
+        'Suivi_eleve : {libelle} de {prenom_eleve} ({montant} {monnaie}) à régler depuis le {date_echeance} : {jours_retard} de retard. Merci de régulariser.',
     },
     EMAIL: {
       sujet: 'Retard de paiement : {libelle}',
-      contenu: `${salutation}Sauf erreur de notre part, le paiement suivant était attendu pour {prenom_eleve} le {date_echeance} : {libelle}, {montant} FCFA. Le retard est aujourd'hui de {jours_retard}.{total}\n\nMerci de régulariser auprès de la comptabilité de l'école. Si le paiement a déjà été effectué, merci de ne pas tenir compte de ce message.${signature}`,
+      contenu: `${salutation}Sauf erreur de notre part, le paiement suivant était attendu pour {prenom_eleve} le {date_echeance} : {libelle}, {montant} {monnaie}. Le retard est aujourd'hui de {jours_retard}.{total}\n\nMerci de régulariser auprès de la comptabilité de l'école. Si le paiement a déjà été effectué, merci de ne pas tenir compte de ce message.${signature}`,
     },
     PUSH: {
       sujet: 'Paiement en retard',
-      contenu: '{libelle} : {montant} FCFA, {jours_retard} de retard.',
+      contenu: '{libelle} : {montant} {monnaie}, {jours_retard} de retard.',
     },
   },
   RECU_PAIEMENT: {
     SMS: {
       contenu:
-        'Suivi_eleve : paiement de {montant} FCFA reçu ({mois}). Reçu n° {numero_recu}.',
+        'Suivi_eleve : paiement de {montant} {monnaie} reçu ({mois}). Reçu n° {numero_recu}.',
     },
     EMAIL: {
       sujet: 'Reçu de paiement n° {numero_recu}',
-      contenu: `${salutation}Nous avons bien reçu votre paiement de {montant} FCFA pour {prenom_eleve} ({mois}). Reçu n° {numero_recu}.${signature}`,
+      contenu: `${salutation}Nous avons bien reçu votre paiement de {montant} {monnaie} pour {prenom_eleve} ({mois}). Reçu n° {numero_recu}.${signature}`,
     },
     PUSH: {
       sujet: 'Paiement reçu',
-      contenu: '{montant} FCFA ({mois}), reçu n° {numero_recu}.',
+      contenu: '{montant} {monnaie} ({mois}), reçu n° {numero_recu}.',
     },
   },
   RESULTATS: {

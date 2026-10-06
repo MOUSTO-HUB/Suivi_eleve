@@ -192,7 +192,8 @@ const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export interface ContexteAnalyse {
   /** Nom de classe normalisé → id, pour l'année active. */
   classes: Map<string, string>;
-  indicatif?: string;
+  /** Indicatif du pays de l'école (sans « + »), pour les numéros saisis sans. */
+  indicatif: string;
 }
 
 export interface LigneAnalysee {

@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { FormulaireAction } from '@/components/formulaire-action';
 import { DesabonnementDeconnexion } from '@/components/notifications-push';
-import { Champ, parametre, Saisie, styles } from '@/components/ui';
+import { Champ, Liste, parametre, Saisie, styles } from '@/components/ui';
+import { estPays, LISTE_PAYS, paysParDefaut, TELEPHONE_PAYS } from '@/lib/pays';
 import { demanderCode, seConnecter, verifierCode } from './actions';
 
 export const metadata: Metadata = { title: 'Connexion · Suivi_eleve' };
@@ -19,6 +21,9 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
   const params = await props.searchParams;
   const suite = parametre(params.suite);
   const telephone = parametre(params.telephone);
+  // Dernier pays choisi sur cet appareil, sinon celui du déploiement.
+  const memorise = (await cookies()).get('pays')?.value;
+  const pays = estPays(memorise) ? memorise : paysParDefaut();
   // Un retour vers une page du personnel (session expirée) ouvre l'onglet Personnel.
   const espace = parametre(params.espace);
   const parent =
@@ -109,6 +114,15 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
               libelle="Recevoir le code par SMS"
               libelleEnCours="Envoi…"
             >
+              <Champ libelle="Pays">
+                <Liste name="pays" defaultValue={pays}>
+                  {LISTE_PAYS.map((p) => (
+                    <option key={p.code} value={p.code}>
+                      {p.libelle}
+                    </option>
+                  ))}
+                </Liste>
+              </Champ>
               <Champ
                 libelle="Votre numéro de téléphone"
                 aide="Le numéro donné à l'école lors de l'inscription."
@@ -117,7 +131,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
                   type="tel"
                   name="telephone"
                   autoComplete="tel"
-                  placeholder="77 123 45 67"
+                  placeholder={TELEPHONE_PAYS[pays].exemple}
                   required
                   autoFocus
                 />

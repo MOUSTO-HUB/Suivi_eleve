@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { hash, verify } from '@node-rs/argon2';
 import { createHash, randomBytes } from 'node:crypto';
 import { AuditService } from '../audit/audit.service.js';
+import { PAYS } from '../common/pays.js';
 import { ActionAudit, Role } from '../generated/prisma/enums.js';
 import {
   EtatEcolesService,
@@ -138,16 +139,28 @@ export class AuthService {
         telephone: true,
         role: true,
         ecoleId: true,
+        ecole: { select: { nom: true, pays: true } },
         tuteur: {
           select: { id: true, consentementLe: true, consentementVersion: true },
         },
       },
     });
     if (!utilisateur) throw new UnauthorizedException();
-    const { tuteur, ...reste } = utilisateur;
+    const { tuteur, ecole, ...reste } = utilisateur;
     return {
       ...reste,
       tuteurId: tuteur?.id ?? null,
+      // Pays de l'école : monnaie des montants et indicatif des numéros (null : concepteur).
+      ecole: ecole
+        ? {
+            nom: ecole.nom,
+            pays: ecole.pays,
+            nomPays: PAYS[ecole.pays].nom,
+            monnaie: PAYS[ecole.pays].monnaie,
+            indicatif: PAYS[ecole.pays].indicatif,
+            exempleTelephone: PAYS[ecole.pays].exemple,
+          }
+        : null,
       // Parent : texte à accepter à la première connexion (ou quand il change).
       consentement: tuteur
         ? {

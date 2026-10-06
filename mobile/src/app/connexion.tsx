@@ -1,7 +1,8 @@
 import { Link } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Pressable,
   Platform,
   StyleSheet,
   Text,
@@ -17,8 +18,14 @@ import {
   Texte,
 } from '@/components/ui';
 import { ErreurApi } from '@/lib/api';
-import { telephoneE164 } from '@/lib/format';
+import { estPays, PAYS, telephoneE164, type Pays } from '@/lib/format';
 import { useSession } from '@/lib/session';
+import { enregistrerPays, paysEnregistre } from '@/lib/stockage-local';
+
+/** Pays proposé d'abord : EXPO_PUBLIC_PAYS_PAR_DEFAUT (GN, CI, SN), sinon la Guinée. */
+const PAYS_PAR_DEFAUT: Pays = estPays(process.env.EXPO_PUBLIC_PAYS_PAR_DEFAUT)
+  ? process.env.EXPO_PUBLIC_PAYS_PAR_DEFAUT
+  : 'GN';
 
 /** Connexion des parents : numéro de téléphone puis code reçu par SMS. */
 export default function Connexion() {
@@ -28,7 +35,13 @@ export default function Connexion() {
   const [code, setCode] = useState('');
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
-  const telephone = telephoneE164(numero);
+  const [pays, setPays] = useState<Pays>(PAYS_PAR_DEFAUT);
+  const telephone = telephoneE164(numero, pays);
+
+  // Dernier pays choisi sur ce téléphone.
+  useEffect(() => {
+    void paysEnregistre().then((p) => estPays(p) && setPays(p));
+  }, []);
 
   const executer = async (action: () => Promise<void>) => {
     setEnCours(true);
@@ -58,10 +71,39 @@ export default function Connexion() {
 
           {etape === 'numero' ? (
             <>
+              <Texte>Pays</Texte>
+              <View style={styles.pays} accessibilityRole="radiogroup">
+                {(Object.keys(PAYS) as Pays[]).map((p) => (
+                  <Pressable
+                    key={p}
+                    onPress={() => setPays(p)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: p === pays }}
+                    style={[styles.choixPays, p === pays && styles.paysActif]}
+                  >
+                    <Text
+                      style={[
+                        styles.textePays,
+                        p === pays && styles.textePaysActif,
+                      ]}
+                    >
+                      {PAYS[p].nom}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.indicatif,
+                        p === pays && styles.textePaysActif,
+                      ]}
+                    >
+                      +{PAYS[p].indicatif}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
               <Champ
                 libelle="Votre numéro de téléphone"
                 aide="Le numéro donné à l'école lors de l'inscription."
-                placeholder="77 123 45 67"
+                placeholder={PAYS[pays].exemple}
                 keyboardType="phone-pad"
                 autoComplete="tel"
                 value={numero}
@@ -71,10 +113,11 @@ export default function Connexion() {
               <Bouton
                 libelle="Recevoir le code par SMS"
                 enCours={enCours}
-                desactive={numero.trim().length < 9}
+                desactive={numero.replace(/\D/g, '').length < 8}
                 surAppui={() =>
                   executer(async () => {
                     await demanderCode(telephone);
+                    await enregistrerPays(pays);
                     setEtape('code');
                   })
                 }
@@ -127,6 +170,23 @@ export default function Connexion() {
 const styles = StyleSheet.create({
   entete: { alignItems: 'center', gap: 6, marginVertical: 32 },
   logo: { fontSize: 32, fontWeight: '800', color: couleurs.primaire },
+  pays: { flexDirection: 'row', gap: 8, marginTop: 6, marginBottom: 16 },
+  choixPays: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: couleurs.bordure,
+    backgroundColor: couleurs.blanc,
+  },
+  paysActif: {
+    backgroundColor: couleurs.primaire,
+    borderColor: couleurs.primaire,
+  },
+  textePays: { fontSize: 15, fontWeight: '600', color: couleurs.texte },
+  indicatif: { fontSize: 13, color: couleurs.secondaire },
+  textePaysActif: { color: couleurs.blanc },
   lien: {
     marginTop: 24,
     textAlign: 'center',

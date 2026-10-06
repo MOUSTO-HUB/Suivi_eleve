@@ -82,8 +82,11 @@ export class ElevesController {
 
   @Get('import/modele')
   @Roles(...GESTION_SCOLARITE)
-  async modeleImport(@Res({ passthrough: true }) res: Response) {
-    return envoyerFichier(res, await this.importExport.modele());
+  async modeleImport(
+    @UtilisateurCourant() u: UtilisateurConnecte,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return envoyerFichier(res, await this.importExport.modele(u));
   }
 
   @Post('import')

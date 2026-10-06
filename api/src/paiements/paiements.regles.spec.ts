@@ -46,11 +46,13 @@ describe('paiements', () => {
         dateEcheance: depuisJour('2026-10-05'),
       },
       [{ montant: 25000 }, { montant: 10000 }],
+      'FCFA',
       aujourdHui,
     );
     expect(v).toEqual({
       libelle: "mensualité d'octobre 2026",
       montant: '25 000',
+      monnaie: 'FCFA',
       date_echeance: '05/10/2026',
       jours_retard: '35 jours',
       total:
@@ -65,6 +67,28 @@ describe('paiements', () => {
     expect(sms).toBe(
       "Suivi_eleve : mensualité d'octobre 2026 de Mame Diarra (25 000 FCFA) à régler depuis le 05/10/2026 : 35 jours de retard. Merci de régulariser.",
     );
+  });
+
+  it('écrit les montants dans la monnaie de l’école (Guinée : GNF)', () => {
+    const v = variablesPaiement(
+      {
+        libelle: 'Frais de cantine',
+        montant: 250000,
+        dateEcheance: depuisJour('2026-11-15'),
+      },
+      [{ montant: 100000 }],
+      'GNF',
+      aujourdHui,
+    );
+    expect(
+      rendre(MODELES_PAR_DEFAUT.RAPPEL_PAIEMENT.SMS.contenu, {
+        ...v,
+        prenom_eleve: 'Fanta',
+      }),
+    ).toBe(
+      'Suivi_eleve : rappel, frais de cantine de Fanta : 250 000 GNF à régler avant le 15/11/2026.',
+    );
+    expect(v.total).toContain('350 000 GNF restent en attente');
   });
 });
 

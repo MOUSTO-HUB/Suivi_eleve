@@ -55,3 +55,14 @@ export async function viderCache() {
     () => undefined,
   );
 }
+
+const CLE_PAYS = 'suivi.pays';
+
+/** Pays choisi à la connexion, proposé la fois suivante (gardé à la déconnexion). */
+export async function paysEnregistre(): Promise<string | null> {
+  return AsyncStorage.getItem(CLE_PAYS).catch(() => null);
+}
+
+export async function enregistrerPays(pays: string) {
+  await AsyncStorage.setItem(CLE_PAYS, pays).catch(() => undefined);
+}

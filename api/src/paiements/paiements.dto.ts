@@ -25,7 +25,10 @@ export class CreerRappelDto {
   @MaxLength(60)
   libelle: string;
 
-  @IsInt({ message: 'Le montant doit être un nombre entier de FCFA.' })
+  @IsInt({
+    message:
+      'Le montant doit être un nombre entier (GNF ou FCFA, sans centimes).',
+  })
   @Min(1, { message: 'Le montant doit être positif.' })
   @Max(100_000_000)
   montant: number;

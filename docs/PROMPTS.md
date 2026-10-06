@@ -111,3 +111,9 @@ Ajoute une tâche quotidienne (BullMQ, 9h heure de Dakar) qui relance les famill
 ```text
 Ajoute le rôle SUPER_ADMIN (concepteur, sans école) et son espace web /plateforme : créer une école (pays Guinée, Côte d'Ivoire ou Sénégal) avec son année scolaire et son compte de direction, enregistrer les paiements d'abonnement (150 000 GNF par mois ou 1 500 000 GNF par an, sans TVA), suspendre ou réactiver, tableau de bord (écoles par état, encaissements). 1 mois d'essai, bandeau à la direction 7 jours avant la fin, 15 jours de grâce puis suspension : plus de connexion ni d'envoi, données conservées. Le concepteur n'accède à aucune route des écoles ni aux données des élèves. Premier compte concepteur par la ligne de commande.
 ```
+
+## Prompt 17 — Écoles de Guinée, de Côte d'Ivoire et du Sénégal
+
+```text
+Rends l'application multi-pays : le pays de l'école (GN, CI, SN) fixe la monnaie des montants (GNF ou FCFA, variable {monnaie} des modèles de messages, site et application) et l'indicatif ajouté aux numéros saisis sans (+224, +225, +221 : import des élèves, aides à la saisie). À la connexion des parents (site et mobile), un choix du pays, retenu sur l'appareil, avec un pays par défaut configurable (PAYS_PAR_DEFAUT, EXPO_PUBLIC_PAYS_PAR_DEFAUT). Le profil /auth/moi donne le pays, la monnaie et l'indicatif de l'école.
+```

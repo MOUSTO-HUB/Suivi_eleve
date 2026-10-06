@@ -4,16 +4,17 @@ import { IsEmail, Matches } from 'class-validator';
 
 export const REGEX_TELEPHONE = /^\+[1-9]\d{7,14}$/;
 
-/** Accepte « +221 77 123 45 67 » et le ramène à « +221771234567 » (E.164). */
+/** Accepte « +224 621 12 34 56 » et le ramène à « +224621123456 » (E.164). */
 export const normaliserTelephone = (valeur: string): string =>
   valeur.replace(/[\s.()-]/g, '');
 
 /**
  * Convertit un numéro saisi librement (fichier d'import) en E.164 :
- * « 77 123 45 67 » → « +221771234567 », « 00221… » → « +221… ».
+ * avec l'indicatif du pays de l'école : « 77 123 45 67 » → « +221771234567 »,
+ * « 00224… » → « +224… ».
  * Renvoie la valeur nettoyée telle quelle si elle ne peut pas être convertie.
  */
-export function versE164(valeur: string, indicatif = '221'): string {
+export function versE164(valeur: string, indicatif: string): string {
   let numero = normaliserTelephone(valeur);
   if (numero.startsWith('00')) numero = `+${numero.slice(2)}`;
   if (/^\d+$/.test(numero)) {
@@ -32,7 +33,7 @@ export const EstTelephone = () =>
     ),
     Matches(REGEX_TELEPHONE, {
       message:
-        'Le numéro doit être au format international, par exemple +221771234567.',
+        "Le numéro doit être au format international avec l'indicatif du pays, par exemple +224621123456 ou +221771234567.",
     }),
   );
 

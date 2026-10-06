@@ -25,7 +25,7 @@ import {
   LIBELLES_CATEGORIE,
   peutSignaler,
   voitPaiements,
-  fcfa,
+  montant,
   type ListeRappels,
   type Absence,
   type Appareil,
@@ -347,7 +347,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                       <span>
                         {r.libelle}
                         <span className="block font-medium">
-                          {fcfa(r.montant)}
+                          {montant(r.montant, profil.ecole?.monnaie ?? 'FCFA')}
                         </span>
                       </span>
                       {r.joursRetard > 0 ? (

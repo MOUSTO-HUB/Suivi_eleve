@@ -9,8 +9,9 @@ import {
   Titre,
 } from '@/components/ui';
 import { useEnfants } from '@/lib/enfants';
-import { dateFr, fcfa } from '@/lib/format';
+import { dateFr, montant } from '@/lib/format';
 import { useRequete } from '@/lib/requete';
+import { useUtilisateur } from '@/lib/session';
 import type { ListeRappels } from '@/lib/types';
 
 /** Paiements signalés en attente par la comptabilité, avec le retard du jour. */
@@ -23,6 +24,7 @@ export default function Paiements() {
   );
   const liste = r.donnees?.elements ?? [];
   const total = liste.reduce((s, p) => s + p.montant, 0);
+  const monnaie = useUtilisateur().ecole?.monnaie ?? 'FCFA';
   return (
     <Ecran enChargement={r.chargement} surRafraichir={r.recharger}>
       <ChoixEnfant />
@@ -39,13 +41,13 @@ export default function Paiements() {
       {liste.length > 0 && (
         <Carte accent="alerte">
           <Texte discret>Total à régler</Texte>
-          <Titre>{fcfa(total)}</Titre>
+          <Titre>{montant(total, monnaie)}</Titre>
         </Carte>
       )}
       {liste.map((p) => (
         <Carte key={p.id} accent={p.joursRetard > 0 ? 'danger' : undefined}>
           <Texte gras>{p.libelle}</Texte>
-          <Ligne libelle="Montant" valeur={fcfa(p.montant)} />
+          <Ligne libelle="Montant" valeur={montant(p.montant, monnaie)} />
           <Ligne libelle="À payer le" valeur={dateFr(p.dateEcheance)} />
           {p.joursRetard > 0 ? (
             <Pastille ton="danger">

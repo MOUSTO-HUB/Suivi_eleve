@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   codeEtiquette,
   dateFr,
-  fcfa,
+  montant,
   fusionnerNotifications,
   heureFr,
   lienNotification,
@@ -37,8 +37,8 @@ describe('mise en forme', () => {
     expect(dateFr('2026-11-15')).toBe('15/11/2026');
     expect(dateFr('2026-11-15T23:30:00Z')).toBe('15/11/2026');
     expect(heureFr('2026-11-15T09:05:00Z')).toBe('09h05');
-    expect(fcfa(1250000)).toBe('1 250 000 FCFA');
-    expect(fcfa(500)).toBe('500 FCFA');
+    expect(montant(1250000, 'FCFA')).toBe('1 250 000 FCFA');
+    expect(montant(150000, 'GNF')).toBe('150 000 GNF');
     expect(noteFr(14.5)).toBe('14,50');
     expect(noteFr(null)).toBe('—');
     expect(rangFr(1)).toBe('1er');
@@ -54,11 +54,18 @@ describe('mise en forme', () => {
     expect(quandFr('2026-09-30T18:00:00Z', maintenant)).toBe('30/09/2026');
   });
 
-  it('ramène le numéro saisi au format international', () => {
-    expect(telephoneE164('77 123 45 67')).toBe('+221771234567');
-    expect(telephoneE164('00221 77 123 45 67')).toBe('+221771234567');
-    expect(telephoneE164('221771234567')).toBe('+221771234567');
-    expect(telephoneE164('+33 6 12 34 56 78')).toBe('+33612345678');
+  it('ramène le numéro saisi au format international, selon le pays', () => {
+    expect(telephoneE164('77 123 45 67', 'SN')).toBe('+221771234567');
+    expect(telephoneE164('00221 77 123 45 67', 'SN')).toBe('+221771234567');
+    expect(telephoneE164('221771234567', 'SN')).toBe('+221771234567');
+    expect(telephoneE164('621 12 34 56', 'GN')).toBe('+224621123456');
+    expect(telephoneE164('224 621 12 34 56', 'GN')).toBe('+224621123456');
+    expect(telephoneE164('07 12 34 56 78', 'CI')).toBe('+2250712345678');
+    // Déjà international : le pays choisi ne change rien.
+    expect(telephoneE164('+221 77 123 45 67', 'GN')).toBe('+221771234567');
+    expect(telephoneE164('+33 6 12 34 56 78', 'SN')).toBe('+33612345678');
+    // Longueur inattendue : rendu tel quel, l'API le refusera.
+    expect(telephoneE164('7712345', 'SN')).toBe('7712345');
   });
 });
 

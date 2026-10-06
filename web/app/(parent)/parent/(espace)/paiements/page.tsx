@@ -7,7 +7,8 @@ import {
 } from '@/components/parent';
 import { Badge, Carte } from '@/components/ui';
 import { lireApi } from '@/lib/api';
-import { dateFr, fcfa, type ListeRappels } from '@/lib/types';
+import { profilCourant } from '@/lib/profil';
+import { dateFr, montant, type ListeRappels } from '@/lib/types';
 
 export const metadata: Metadata = { title: 'Paiements · Suivi_eleve' };
 
@@ -22,6 +23,7 @@ export default async function Paiements(props: PageProps<'/parent/paiements'>) {
       ).elements
     : [];
   const total = liste.reduce((s, p) => s + p.montant, 0);
+  const monnaie = (await profilCourant()).ecole?.monnaie ?? 'FCFA';
   return (
     <>
       <TitreParent
@@ -39,13 +41,14 @@ export default async function Paiements(props: PageProps<'/parent/paiements'>) {
         <div className="flex flex-col gap-3">
           <Carte>
             <p className="text-zinc-600 dark:text-zinc-400">Total à régler</p>
-            <p className="text-3xl font-semibold">{fcfa(total)}</p>
+            <p className="text-3xl font-semibold">{montant(total, monnaie)}</p>
           </Carte>
           {liste.map((p) => (
             <Carte key={p.id}>
               <p className="text-lg font-semibold">{p.libelle}</p>
               <p>
-                {fcfa(p.montant)} · à payer le {dateFr(p.dateEcheance)}
+                {montant(p.montant, monnaie)} · à payer le{' '}
+                {dateFr(p.dateEcheance)}
               </p>
               <p className="mt-2">
                 {p.joursRetard > 0 ? (

@@ -16,6 +16,13 @@ export interface Utilisateur {
   role: Role;
   ecoleId: string;
   tuteurId?: string | null;
+  /** École et réglages de son pays (profil /auth/moi ; null : concepteur). */
+  ecole?: {
+    nom: string;
+    pays: 'GN' | 'CI' | 'SN';
+    monnaie: 'GNF' | 'FCFA';
+    indicatif: string;
+  } | null;
   /** Parent : texte d'information à accepter avant d'utiliser l'application. */
   consentement?: {
     version: string;

@@ -56,6 +56,9 @@ describe('Espace concepteur (e2e)', () => {
     });
     await prisma.notification.deleteMany({ where: ou });
     await prisma.paiementAbonnement.deleteMany({ where: ou });
+    await prisma.rappelPaiement.deleteMany({
+      where: { eleve: { ecoleId: { in: ecoles } } },
+    });
     await prisma.eleve.deleteMany({ where: ou });
     await prisma.tuteur.deleteMany({ where: ou });
     await prisma.utilisateur.deleteMany({
@@ -314,5 +317,36 @@ describe('Espace concepteur (e2e)', () => {
     await connexionDirection().expect(401);
     motDePasseDirection = body.motDePasseProvisoire;
     await connexionDirection().expect(200);
+  });
+
+  it('parle la monnaie et l’indicatif du pays de l’école (Guinée)', async () => {
+    const { body } = await connexionDirection().expect(200);
+    const direction = { Authorization: `Bearer ${body.jetonAcces}` };
+    const profil = await http().get('/api/auth/moi').set(direction).expect(200);
+    expect(profil.body.ecole).toMatchObject({
+      nom: 'Groupe scolaire Kaloum',
+      pays: 'GN',
+      monnaie: 'GNF',
+      indicatif: '224',
+    });
+
+    const fanta = await prisma.eleve.findFirstOrThrow({
+      where: { ecoleId, prenoms: 'Fanta' },
+    });
+    const rappel = await http()
+      .post('/api/rappels-paiement')
+      .set(direction)
+      .send({
+        eleveId: fanta.id,
+        libelle: 'Frais de cantine',
+        montant: 250000,
+        dateEcheance: jour(5),
+      })
+      .expect(201);
+    const sms = await prisma.notification.findFirstOrThrow({
+      where: { sourceId: rappel.body.id, canal: 'SMS' },
+    });
+    expect(sms.contenu).toContain('250 000 GNF');
+    expect(sms.contenu).not.toContain('FCFA');
   });
 });
