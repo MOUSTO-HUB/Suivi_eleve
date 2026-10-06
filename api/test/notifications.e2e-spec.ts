@@ -524,4 +524,73 @@ describe('Moteur de notifications (e2e)', () => {
     expect(modele.personnalise).toBe(false);
     expect(modele.apercu.length).toBeLessThanOrEqual(160);
   });
+
+  it('envoie les push au site installé (Web Push) d’un parent abonné', async () => {
+    // Sans clés VAPID (tests), le serveur l'indique : le site masque le bouton.
+    await http()
+      .get('/api/notifications/push-web')
+      .set(avec('autreParent'))
+      .expect(200, { clePublique: null });
+    await http()
+      .get('/api/notifications/push-web')
+      .set(avec('secretariat'))
+      .expect(403);
+
+    const abonnement = {
+      jeton: `https://fcm.googleapis.com/fcm/send/${randomUUID()}`,
+      plateforme: 'WEB',
+      cleP256dh: Buffer.alloc(65, 4).toString('base64url'),
+      cleAuth: Buffer.alloc(16, 7).toString('base64url'),
+    };
+    // Adresse hors des services push des navigateurs, ou clés absentes : refusé.
+    await http()
+      .post('/api/notifications/jetons-push')
+      .set(avec('autreParent'))
+      .send({ ...abonnement, jeton: 'https://postgres:5432/x' })
+      .expect(400);
+    await http()
+      .post('/api/notifications/jetons-push')
+      .set(avec('autreParent'))
+      .send({ jeton: abonnement.jeton, plateforme: 'WEB' })
+      .expect(400);
+    await http()
+      .post('/api/notifications/jetons-push')
+      .set(avec('autreParent'))
+      .send(abonnement)
+      .expect(204);
+
+    const source = randomUUID();
+    await service.notifier({
+      ecoleId,
+      type: 'LIBERATION_ANTICIPEE',
+      cible: { classeIds: [classeA] },
+      variables: { heure: '10h00', motif: 'réunion des enseignants' },
+      sourceId: source,
+    });
+    await traites(source);
+    const [push] = await lignes({
+      sourceId: source,
+      tuteurId: t.Astou.id,
+      canal: 'PUSH',
+    });
+    expect(push).toMatchObject({
+      destinataire: abonnement.jeton,
+      statut: 'ENVOYEE',
+    });
+    expect(ENVOIS_SIMULES).toContainEqual(
+      expect.objectContaining({
+        fournisseur: 'simulation-push',
+        destinataire: abonnement.jeton,
+      }),
+    );
+
+    await http()
+      .delete('/api/notifications/jetons-push')
+      .set(avec('autreParent'))
+      .send({ jeton: abonnement.jeton })
+      .expect(204);
+    expect(
+      await prisma.jetonPush.count({ where: { jeton: abonnement.jeton } }),
+    ).toBe(0);
+  });
 });

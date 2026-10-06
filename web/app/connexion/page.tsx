@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FormulaireAction } from '@/components/formulaire-action';
+import { DesabonnementDeconnexion } from '@/components/notifications-push';
 import { Champ, parametre, Saisie, styles } from '@/components/ui';
 import { demanderCode, seConnecter, verifierCode } from './actions';
 
@@ -25,6 +26,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-16">
+      <DesabonnementDeconnexion />
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
           Suivi_eleve

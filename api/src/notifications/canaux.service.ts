@@ -8,8 +8,11 @@ import {
   FournisseurSimule,
   OrangeSms,
   TwilioSms,
+  WebPush,
+  type AbonnementWeb,
   type FournisseurEmail,
   type FournisseurPush,
+  type FournisseurPushWeb,
   type FournisseurSms,
   type Rappel,
   type ResultatEnvoi,
@@ -26,6 +29,10 @@ export class CanauxService {
   readonly sms: FournisseurSms[];
   readonly email: FournisseurEmail;
   readonly push: FournisseurPush;
+  /** Web Push du site installable ; absent sans clés VAPID. */
+  readonly pushWeb?: FournisseurPushWeb;
+  /** Clé publique VAPID donnée aux navigateurs pour s'abonner. */
+  readonly clePubliqueVapid?: string;
   private readonly urlRappels?: string;
   private readonly coutSms?: number;
 
@@ -41,6 +48,15 @@ export class CanauxService {
     this.push = this.creerPush(
       config.get<string>('PUSH_FOURNISSEUR', 'console'),
     );
+    const clePublique = config.get<string>('VAPID_CLE_PUBLIQUE');
+    if (clePublique) {
+      this.clePubliqueVapid = clePublique;
+      this.pushWeb = new WebPush({
+        clePublique,
+        clePrivee: this.exiger('VAPID_CLE_PRIVEE'),
+        sujet: this.exiger('VAPID_SUJET'),
+      });
+    }
 
     const urlApi = config.get<string>('API_URL_PUBLIQUE');
     const secret = config.get<string>('WEBHOOK_SECRET');
@@ -111,6 +127,28 @@ export class CanauxService {
     donnees: Record<string, string>,
   ) {
     return this.push.envoyer(jeton, titre, texte, donnees);
+  }
+
+  envoyerPushWeb(
+    abonnement: AbonnementWeb,
+    titre: string,
+    texte: string,
+    donnees: Record<string, string>,
+  ): Promise<ResultatEnvoi> {
+    if (this.pushWeb)
+      return this.pushWeb.envoyer(abonnement, titre, texte, donnees);
+    // Sans clés VAPID, en développement et en test : même faux fournisseur que les autres push.
+    if (
+      this.push instanceof FournisseurConsole ||
+      this.push instanceof FournisseurSimule
+    )
+      return this.push.envoyer(abonnement.endpoint, titre, texte);
+    return Promise.reject(
+      new ErreurFournisseur(
+        'Web Push non configuré (VAPID_CLE_PUBLIQUE, VAPID_CLE_PRIVEE, VAPID_SUJET).',
+        true,
+      ),
+    );
   }
 
   private exiger(cle: string): string {

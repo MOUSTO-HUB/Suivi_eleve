@@ -137,6 +137,7 @@ Faire un essai de restauration au moins une fois par trimestre (sur une base de 
 | `TWILIO_*` | Console Twilio (secours) |
 | `BREVO_API_KEY`, `EMAIL_EXPEDITEUR` | Brevo → *SMTP & API* ; expéditeur vérifié |
 | `FCM_PROJET_ID`, `FCM_EMAIL_COMPTE_SERVICE`, `FCM_CLE_PRIVEE` | Firebase → *Paramètres du projet → Comptes de service → Générer une clé privée* (champs `project_id`, `client_email`, `private_key`) |
+| `VAPID_CLE_PUBLIQUE`, `VAPID_CLE_PRIVEE`, `VAPID_SUJET` | Notifications du site installé (voir section 11). Clés à générer une seule fois : `suivi run --rm api node dist/cli/cles-vapid.js` ; `VAPID_SUJET` = `mailto:` + adresse de contact de l'école |
 
 Accusés de livraison (statut « délivré » dans le journal des notifications) : déclarer chez chaque fournisseur l'URL `https://DOMAINE/api/notifications/webhooks/<fournisseur>?jeton=WEBHOOK_SECRET` (`orange`, `twilio`, `brevo`).
 
@@ -209,7 +210,7 @@ npx eas-cli@latest build -p ios --profile production
 npx eas-cli@latest submit -p ios --profile production
 ```
 
-À savoir : sur iPhone, l'application reçoit un jeton push Apple (APNs), alors que l'API envoie les push par Firebase. Pour les push iOS, il faudra soit ajouter le SDK Firebase Messaging à l'application, soit ajouter à l'API un fournisseur « Expo Push ». En attendant, les parents sur iPhone reçoivent SMS, emails et messages dans l'application.
+À savoir : sur iPhone, l'application native reçoit un jeton push Apple (APNs), alors que l'API envoie ses push par Firebase : pour des push dans l'application native iOS, il faudra ajouter le SDK Firebase Messaging ou un fournisseur « Expo Push ». En attendant, les parents sur iPhone ont les notifications du **site installé** (section 11), en plus des SMS, emails et messages.
 
 ### Mises à jour de l'application
 
@@ -228,3 +229,12 @@ Le site s'installe comme une application, sans passer par un store :
 - **iPhone, iPad (Safari)** : bouton **Partager** → **Sur l'écran d'accueil** (le bandeau l'explique). L'application s'ouvre alors en plein écran.
 
 Il faut que le site soit servi en **HTTPS** (c'est le cas avec Caddy). Le service worker (`web/public/sw.js`) n'affiche qu'une page « hors ligne » quand internet manque : aucune page ni donnée d'élève n'est gardée en cache sur l'appareil. Pour forcer la mise à jour des fichiers mis en cache, changer `CACHE` dans `sw.js`.
+
+### Notifications sur le site installé (Web Push)
+
+Une fois les clés VAPID configurées (section 6), le parent ouvre **Préférences** → **Activer les notifications** : il reçoit alors une alerte dès que l'école envoie un message, même site fermé. Le clic ouvre le message.
+
+- **PC et Android** : fonctionne dans Chrome, Edge et Firefox, installé ou non.
+- **iPhone et iPad** (iOS 16.4 ou plus) : seulement depuis l'icône ajoutée à l'écran d'accueil ; la page l'explique au parent.
+- Le message est chiffré de bout en bout jusqu'au navigateur (seul l'appareil du parent peut le lire). L'API n'envoie qu'aux services push des navigateurs (Google, Mozilla, Apple, Microsoft).
+- Un abonnement est coupé quand le parent se déconnecte, et supprimé automatiquement quand le navigateur le retire. Les préférences « Application » du parent s'appliquent aussi à ces notifications.

@@ -1,5 +1,15 @@
 // Format des requêtes envoyées aux fournisseurs, vérifié avec un faux fetch.
-import { generateKeyPairSync } from 'node:crypto';
+import {
+  createDecipheriv,
+  createECDH,
+  createPublicKey,
+  generateKeyPairSync,
+  hkdfSync,
+  randomBytes,
+  verify,
+  type ECDH,
+} from 'node:crypto';
+import webpush from 'web-push';
 import {
   BrevoEmail,
   ErreurFournisseur,
@@ -7,6 +17,8 @@ import {
   JetonPushInvalide,
   OrangeSms,
   TwilioSms,
+  WebPush,
+  estServicePushWeb,
 } from './fournisseurs.js';
 
 interface Appel {
@@ -253,5 +265,165 @@ describe('FcmPush', () => {
       .catch((e: unknown) => e);
     expect(erreur).toBeInstanceOf(JetonPushInvalide);
     expect(erreur).toBeInstanceOf(ErreurFournisseur);
+  });
+});
+
+describe('estServicePushWeb', () => {
+  it('accepte les services push des navigateurs', () => {
+    for (const adresse of [
+      'https://fcm.googleapis.com/fcm/send/abc',
+      'https://updates.push.services.mozilla.com/wpush/v2/abc',
+      'https://web.push.apple.com/QGz1',
+      'https://wns2-par02p.notify.windows.com/w/?token=abc',
+    ]) {
+      expect(estServicePushWeb(adresse), adresse).toBe(true);
+    }
+  });
+
+  it('refuse toute autre adresse (pas d’appel vers un serveur interne)', () => {
+    for (const adresse of [
+      'http://fcm.googleapis.com/fcm/send/abc',
+      'https://fcm.googleapis.com:8443/x',
+      'https://user@fcm.googleapis.com/x',
+      'https://fcm.googleapis.com.exemple.com/x',
+      'https://notify.windows.com.evil.test/x',
+      'https://postgres:5432/',
+      'https://localhost/',
+      'pas une adresse',
+    ]) {
+      expect(estServicePushWeb(adresse), adresse).toBe(false);
+    }
+  });
+});
+
+/** Déchiffre un message Web Push (RFC 8291, aes128gcm) comme le ferait le navigateur. */
+function dechiffrer(corps: Uint8Array, navigateur: ECDH, secretAuth: Buffer) {
+  const b = Buffer.from(corps);
+  const sel = b.subarray(0, 16);
+  const longueurCle = b[20];
+  const clePubliqueServeur = b.subarray(21, 21 + longueurCle);
+  const chiffre = b.subarray(21 + longueurCle);
+  const info = Buffer.concat([
+    Buffer.from('WebPush: info\0'),
+    navigateur.getPublicKey(),
+    clePubliqueServeur,
+  ]);
+  const ikm = Buffer.from(
+    hkdfSync(
+      'sha256',
+      navigateur.computeSecret(clePubliqueServeur),
+      secretAuth,
+      info,
+      32,
+    ),
+  );
+  const derivee = (texte: string, taille: number) =>
+    Buffer.from(hkdfSync('sha256', ikm, sel, Buffer.from(texte), taille));
+  const dechiffreur = createDecipheriv(
+    'aes-128-gcm',
+    derivee('Content-Encoding: aes128gcm\0', 16),
+    derivee('Content-Encoding: nonce\0', 12),
+  );
+  dechiffreur.setAuthTag(chiffre.subarray(-16));
+  const clair = Buffer.concat([
+    dechiffreur.update(chiffre.subarray(0, -16)),
+    dechiffreur.final(),
+  ]);
+  // Dernier enregistrement : le contenu est suivi du délimiteur 0x02 puis de zéros.
+  return clair.subarray(0, clair.lastIndexOf(2)).toString('utf8');
+}
+
+describe('WebPush', () => {
+  const vapid = webpush.generateVAPIDKeys();
+  const config = {
+    clePublique: vapid.publicKey,
+    clePrivee: vapid.privateKey,
+    sujet: 'mailto:direction@ecole.test',
+  };
+  const navigateur = createECDH('prime256v1');
+  navigateur.generateKeys();
+  const secretAuth = randomBytes(16);
+  const abonnement = {
+    endpoint: 'https://fcm.googleapis.com/fcm/send/abonnement-test',
+    p256dh: navigateur.getPublicKey().toString('base64url'),
+    auth: secretAuth.toString('base64url'),
+  };
+
+  it('chiffre le message pour le navigateur et signe la demande (VAPID)', async () => {
+    const { appels, requete } = fauxFetch(
+      new Response(null, { status: 201, headers: { Location: 'msg-1' } }),
+    );
+    const resultat = await new WebPush(config, requete).envoyer(
+      abonnement,
+      'Absence',
+      'Awa est absente ce matin.',
+      { url: '/parent/messages/42' },
+    );
+
+    expect(resultat).toEqual({ fournisseur: 'webpush', reference: 'msg-1' });
+    const [appel] = appels;
+    expect(appel.url).toBe(abonnement.endpoint);
+    expect(appel.init.method).toBe('POST');
+    const entetes = appel.init.headers as Record<string, string | number>;
+    expect(entetes['Content-Encoding']).toBe('aes128gcm');
+    expect(String(entetes.TTL)).toBe('86400');
+
+    // Le navigateur, seul détenteur de sa clé privée, retrouve le message.
+    const message = JSON.parse(
+      dechiffrer(appel.init.body as Uint8Array, navigateur, secretAuth),
+    ) as unknown;
+    expect(message).toEqual({
+      titre: 'Absence',
+      texte: 'Awa est absente ce matin.',
+      donnees: { url: '/parent/messages/42' },
+    });
+
+    // Jeton VAPID signé avec la clé privée du serveur, pour ce service push.
+    const [, jwt, k] = /^vapid t=([^,]+), k=(.+)$/.exec(
+      String(entetes.Authorization),
+    )!;
+    expect(k).toBe(vapid.publicKey);
+    const [entete, charge, signature] = jwt.split('.');
+    const brute = Buffer.from(vapid.publicKey, 'base64url');
+    const cle = createPublicKey({
+      key: {
+        kty: 'EC',
+        crv: 'P-256',
+        x: brute.subarray(1, 33).toString('base64url'),
+        y: brute.subarray(33, 65).toString('base64url'),
+      },
+      format: 'jwk',
+    });
+    expect(
+      verify(
+        'sha256',
+        Buffer.from(`${entete}.${charge}`),
+        { key: cle, dsaEncoding: 'ieee-p1363' },
+        Buffer.from(signature, 'base64url'),
+      ),
+    ).toBe(true);
+    expect(
+      JSON.parse(Buffer.from(charge, 'base64url').toString()),
+    ).toMatchObject({
+      aud: 'https://fcm.googleapis.com',
+      sub: 'mailto:direction@ecole.test',
+    });
+  });
+
+  it('signale un abonnement expiré (410) pour qu’il soit supprimé', async () => {
+    const { requete } = fauxFetch(new Response('Gone', { status: 410 }));
+    const erreur = await new WebPush(config, requete)
+      .envoyer(abonnement, 'T', 'x', {})
+      .catch((e: unknown) => e);
+    expect(erreur).toBeInstanceOf(JetonPushInvalide);
+  });
+
+  it('n’envoie rien vers une adresse qui n’est pas un service push', async () => {
+    const { appels, requete } = fauxFetch();
+    const erreur = await new WebPush(config, requete)
+      .envoyer({ ...abonnement, endpoint: 'https://postgres/' }, 'T', 'x', {})
+      .catch((e: unknown) => e);
+    expect(erreur).toBeInstanceOf(JetonPushInvalide);
+    expect(appels).toHaveLength(0);
   });
 });

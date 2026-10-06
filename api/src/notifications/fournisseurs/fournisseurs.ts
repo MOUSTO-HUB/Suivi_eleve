@@ -1,7 +1,8 @@
-// Fournisseurs d'envoi : SMS (Orange, Twilio), email (Brevo), push (Firebase Cloud Messaging),
-// plus « console » (développement) et « simulation » (tests).
+// Fournisseurs d'envoi : SMS (Orange, Twilio), email (Brevo), push (Firebase Cloud Messaging,
+// Web Push), plus « console » (développement) et « simulation » (tests).
 import { Logger } from '@nestjs/common';
 import { createSign } from 'node:crypto';
+import webpush from 'web-push';
 
 export interface ResultatEnvoi {
   fournisseur: string;
@@ -386,6 +387,117 @@ export class FcmPush implements FournisseurPush {
     }
     const corps = (await reponse.json()) as { name: string };
     return { fournisseur: this.nom, reference: corps.name };
+  }
+}
+
+// ─── Web Push (site installable, y compris iPhone) ───────────────────────────
+
+/** Abonnement Web Push d'un navigateur (PushSubscription). */
+export interface AbonnementWeb {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}
+
+export interface FournisseurPushWeb {
+  readonly nom: string;
+  envoyer(
+    abonnement: AbonnementWeb,
+    titre: string,
+    texte: string,
+    donnees: Record<string, string>,
+  ): Promise<ResultatEnvoi>;
+}
+
+/**
+ * Services push des navigateurs (Chrome/Android, Firefox, Safari/iPhone, Edge).
+ * L'API n'envoie qu'à ces adresses : un abonnement ne peut pas lui faire appeler
+ * un serveur interne.
+ */
+const SERVICES_PUSH_WEB = [
+  'fcm.googleapis.com',
+  'android.googleapis.com',
+  '.push.services.mozilla.com',
+  'web.push.apple.com',
+  '.notify.windows.com',
+];
+
+export function estServicePushWeb(adresse: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(adresse);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:' || url.port || url.username) return false;
+  return SERVICES_PUSH_WEB.some((hote) =>
+    hote.startsWith('.') ? url.hostname.endsWith(hote) : url.hostname === hote,
+  );
+}
+
+export interface ConfigWebPush {
+  clePublique: string;
+  clePrivee: string;
+  /** Contact du serveur exigé par les services push : « mailto:… » ou « https://… ». */
+  sujet: string;
+}
+
+/** Envoi chiffré (RFC 8291) et signé (VAPID) vers le service push du navigateur. */
+export class WebPush implements FournisseurPushWeb {
+  readonly nom = 'webpush';
+
+  constructor(
+    private readonly config: ConfigWebPush,
+    private readonly requete: Fetch = fetch,
+  ) {}
+
+  async envoyer(
+    abonnement: AbonnementWeb,
+    titre: string,
+    texte: string,
+    donnees: Record<string, string>,
+  ): Promise<ResultatEnvoi> {
+    if (!estServicePushWeb(abonnement.endpoint)) {
+      throw new JetonPushInvalide('Web Push : service push inconnu.');
+    }
+    const details = webpush.generateRequestDetails(
+      {
+        endpoint: abonnement.endpoint,
+        keys: { p256dh: abonnement.p256dh, auth: abonnement.auth },
+      },
+      JSON.stringify({ titre, texte, donnees }),
+      {
+        vapidDetails: {
+          subject: this.config.sujet,
+          publicKey: this.config.clePublique,
+          privateKey: this.config.clePrivee,
+        },
+        // Un message non distribué en 24 h n'a plus d'intérêt (le SMS a pris le relais).
+        TTL: 24 * 3600,
+        urgency: 'high',
+      },
+    );
+    const reponse = await this.requete(details.endpoint, {
+      method: details.method,
+      headers: details.headers as Record<string, string>,
+      body: new Uint8Array(details.body),
+    });
+    // 404 / 410 : abonnement expiré ou retiré par l'utilisateur.
+    if (reponse.status === 404 || reponse.status === 410) {
+      throw new JetonPushInvalide(
+        `Web Push : abonnement expiré (${await detailErreur(reponse)})`,
+      );
+    }
+    if (!reponse.ok) {
+      throw new ErreurFournisseur(
+        `Web Push : ${await detailErreur(reponse)}`,
+        estDefinitive(reponse.status),
+      );
+    }
+    return {
+      fournisseur: this.nom,
+      reference: reponse.headers.get('location') ?? undefined,
+    };
   }
 }
 

@@ -9,6 +9,7 @@ import { Queue, UnrecoverableError, Worker } from 'bullmq';
 import { optionsFile, traitementActif } from '../common/redis.js';
 import {
   CanalNotification,
+  PlateformePush,
   StatutNotification,
   type PrioriteNotification,
 } from '../generated/prisma/enums.js';
@@ -201,19 +202,50 @@ export class EnvoiService implements OnModuleInit, OnModuleDestroy {
           n.id,
         );
       case CanalNotification.PUSH:
-        return this.canaux.envoyerPush(
-          n.destinataire,
-          n.sujet ?? 'Suivi_eleve',
-          n.contenu,
-          {
-            notificationId: n.id,
-            lotId: n.lotId,
-            type: n.type,
-          },
-        );
+        return this.envoyerPush(n);
       default:
         return Promise.resolve({ fournisseur: 'application' });
     }
+  }
+
+  /** Push vers l'application mobile (FCM) ou vers le site installé (Web Push). */
+  private async envoyerPush(n: {
+    destinataire: string;
+    sujet: string | null;
+    contenu: string;
+    type: string;
+    lotId: string;
+    id: string;
+  }): Promise<ResultatEnvoi> {
+    const titre = n.sujet ?? 'Suivi_eleve';
+    const donnees = { notificationId: n.id, lotId: n.lotId, type: n.type };
+    const abonnement = await this.prisma.jetonPush.findUnique({
+      where: { jeton: n.destinataire },
+    });
+    if (abonnement?.plateforme !== PlateformePush.WEB) {
+      return this.canaux.envoyerPush(n.destinataire, titre, n.contenu, donnees);
+    }
+    if (!abonnement.cleP256dh || !abonnement.cleAuth) {
+      throw new JetonPushInvalide('Web Push : clés de l’abonnement absentes.');
+    }
+    // Le clic sur la notification ouvre le message dans l'espace parents.
+    const message = await this.prisma.notification.findFirst({
+      where: { lotId: n.lotId, canal: CanalNotification.APPLICATION },
+      select: { id: true },
+    });
+    return this.canaux.envoyerPushWeb(
+      {
+        endpoint: abonnement.jeton,
+        p256dh: abonnement.cleP256dh,
+        auth: abonnement.cleAuth,
+      },
+      titre,
+      n.contenu,
+      {
+        ...donnees,
+        url: message ? `/parent/messages/${message.id}` : '/parent/messages',
+      },
+    );
   }
 
   /**

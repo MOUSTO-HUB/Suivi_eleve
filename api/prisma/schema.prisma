@@ -323,8 +323,11 @@ model CodeOtp {
 model JetonPush {
   id            String         @id @default(uuid(7))
   utilisateurId String         @map("utilisateur_id")
-  jeton         String         @unique
+  jeton         String         @unique // jeton FCM/APNs, ou adresse (endpoint) de l'abonnement Web Push
   plateforme    PlateformePush
+  // Clés de chiffrement d'un abonnement Web Push (plateforme WEB seulement).
+  cleP256dh     String?        @map("cle_p256dh")
+  cleAuth       String?        @map("cle_auth")
   creeLe        DateTime       @default(now()) @map("cree_le")
   modifieLe     DateTime       @updatedAt @map("modifie_le")
   creePar       String?        @map("cree_par")

@@ -84,3 +84,25 @@ export async function enregistrerPreferences(
   refresh();
   return { succes: 'Préférences enregistrées.' };
 }
+
+/** Abonnement Web Push du navigateur (site installé) pour recevoir les messages. */
+export async function abonnerNotifications(abonnement: {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+}): Promise<Etat> {
+  return tenter(() =>
+    envoyerApi('/notifications/jetons-push', 'POST', {
+      jeton: abonnement.endpoint,
+      plateforme: 'WEB',
+      cleP256dh: abonnement.p256dh,
+      cleAuth: abonnement.auth,
+    }),
+  );
+}
+
+export async function desabonnerNotifications(endpoint: string): Promise<Etat> {
+  return tenter(() =>
+    envoyerApi('/notifications/jetons-push', 'DELETE', { jeton: endpoint }),
+  );
+}

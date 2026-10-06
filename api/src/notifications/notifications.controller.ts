@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -23,7 +24,9 @@ import { PaginationDto } from '../common/pagination.js';
 import { GESTION_SCOLARITE } from '../common/roles.js';
 import { Role } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { CanauxService } from './canaux.service.js';
 import { EnvoiService } from './envoi.service.js';
+import { estServicePushWeb } from './fournisseurs/fournisseurs.js';
 import { ModelesService } from './modeles.service.js';
 import {
   FiltreJournalDto,
@@ -59,6 +62,7 @@ export class NotificationsController {
     private readonly notifications: NotificationsService,
     private readonly modeles: ModelesService,
     private readonly envoi: EnvoiService,
+    private readonly canaux: CanauxService,
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
   ) {}
@@ -163,21 +167,38 @@ export class NotificationsController {
     return this.notifications.enregistrerPreferences(u, dto);
   }
 
-  /** Enregistre le jeton push de l'appareil mobile de l'utilisateur. */
+  /**
+   * Clé publique VAPID pour abonner le navigateur aux notifications du site installé.
+   * `null` : Web Push non configuré sur ce serveur.
+   */
+  @Get('push-web')
+  @Roles(Role.PARENT)
+  cleWebPush(): { clePublique: string | null } {
+    return { clePublique: this.canaux.clePubliqueVapid ?? null };
+  }
+
+  /** Enregistre le jeton push de l'appareil mobile, ou l'abonnement Web Push du navigateur. */
   @Post('jetons-push')
   @HttpCode(204)
   async enregistrerJetonPush(
     @UtilisateurCourant() u: UtilisateurConnecte,
     @Body() dto: JetonPushDto,
   ) {
+    if (dto.plateforme === 'WEB' && !estServicePushWeb(dto.jeton)) {
+      throw new BadRequestException(
+        'Ce navigateur utilise un service de notifications non reconnu.',
+      );
+    }
+    const donnees = {
+      utilisateurId: u.id,
+      plateforme: dto.plateforme,
+      cleP256dh: dto.plateforme === 'WEB' ? dto.cleP256dh : null,
+      cleAuth: dto.plateforme === 'WEB' ? dto.cleAuth : null,
+    };
     await this.prisma.jetonPush.upsert({
       where: { jeton: dto.jeton },
-      update: { utilisateurId: u.id, plateforme: dto.plateforme },
-      create: {
-        utilisateurId: u.id,
-        jeton: dto.jeton,
-        plateforme: dto.plateforme,
-      },
+      update: donnees,
+      create: { ...donnees, jeton: dto.jeton },
     });
   }
 

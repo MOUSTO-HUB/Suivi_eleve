@@ -93,3 +93,9 @@ Dans /mobile (Expo), crée l'application parents : connexion par numéro + OTP, 
 ```text
 Ajoute dans /web l'espace parents (mêmes fonctions que le mobile). Puis fais une revue de sécurité : contrôle d'accès sur chaque route, limitation de débit sur l'OTP, en-têtes de sécurité, journal d'audit, consentement du tuteur stocké, export et effacement des données d'un élève sur demande. Enfin, prépare le déploiement : Dockerfiles, CI GitHub Actions (lint, tests, build), sauvegarde quotidienne chiffrée de PostgreSQL, guide de déploiement sur un VPS, et la configuration de publication Expo (EAS) pour Android et iOS.
 ```
+
+## Prompt 14 — Site installable et notifications Web Push
+
+```text
+Rends le site installable (PWA) sur PC, Android et iPhone : manifeste, icônes, service worker avec page hors ligne (aucune donnée d'élève en cache), bandeau d'installation (bouton natif, mode d'emploi sur iPhone). Ajoute les notifications Web Push du site : clés VAPID, abonnement du navigateur enregistré comme jeton push (plateforme WEB), envoi chiffré par le moteur de notifications vers les seuls services push des navigateurs, bouton d'activation dans les préférences du parent, clic qui ouvre le message, abonnement coupé à la déconnexion.
+```

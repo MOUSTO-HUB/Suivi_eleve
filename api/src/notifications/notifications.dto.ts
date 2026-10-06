@@ -11,6 +11,7 @@ import {
   IsUUID,
   Matches,
   MaxLength,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { PaginationDto } from '../common/pagination.js';
@@ -112,11 +113,26 @@ export class ParamsModeleDto {
 }
 
 export class JetonPushDto {
+  /** Jeton FCM/APNs de l'application mobile, ou adresse (endpoint) de l'abonnement Web Push. */
   @IsString()
   @IsNotEmpty()
-  @MaxLength(500)
+  @MaxLength(1000)
   jeton: string;
 
   @IsIn(['ANDROID', 'IOS', 'WEB'])
   plateforme: 'ANDROID' | 'IOS' | 'WEB';
+
+  /** Clé publique de l'abonnement Web Push (obligatoire pour WEB). */
+  @ValidateIf((o: JetonPushDto) => o.plateforme === 'WEB')
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{80,100}={0,2}$/, {
+    message: 'Clé p256dh invalide.',
+  })
+  cleP256dh?: string;
+
+  /** Secret d'authentification de l'abonnement Web Push (obligatoire pour WEB). */
+  @ValidateIf((o: JetonPushDto) => o.plateforme === 'WEB')
+  @IsString()
+  @Matches(/^[A-Za-z0-9_-]{16,30}={0,2}$/, { message: 'Clé auth invalide.' })
+  cleAuth?: string;
 }

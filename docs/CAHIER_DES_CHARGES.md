@@ -112,6 +112,7 @@ La comptabilité de l'école est tenue dans ses propres outils ; l'application n
 - **EF-83** Journal de chaque envoi : destinataire, canal, statut (en file, envoyé, délivré, échoué, lu), coût SMS.
 - **EF-84** Le parent règle ses préférences par type, sauf les messages obligatoires (libération anticipée, absence de cours) qui partent toujours.
 - **EF-85** Langue du message selon le profil du tuteur (français en version 1, wolof ou anglais en option).
+- **EF-86** Le site est installable (PC, Android, iPhone) et reçoit les notifications push (Web Push) quand le parent les active sur son appareil ; sur iPhone, depuis l'icône de l'écran d'accueil. C'est le push des parents sur iPhone tant que l'application native n'est pas publiée sur l'App Store.
 
 | Type de notification | SMS | Email | Push | Priorité | Obligatoire |
 | --- | --- | --- | --- | --- | --- |
@@ -185,7 +186,7 @@ flowchart TD
     Q --> W[Workers de notifications + tâches planifiées<br/>3 essais · bascule contact 2 · relances]
     W --> SMS[SMS<br/>Orange SMS API, Twilio]
     W --> MAIL[Email<br/>Brevo]
-    W --> PUSH[Push<br/>Firebase Cloud Messaging]
+    W --> PUSH[Push<br/>Firebase Cloud Messaging, Web Push]
     SMS --> P[Parents et tuteurs]
     MAIL --> P
     PUSH --> P

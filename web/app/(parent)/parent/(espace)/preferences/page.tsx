@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { FormulaireAction } from '@/components/formulaire-action';
+import { NotificationsAppareil } from '@/components/notifications-push';
 import { TitreParent } from '@/components/parent';
 import { Carte } from '@/components/ui';
 import { lireApi } from '@/lib/api';
@@ -20,9 +21,10 @@ const CANAUX = [
 
 /** Canaux par type de message ; les messages importants restent obligatoires. */
 export default async function Preferences() {
-  const prefs = await lireApi<PreferenceNotification[]>(
-    '/notifications/preferences',
-  );
+  const [prefs, { clePublique }] = await Promise.all([
+    lireApi<PreferenceNotification[]>('/notifications/preferences'),
+    lireApi<{ clePublique: string | null }>('/notifications/push-web'),
+  ]);
   const modifiables = prefs.filter((p) => !p.obligatoire);
   return (
     <>
@@ -30,6 +32,7 @@ export default async function Preferences() {
         titre="Comment recevoir les messages"
         sousTitre="Les messages importants (sortie anticipée, absence, comportement, retard de paiement…) sont toujours envoyés par tous les moyens."
       />
+      {clePublique && <NotificationsAppareil clePublique={clePublique} />}
       <FormulaireAction
         action={enregistrerPreferences.bind(
           null,
