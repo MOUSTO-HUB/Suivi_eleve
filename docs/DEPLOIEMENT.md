@@ -155,14 +155,15 @@ Accusés de livraison (statut « délivré » dans le journal des notifications)
 
 ## 7. Mettre à jour
 
+Une seule commande, après chaque nouvelle version poussée sur GitHub :
+
 ```bash
-cd ~/Suivi_eleve
-suivi exec sauvegarde sauvegarde.sh maintenant
-git pull
-suivi up -d --build
+sh ~/Suivi_eleve/deploy/mettre-a-jour.sh
 ```
 
-Les migrations de la base sont appliquées automatiquement au démarrage de l'API. Vérifier ensuite `suivi logs --tail 50 api`.
+Elle fait une sauvegarde chiffrée de sécurité, récupère la dernière version (`git pull`), reconstruit et redémarre (`suivi up -d --build`, coupure de quelques dizaines de secondes), supprime les anciennes images, puis vérifie que l'API répond ; sinon elle affiche ses derniers messages. Les migrations de la base sont appliquées automatiquement au démarrage de l'API et les données sont conservées.
+
+Revenir à la version précédente en cas de problème : `cd ~/Suivi_eleve && git log --oneline -5`, puis `git checkout <version>` et `suivi up -d --build` (revenir ensuite sur la branche avec `git checkout main`).
 
 ## 8. Surveiller
 
