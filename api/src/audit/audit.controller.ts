@@ -35,6 +35,12 @@ export class AuditController {
       ecoleId: u.ecoleId,
       action: filtre.action,
       entite: filtre.entite,
+      // Les actions du concepteur sur l'école (création, abonnement…) restent
+      // enregistrées mais n'apparaissent pas dans le journal de l'école.
+      OR: [
+        { utilisateurId: null },
+        { utilisateur: { role: { not: Role.SUPER_ADMIN } } },
+      ],
     };
     const [lignes, total] = await this.prisma.$transaction([
       this.prisma.journalAudit.findMany({

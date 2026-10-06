@@ -349,4 +349,23 @@ describe('Espace concepteur (e2e)', () => {
     expect(sms.contenu).toContain('250 000 GNF');
     expect(sms.contenu).not.toContain('FCFA');
   });
+
+  it('n’affiche pas les actions du concepteur dans le journal de l’école', async () => {
+    const { body } = await connexionDirection().expect(200);
+    const journal = await http()
+      .get('/api/audit?parPage=100')
+      .set({ Authorization: `Bearer ${body.jetonAcces}` })
+      .expect(200);
+    const roles = (
+      journal.body.elements as { utilisateur: { role: string } | null }[]
+    ).map((l) => l.utilisateur?.role);
+    expect(roles).toContain('ADMIN');
+    expect(roles).not.toContain('SUPER_ADMIN');
+    // Elles restent enregistrées pour l'école concernée.
+    expect(
+      await prisma.journalAudit.count({
+        where: { ecoleId, utilisateurId: concepteurId },
+      }),
+    ).toBeGreaterThan(0);
+  });
 });
