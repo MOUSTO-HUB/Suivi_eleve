@@ -138,7 +138,7 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
                   {classeAppel.eleves.map((e) => (
                     <label
                       key={e.id}
-                      className="flex items-center gap-2 rounded-md border border-zinc-200 px-3 py-2 text-sm has-[:checked]:border-red-400 has-[:checked]:bg-red-50 dark:border-zinc-700 dark:has-[:checked]:bg-red-950"
+                      className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm has-[:checked]:border-red-400 has-[:checked]:bg-red-50"
                     >
                       <input type="checkbox" name="eleveIds" value={e.id} />
                       {e.nom} {e.prenoms}
@@ -147,7 +147,7 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
                 </div>
               </fieldset>
               <details className="text-sm">
-                <summary className="cursor-pointer text-zinc-600 dark:text-zinc-400">
+                <summary className="cursor-pointer text-slate-600">
                   La famille a déjà prévenu ?
                 </summary>
                 <div className="mt-2 flex flex-col gap-2">
@@ -169,7 +169,7 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
 
       <form
         role="search"
-        className="my-4 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 sm:grid-cols-[1fr_1fr_150px_150px_auto] dark:border-zinc-800 dark:bg-zinc-900"
+        className="my-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_1fr_150px_150px_auto]"
       >
         <Liste
           name="classeId"
@@ -209,7 +209,7 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
         </button>
       </form>
 
-      <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
+      <p className="mb-2 text-sm text-slate-600">
         {absences.total} absence(s), dont {absences.nonJustifiees} non
         justifiée(s).
       </p>
@@ -231,7 +231,9 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
             <td className={cellule}>
               {a.creneau}
               {a.matiere && (
-                <span className="block text-xs text-zinc-500">{a.matiere}</span>
+                <span className="block text-xs text-slate-500">
+                  {a.matiere}
+                </span>
               )}
             </td>
             <td className={`${cellule} whitespace-normal`}>
@@ -244,7 +246,7 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
                 <Badge couleur="orange">Non justifiée</Badge>
               )}
               {a.justificationParent && (
-                <span className="mt-1 block max-w-xs text-xs text-zinc-600 dark:text-zinc-400">
+                <span className="mt-1 block max-w-xs text-xs text-slate-600">
                   Famille : « {a.justificationParent} »
                 </span>
               )}
@@ -254,7 +256,7 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
                 <div className="flex flex-col gap-2">
                   {!a.justifiee && (
                     <details>
-                      <summary className="cursor-pointer text-sm text-emerald-700 dark:text-emerald-400">
+                      <summary className="cursor-pointer text-sm text-marque-700">
                         Justifier
                       </summary>
                       <FormulaireAction

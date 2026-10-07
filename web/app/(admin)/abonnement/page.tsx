@@ -28,7 +28,7 @@ export default async function Abonnement() {
             {echeanceFr(a.abonnement.joursRestants)}).
           </p>
           {a.abonnement.etat === 'EN_RETARD' && (
-            <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
+            <p className="mt-2 text-sm text-amber-700">
               Sans renouvellement, l’accès sera suspendu après le{' '}
               {dateFr(a.abonnement.finGrace)}. Les données de l’école sont
               conservées et tout revient dès le paiement.

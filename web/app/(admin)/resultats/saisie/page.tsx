@@ -78,7 +78,7 @@ export default async function PageSaisie(
                 <td className={cellule}>
                   <input type="hidden" name="eleveId" value={e.id} />
                   {e.nom} {e.prenoms}
-                  <span className="block font-mono text-xs text-zinc-500">
+                  <span className="block font-mono text-xs text-slate-500">
                     {e.matricule}
                   </span>
                 </td>
@@ -115,7 +115,7 @@ export default async function PageSaisie(
             Vous pouvez consulter ces moyennes mais pas les modifier.
           </Alerte>
         )}
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-slate-500">
           Laissez vide pour un élève non noté. Virgule ou point acceptés.
         </p>
       </FormulaireAction>

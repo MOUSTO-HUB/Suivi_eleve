@@ -40,15 +40,15 @@ export default async function PageModeles() {
         {modeles.map((m) => (
           <details
             key={m.type}
-            className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4"
           >
-            <summary className="flex cursor-pointer flex-wrap items-center gap-2 font-medium text-zinc-900 dark:text-zinc-100">
+            <summary className="flex cursor-pointer flex-wrap items-center gap-2 font-medium text-slate-900">
               {LIBELLES_TYPE_NOTIFICATION[m.type]}
               {m.obligatoire && <Badge couleur="orange">Toujours envoyé</Badge>}
               {m.canaux.some((c) => c.personnalise) && (
                 <Badge couleur="vert">Personnalisé</Badge>
               )}
-              <span className="text-xs font-normal text-zinc-500">
+              <span className="text-xs font-normal text-slate-500">
                 Canaux :{' '}
                 {m.canauxParDefaut.map((c) => LIBELLES_CANAL[c]).join(', ')}
               </span>
@@ -99,10 +99,10 @@ export default async function PageModeles() {
                         required
                       />
                     </Champ>
-                    <p className="text-xs text-zinc-500">
+                    <p className="text-xs text-slate-500">
                       Variables : {c.variables.map((v) => `{${v}}`).join(' ')}
                     </p>
-                    <div className="rounded-md bg-zinc-50 p-3 text-xs text-zinc-700 dark:bg-zinc-950 dark:text-zinc-300">
+                    <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-700">
                       <p className="mb-1 font-medium">
                         Aperçu
                         {c.canal === 'SMS'

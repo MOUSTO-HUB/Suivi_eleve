@@ -51,9 +51,9 @@ export default async function Evenements() {
                 <li key={e.id}>
                   <Link
                     href={`/parent/evenements/${e.id}`}
-                    className="flex gap-4 rounded-xl border border-zinc-200 bg-white p-4 hover:border-emerald-600 dark:border-zinc-800 dark:bg-zinc-900"
+                    className="flex gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:border-marque-600"
                   >
-                    <span className="flex w-16 shrink-0 flex-col items-center justify-center rounded-lg bg-emerald-50 py-2 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    <span className="flex w-16 shrink-0 flex-col items-center justify-center rounded-lg bg-marque-50 py-2 text-marque-800">
                       <span className="text-2xl font-bold">
                         {new Date(e.dateDebut).getUTCDate()}
                       </span>
@@ -61,18 +61,16 @@ export default async function Evenements() {
                     </span>
                     <span className="flex flex-col gap-1">
                       <span
-                        className={`text-lg font-semibold ${e.statut === 'ANNULEE' ? 'text-zinc-500 line-through' : ''}`}
+                        className={`text-lg font-semibold ${e.statut === 'ANNULEE' ? 'text-slate-500 line-through' : ''}`}
                       >
                         {e.titre}
                       </span>
                       {e.lieu && (
-                        <span className="text-zinc-600 dark:text-zinc-400">
-                          {e.lieu}
-                        </span>
+                        <span className="text-slate-600">{e.lieu}</span>
                       )}
                       {e.dateFin &&
                         e.dateFin.slice(0, 10) !== e.dateDebut.slice(0, 10) && (
-                          <span className="text-sm text-zinc-500">
+                          <span className="text-sm text-slate-500">
                             jusqu&apos;au {dateFr(e.dateFin.slice(0, 10))}
                           </span>
                         )}

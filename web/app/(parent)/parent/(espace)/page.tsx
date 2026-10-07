@@ -28,10 +28,10 @@ export default async function AccueilParent() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-marque-950">
           Bonjour {profil.prenoms}
         </h1>
-        <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+        <p className="mt-1 text-slate-600">
           {enfants.length
             ? enfants
                 .map(
@@ -48,14 +48,14 @@ export default async function AccueilParent() {
           <Link
             key={href}
             href={href}
-            className="flex min-h-24 flex-col items-center justify-center gap-1 rounded-xl border border-zinc-200 bg-white p-3 text-center font-medium text-zinc-900 shadow-sm hover:border-emerald-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100"
+            className="contour-degrade flex min-h-24 flex-col items-center justify-center gap-1 rounded-2xl border-2 p-3 text-center font-semibold text-marque-950 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-marque-700/20"
           >
             <span className="text-3xl" aria-hidden>
               {icone}
             </span>
             {libelle}
             {href === '/parent/messages' && messages.nonLues > 0 && (
-              <span className="rounded-full bg-emerald-700 px-2 text-xs text-white">
+              <span className="rounded-full bg-soleil-400 px-2 text-xs font-bold text-soleil-900">
                 {messages.nonLues} non lu(s)
               </span>
             )}

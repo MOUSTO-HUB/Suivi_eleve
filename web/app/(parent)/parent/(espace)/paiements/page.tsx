@@ -40,7 +40,7 @@ export default async function Paiements(props: PageProps<'/parent/paiements'>) {
       ) : (
         <div className="flex flex-col gap-3">
           <Carte>
-            <p className="text-zinc-600 dark:text-zinc-400">Total à régler</p>
+            <p className="text-slate-600">Total à régler</p>
             <p className="text-3xl font-semibold">{montant(total, monnaie)}</p>
           </Carte>
           {liste.map((p) => (
@@ -61,7 +61,7 @@ export default async function Paiements(props: PageProps<'/parent/paiements'>) {
               </p>
             </Carte>
           ))}
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-slate-500">
             Le paiement se fait auprès de la comptabilité de l&apos;école ;
             cette liste est mise à jour par l&apos;école.
           </p>

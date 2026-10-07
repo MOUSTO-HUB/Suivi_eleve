@@ -67,7 +67,7 @@ export default async function PageAnnonces(props: PageProps<'/annonces'>) {
         }
       >
         {annonces.elements.map((a) => (
-          <tr key={a.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+          <tr key={a.id} className="hover:bg-marque-50/60">
             <td className={cellule}>
               <Link className={styles.lien} href={`/annonces/${a.id}`}>
                 {a.titre}
@@ -82,7 +82,7 @@ export default async function PageAnnonces(props: PageProps<'/annonces'>) {
               <Badge couleur={COULEUR[a.statut]}>
                 {LIBELLES_STATUT_ANNONCE[a.statut]}
               </Badge>
-              <span className="block text-xs text-zinc-500">
+              <span className="block text-xs text-slate-500">
                 {a.statut === 'PROGRAMMEE' && a.programmeeLe
                   ? `pour le ${dateHeureFr(a.programmeeLe)}`
                   : a.envoyeeLe

@@ -53,7 +53,7 @@ function Titre({ c }: { c: Comportement }) {
       <Link className={styles.lien} href={`/eleves/${c.eleve.id}`}>
         {c.eleve.prenoms} {c.eleve.nom}
       </Link>{' '}
-      <span className="text-xs text-zinc-500">{c.eleve.classe?.nom}</span>
+      <span className="text-xs text-slate-500">{c.eleve.classe?.nom}</span>
     </>
   );
 }
@@ -110,7 +110,7 @@ export default async function PageComportements(
 
       {aValider && aValider.total > 0 && (
         <Carte titre={`À valider (${aValider.total})`}>
-          <ul className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
+          <ul className="flex flex-col divide-y divide-slate-100">
             {aValider.elements.map((c) => (
               <li key={c.id} className="flex flex-col gap-2 py-3 text-sm">
                 <p>
@@ -121,7 +121,7 @@ export default async function PageComportements(
                 {c.convocationLe && (
                   <p>Convocation : {dateHeureFr(c.convocationLe)}</p>
                 )}
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-slate-500">
                   Signalé par {c.auteur?.prenoms} {c.auteur?.nom} le{' '}
                   {dateHeureFr(c.date)}
                 </p>
@@ -132,7 +132,7 @@ export default async function PageComportements(
                     className="flex flex-col gap-1"
                   />
                   <details>
-                    <summary className="cursor-pointer py-2 text-sm text-red-700 dark:text-red-400">
+                    <summary className="cursor-pointer py-2 text-sm text-red-700">
                       Refuser
                     </summary>
                     <FormulaireAction
@@ -175,7 +175,7 @@ export default async function PageComportements(
 
       <form
         role="search"
-        className="my-4 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 sm:grid-cols-[1fr_1fr_1fr_auto] dark:border-zinc-800 dark:bg-zinc-900"
+        className="my-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_1fr_1fr_auto]"
       >
         <Liste
           name="classeId"
@@ -225,7 +225,7 @@ export default async function PageComportements(
             <td className={`${cellule} whitespace-normal`}>
               <Titre c={c} />
               {c.auteur && (
-                <span className="block text-xs text-zinc-500">
+                <span className="block text-xs text-slate-500">
                   par {c.auteur.prenoms} {c.auteur.nom}
                 </span>
               )}

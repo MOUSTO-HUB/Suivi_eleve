@@ -73,7 +73,7 @@ export default async function Ecole(
           <div className="flex flex-wrap items-center gap-3">
             <BadgeAbonnement abonnement={abonnement} />
             {abonnement.essai && abonnement.etat !== 'ESSAI' && (
-              <span className="text-sm text-zinc-500">(essai gratuit)</span>
+              <span className="text-sm text-slate-500">(essai gratuit)</span>
             )}
           </div>
           <p className="mt-3 text-sm">
@@ -82,7 +82,7 @@ export default async function Ecole(
             {echeanceFr(abonnement.joursRestants)}).
           </p>
           {abonnement.etat === 'EN_RETARD' && (
-            <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">
+            <p className="mt-1 text-sm text-amber-700">
               Suspension automatique après le {dateFr(abonnement.finGrace)}.
             </p>
           )}
@@ -102,7 +102,7 @@ export default async function Ecole(
             </div>
           ) : (
             <details className="mt-4">
-              <summary className="cursor-pointer text-sm font-medium text-red-700 dark:text-red-400">
+              <summary className="cursor-pointer text-sm font-medium text-red-700">
                 Suspendre l’école
               </summary>
               <div className="mt-3">
@@ -199,7 +199,7 @@ export default async function Ecole(
                 <td className={cellule}>
                   {LIBELLES_MOYEN[p.moyen]}
                   {p.reference && (
-                    <span className="block text-xs text-zinc-500">
+                    <span className="block text-xs text-slate-500">
                       {p.reference}
                     </span>
                   )}
@@ -232,12 +232,12 @@ export default async function Ecole(
                   <p className="font-medium">
                     {d.prenoms} {d.nom}
                     {!d.actif && (
-                      <span className="ml-2 text-xs text-zinc-500">
+                      <span className="ml-2 text-xs text-slate-500">
                         (désactivé)
                       </span>
                     )}
                   </p>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="text-sm text-slate-600">
                     {d.email} ·{' '}
                     {d.derniereConnexion
                       ? `dernière connexion le ${dateHeureFr(d.derniereConnexion)}`

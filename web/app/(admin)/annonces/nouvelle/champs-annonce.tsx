@@ -47,8 +47,8 @@ export function ChampsAnnonce({
             key={valeur}
             className={`flex max-w-xs cursor-pointer flex-col rounded-md border p-3 text-sm ${
               type === valeur
-                ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950'
-                : 'border-zinc-300 dark:border-zinc-700'
+                ? 'border-marque-600 bg-marque-50'
+                : 'border-slate-300'
             }`}
           >
             <span className="flex items-center gap-2 font-medium">
@@ -61,7 +61,7 @@ export function ChampsAnnonce({
               />
               {libelle}
             </span>
-            <span className="text-xs text-zinc-500">{aide}</span>
+            <span className="text-xs text-slate-500">{aide}</span>
           </label>
         ))}
       </fieldset>
@@ -91,12 +91,12 @@ export function ChampsAnnonce({
           </label>
         </div>
         {cible === 'CLASSES' && (
-          <div className="grid grid-cols-2 gap-2 rounded-md border border-zinc-200 p-3 text-sm sm:grid-cols-4 dark:border-zinc-700">
+          <div className="grid grid-cols-2 gap-2 rounded-md border border-slate-200 p-3 text-sm sm:grid-cols-4">
             {classes.map((c) => (
               <label key={c.id} className="flex items-center gap-2">
                 <input type="checkbox" name="classeIds" value={c.id} />
                 {c.nom}{' '}
-                <span className="text-xs text-zinc-500">({c.effectif})</span>
+                <span className="text-xs text-slate-500">({c.effectif})</span>
               </label>
             ))}
           </div>

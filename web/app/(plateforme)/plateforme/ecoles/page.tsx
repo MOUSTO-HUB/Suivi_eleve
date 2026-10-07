@@ -18,8 +18,8 @@ const ETATS = Object.keys(LIBELLES_ETAT_ABONNEMENT) as EtatAbonnement[];
 const filtre = (actif: boolean) =>
   `rounded-full border px-3 py-1 text-sm ${
     actif
-      ? 'border-emerald-700 bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-      : 'border-zinc-200 bg-white hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900'
+      ? 'border-marque-700 bg-marque-50 text-marque-800'
+      : 'border-slate-200 bg-white hover:bg-marque-50/60'
   }`;
 
 export default async function Ecoles(props: PageProps<'/plateforme/ecoles'>) {
@@ -52,7 +52,7 @@ export default async function Ecoles(props: PageProps<'/plateforme/ecoles'>) {
       />
       <form className="mb-4 flex flex-wrap items-center gap-2">
         {etat && <input type="hidden" name="etat" value={etat} />}
-        <div className="w-64">
+        <div className="w-full sm:w-64">
           <Saisie
             name="recherche"
             defaultValue={recherche}

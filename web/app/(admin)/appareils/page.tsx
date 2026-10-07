@@ -63,7 +63,7 @@ export default async function PageAppareils(props: PageProps<'/appareils'>) {
 
       <form
         role="search"
-        className="mb-4 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 sm:grid-cols-[1fr_180px_160px_auto] dark:border-zinc-800 dark:bg-zinc-900"
+        className="mb-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_180px_160px_auto]"
       >
         <Saisie
           name="q"
@@ -110,14 +110,14 @@ export default async function PageAppareils(props: PageProps<'/appareils'>) {
         }
       >
         {appareils.elements.map((a) => (
-          <tr key={a.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+          <tr key={a.id} className="hover:bg-marque-50/60">
             <td className={`${cellule} font-mono text-xs`}>{a.codeCourt}</td>
             <td className={cellule}>
               <Link className={styles.lien} href={`/appareils/${a.id}`}>
                 {designationAppareil(a)}
               </Link>
               {a.signesDistinctifs && (
-                <span className="block max-w-xs truncate text-xs text-zinc-500">
+                <span className="block max-w-xs truncate text-xs text-slate-500">
                   {a.signesDistinctifs}
                 </span>
               )}

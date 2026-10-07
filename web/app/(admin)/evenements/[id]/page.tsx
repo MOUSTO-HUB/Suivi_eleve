@@ -33,12 +33,10 @@ export const metadata: Metadata = { title: 'Événement · Suivi_eleve' };
 function Compteur({ libelle, valeur }: { libelle: string; valeur: number }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {libelle}
       </p>
-      <p className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        {valeur}
-      </p>
+      <p className="mt-1 text-2xl font-semibold text-slate-900">{valeur}</p>
     </div>
   );
 }
@@ -46,7 +44,7 @@ function Compteur({ libelle, valeur }: { libelle: string; valeur: number }) {
 function Info({ libelle, children }: { libelle: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {libelle}
       </dt>
       <dd className="mt-1 whitespace-pre-line text-sm">{children}</dd>
@@ -98,12 +96,12 @@ export default async function PageEvenement(
           {LIBELLES_STATUT_EVENEMENT[e.statut]}
         </Badge>
         {e.envoyeeLe && (
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm text-slate-600">
             le {dateHeureFr(e.envoyeeLe)}
           </span>
         )}
         {envoye && (
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm text-slate-600">
             · rappel de la veille{' '}
             {e.rappelEnvoyeLe
               ? `envoyé le ${dateHeureFr(e.rappelEnvoyeLe)}`
@@ -210,7 +208,7 @@ export default async function PageEvenement(
                 valeur={e.suivi.familles - e.suivi.lues}
               />
             </div>
-            <p className="mt-3 text-xs text-zinc-500">
+            <p className="mt-3 text-xs text-slate-500">
               Détail de chaque envoi dans le{' '}
               <Link className={styles.lien} href="/notifications">
                 journal des notifications
@@ -248,20 +246,20 @@ export default async function PageEvenement(
                   <td className={cellule}>{r.classe?.nom ?? '—'}</td>
                   <td className={cellule}>
                     {r.reponse === null ? (
-                      <span className="text-zinc-500">En attente</span>
+                      <span className="text-slate-500">En attente</span>
                     ) : (
                       <Badge couleur={r.reponse ? 'vert' : 'orange'}>
                         {r.reponse ? 'Oui' : 'Non'}
                       </Badge>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-zinc-800 dark:text-zinc-200">
+                  <td className="px-4 py-3 text-slate-800">
                     {r.commentaire ?? ''}
                   </td>
                   <td className={cellule}>
                     {r.repondant && `${r.repondant.prenoms} ${r.repondant.nom}`}
                     {r.reponduLe && (
-                      <span className="block text-xs text-zinc-500">
+                      <span className="block text-xs text-slate-500">
                         {dateHeureFr(r.reponduLe)}
                       </span>
                     )}

@@ -47,13 +47,11 @@ function Chiffre({
 }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {libelle}
       </p>
-      <p className="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-        {valeur}
-      </p>
-      {aide && <p className="text-xs text-zinc-500">{aide}</p>}
+      <p className="mt-1 text-2xl font-semibold text-slate-900">{valeur}</p>
+      {aide && <p className="text-xs text-slate-500">{aide}</p>}
     </div>
   );
 }
@@ -126,7 +124,7 @@ export default async function PageNotifications(
 
       <form
         role="search"
-        className="my-4 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_1fr_150px_150px_auto] dark:border-zinc-800 dark:bg-zinc-900"
+        className="my-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-3 lg:grid-cols-[1fr_1fr_1fr_1fr_150px_150px_auto]"
       >
         <Saisie
           name="q"
@@ -212,7 +210,7 @@ export default async function PageNotifications(
               >
                 {n.destinataire}
               </span>
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-slate-500">
                 {n.tuteur.prenoms} {n.tuteur.nom}
               </span>
             </td>
@@ -229,12 +227,12 @@ export default async function PageNotifications(
               <Badge couleur={COULEUR[n.statut]}>
                 {LIBELLES_STATUT_NOTIFICATION[n.statut]}
               </Badge>
-              <span className="block text-xs text-zinc-500">
+              <span className="block text-xs text-slate-500">
                 {n.essais} essai{n.essais > 1 ? 's' : ''}
                 {n.fournisseur ? ` · ${n.fournisseur}` : ''}
               </span>
               {n.erreur && (
-                <span className="block max-w-[16rem] whitespace-normal text-xs text-red-700 dark:text-red-400">
+                <span className="block max-w-[16rem] whitespace-normal text-xs text-red-700">
                   {n.erreur}
                 </span>
               )}
@@ -244,7 +242,7 @@ export default async function PageNotifications(
                 <summary className="cursor-pointer truncate">
                   {n.sujet ?? n.contenu}
                 </summary>
-                <p className="mt-1 whitespace-pre-line text-zinc-600 dark:text-zinc-400">
+                <p className="mt-1 whitespace-pre-line text-slate-600">
                   {n.contenu}
                 </p>
               </details>

@@ -31,7 +31,7 @@ export default async function PageTuteurs(props: PageProps<'/tuteurs'>) {
       />
       <form
         role="search"
-        className="mb-4 flex gap-3 rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
+        className="mb-4 flex gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4"
       >
         <Saisie
           name="q"
@@ -59,7 +59,7 @@ export default async function PageTuteurs(props: PageProps<'/tuteurs'>) {
         }
       >
         {tuteurs.elements.map((t) => (
-          <tr key={t.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+          <tr key={t.id} className="hover:bg-marque-50/60">
             <td className={cellule}>
               <Link className={styles.lien} href={`/tuteurs/${t.id}`}>
                 {t.nom} {t.prenoms}

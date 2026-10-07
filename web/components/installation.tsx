@@ -97,7 +97,7 @@ export function InvitationInstallation() {
   return (
     <aside
       aria-label="Installer l'application"
-      className="border-b border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100"
+      className="border-b border-soleil-300 bg-soleil-100 text-soleil-900"
     >
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2 text-sm">
         <p className="flex-1">
@@ -119,7 +119,7 @@ export function InvitationInstallation() {
           <button
             type="button"
             onClick={installer}
-            className="rounded-md bg-emerald-700 px-3 py-1.5 font-medium text-white hover:bg-emerald-800"
+            className="fond-degrade rounded-full px-4 py-1.5 font-semibold text-white shadow-md hover:brightness-110"
           >
             Installer
           </button>
@@ -128,7 +128,7 @@ export function InvitationInstallation() {
           type="button"
           onClick={masquer}
           aria-label="Ne plus proposer l'installation"
-          className="rounded-md px-2 py-1 text-lg leading-none text-emerald-800 hover:bg-emerald-100 dark:text-emerald-200 dark:hover:bg-emerald-900"
+          className="rounded-md px-2 py-1 text-lg leading-none text-soleil-900 hover:bg-soleil-300/50"
         >
           ×
         </button>

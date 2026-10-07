@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
+import { Logo } from '@/components/bandeau';
 import { FormulaireAction } from '@/components/formulaire-action';
 import { DesabonnementDeconnexion } from '@/components/notifications-push';
 import { Champ, Liste, parametre, Saisie, styles } from '@/components/ui';
@@ -10,10 +11,10 @@ import { demanderCode, seConnecter, verifierCode } from './actions';
 export const metadata: Metadata = { title: 'Connexion · Suivi_eleve' };
 
 const onglet = (actif: boolean) =>
-  `flex-1 rounded-md px-3 py-2 text-center text-sm font-medium ${
+  `flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold transition ${
     actif
-      ? 'bg-white text-emerald-800 shadow-sm dark:bg-zinc-800 dark:text-emerald-300'
-      : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400'
+      ? 'bg-white text-marque-800 shadow-md'
+      : 'text-white/85 hover:bg-white/10 hover:text-white'
   }`;
 
 /** Parents : numéro puis code SMS. Personnel : email et mot de passe. */
@@ -30,16 +31,17 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
     espace === 'parent' || (!espace && (!suite || suite.startsWith('/parent')));
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16">
+    <main className="fond-bandeau flex flex-1 items-center justify-center px-4 py-12">
       <DesabonnementDeconnexion />
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+        <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-white">
+          <Logo className="h-12 w-12" />
           Suivi_eleve
         </h1>
-        <p className="mb-6 mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 mb-6 text-sm text-marque-100">
           La scolarité de votre enfant, informée en temps réel.
         </p>
-        <nav className="mb-4 flex gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-900">
+        <nav className="mb-4 flex gap-1 rounded-xl bg-white/15 p-1 ring-1 ring-white/25 backdrop-blur">
           <Link href="/connexion?espace=parent" className={onglet(parent)}>
             Parents
           </Link>
@@ -50,7 +52,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
             Personnel de l&apos;école
           </Link>
         </nav>
-        <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="rounded-2xl bg-white p-6 shadow-2xl shadow-marque-950/40">
           {!parent ? (
             <FormulaireAction
               action={seConnecter}
@@ -78,7 +80,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
             </FormulaireAction>
           ) : telephone ? (
             <>
-              <p className="mb-4 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+              <p className="mb-4 rounded-md bg-marque-50 p-3 text-sm text-marque-800">
                 Si ce numéro est connu de l&apos;école, un code à 6 chiffres
                 vient d&apos;être envoyé par SMS au {telephone}.
               </p>

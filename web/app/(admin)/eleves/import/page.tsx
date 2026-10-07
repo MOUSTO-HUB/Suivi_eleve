@@ -53,13 +53,11 @@ export default function PageImport() {
             {COLONNES.map(([colonne, aide]) => (
               <li key={colonne}>
                 <code className="text-xs font-semibold">{colonne}</code>
-                <span className="block text-zinc-600 dark:text-zinc-400">
-                  {aide}
-                </span>
+                <span className="block text-slate-600">{aide}</span>
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-xs text-zinc-500">
+          <p className="mt-4 text-xs text-slate-500">
             Les matricules sont attribués automatiquement. Un tuteur dont le
             Contact_tuteur_1 est déjà connu est rattaché, pas recréé. Un élève
             déjà inscrit (mêmes nom, prénoms et date de naissance) est signalé

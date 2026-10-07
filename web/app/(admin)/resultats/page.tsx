@@ -80,7 +80,7 @@ export default async function PageResultats(props: PageProps<'/resultats'>) {
           <div className="grid gap-6 lg:grid-cols-2">
             <Carte titre={gestion ? 'Saisie par matière' : 'Mes matières'}>
               {parClasse.size === 0 ? (
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-slate-500">
                   Aucune matière ne vous est attribuée. La direction l’indique
                   dans « Matières et professeurs ».
                 </p>
@@ -113,7 +113,7 @@ export default async function PageResultats(props: PageProps<'/resultats'>) {
               }
             >
               {saisies.classesPrincipales.length === 0 ? (
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-slate-500">
                   Vous n’êtes professeur principal d’aucune classe.
                 </p>
               ) : (

@@ -36,13 +36,13 @@ function Compteur({
 }) {
   const couleur =
     ton === 'alerte' && valeur > 0
-      ? 'text-red-700 dark:text-red-400'
+      ? 'text-red-700'
       : ton === 'ok'
-        ? 'text-emerald-700 dark:text-emerald-400'
-        : 'text-zinc-900 dark:text-zinc-50';
+        ? 'text-marque-700'
+        : 'text-slate-900';
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {libelle}
       </p>
       <p className={`mt-1 text-2xl font-semibold ${couleur}`}>{valeur}</p>
@@ -88,7 +88,7 @@ export default async function SuiviAnnonce(props: PageProps<'/annonces/[id]'>) {
           {LIBELLES_STATUT_ANNONCE[annonce.statut]}
         </Badge>
         {annonce.envoyeeLe && (
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+          <span className="text-sm text-slate-600">
             le {dateHeureFr(annonce.envoyeeLe)}
           </span>
         )}
@@ -150,18 +150,14 @@ export default async function SuiviAnnonce(props: PageProps<'/annonces/[id]'>) {
                   </p>
                   <p>Délivrés : {compte(canal, ['DELIVREE', 'LUE'])}</p>
                   <p
-                    className={
-                      compte(canal, ['ECHOUEE'])
-                        ? 'text-red-700 dark:text-red-400'
-                        : ''
-                    }
+                    className={compte(canal, ['ECHOUEE']) ? 'text-red-700' : ''}
                   >
                     Échecs : {compte(canal, ['ECHOUEE'])}
                   </p>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs text-zinc-500">
+            <p className="mt-3 text-xs text-slate-500">
               Détail de chaque envoi dans le{' '}
               <Link className={styles.lien} href="/notifications">
                 journal des notifications

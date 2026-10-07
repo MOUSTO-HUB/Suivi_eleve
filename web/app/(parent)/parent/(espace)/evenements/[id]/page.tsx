@@ -64,7 +64,7 @@ export default async function Evenement(
               {e.enfants.map((enfant) => (
                 <li
                   key={enfant.id}
-                  className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700"
+                  className="rounded-lg border border-slate-200 p-4"
                 >
                   <p className="font-semibold">
                     {enfant.prenoms}
@@ -101,7 +101,7 @@ export default async function Evenement(
               ))}
             </ul>
             {!ouvert && !annule && (
-              <p className="mt-3 text-sm text-zinc-500">
+              <p className="mt-3 text-sm text-slate-500">
                 L&apos;événement a commencé : les réponses sont closes.
               </p>
             )}

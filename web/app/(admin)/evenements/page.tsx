@@ -117,8 +117,8 @@ export default async function PageEvenements(props: PageProps<'/evenements'>) {
         </Link>
       </div>
 
-      <div className="mb-6 hidden overflow-hidden rounded-lg border border-zinc-200 bg-white sm:block dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="grid grid-cols-7 border-b border-zinc-200 bg-zinc-50 text-center text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+      <div className="mb-6 hidden overflow-hidden rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 sm:block">
+        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-medium text-slate-600">
           {JOURS.map((j) => (
             <div key={j} className="py-2">
               {j}
@@ -129,15 +129,15 @@ export default async function PageEvenements(props: PageProps<'/evenements'>) {
           {cases.map((jour, i) => (
             <div
               key={jour ?? `vide-${i}`}
-              className="min-h-24 border-b border-r border-zinc-100 p-1.5 text-xs dark:border-zinc-800"
+              className="min-h-24 border-b border-r border-slate-100 p-1.5 text-xs"
             >
               {jour && (
                 <>
                   <p
                     className={`mb-1 font-medium ${
                       jour === aujourdhui
-                        ? 'inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-700 text-white'
-                        : 'text-zinc-500'
+                        ? 'inline-flex h-6 w-6 items-center justify-center rounded-full bg-marque-700 text-white'
+                        : 'text-slate-500'
                     }`}
                   >
                     {Number(jour.slice(8))}
@@ -149,10 +149,10 @@ export default async function PageEvenements(props: PageProps<'/evenements'>) {
                           href={`/evenements/${e.id}`}
                           className={`block truncate rounded px-1.5 py-0.5 ${
                             e.statut === 'ANNULEE'
-                              ? 'bg-zinc-100 text-zinc-500 line-through dark:bg-zinc-800'
+                              ? 'bg-slate-100 text-slate-500 line-through'
                               : e.statut === 'ENVOYEE'
-                                ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300'
-                                : 'bg-amber-50 text-amber-800 hover:bg-amber-100 dark:bg-amber-950 dark:text-amber-300'
+                                ? 'bg-marque-50 text-marque-800 hover:bg-marque-100'
+                                : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
                           }`}
                           title={e.titre}
                         >
@@ -177,12 +177,12 @@ export default async function PageEvenements(props: PageProps<'/evenements'>) {
         }
       >
         {evenements.map((e) => (
-          <tr key={e.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+          <tr key={e.id} className="hover:bg-marque-50/60">
             <td className={cellule}>
               {dateFr(e.dateDebut.slice(0, 10))} à {heureFr(e.dateDebut)}
               {e.dateFin &&
                 e.dateFin.slice(0, 10) !== e.dateDebut.slice(0, 10) && (
-                  <span className="block text-xs text-zinc-500">
+                  <span className="block text-xs text-slate-500">
                     jusqu&apos;au {dateFr(e.dateFin.slice(0, 10))}
                   </span>
                 )}
@@ -192,7 +192,7 @@ export default async function PageEvenements(props: PageProps<'/evenements'>) {
                 {e.titre}
               </Link>
               {e.lieu && (
-                <span className="block text-xs text-zinc-500">{e.lieu}</span>
+                <span className="block text-xs text-slate-500">{e.lieu}</span>
               )}
             </td>
             <td className={cellule}>

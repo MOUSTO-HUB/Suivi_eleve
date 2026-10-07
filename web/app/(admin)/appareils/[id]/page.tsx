@@ -32,12 +32,10 @@ function Info({
 }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {libelle}
       </dt>
-      <dd className="mt-0.5 break-words text-sm text-zinc-900 dark:text-zinc-100">
-        {children}
-      </dd>
+      <dd className="mt-0.5 break-words text-sm text-slate-900">{children}</dd>
     </div>
   );
 }
@@ -86,7 +84,7 @@ export default async function FicheAppareil(
                 <img
                   src={`/telechargements/photo-appareil/${appareil.id}`}
                   alt={`Photo : ${designationAppareil(appareil)}`}
-                  className="h-40 w-40 shrink-0 rounded-md border border-zinc-200 object-cover dark:border-zinc-700"
+                  className="h-40 w-40 shrink-0 rounded-md border border-slate-200 object-cover"
                 />
               )}
               <dl className="grid flex-1 gap-4 sm:grid-cols-2">
@@ -120,26 +118,26 @@ export default async function FicheAppareil(
 
           <Carte titre="Historique">
             {appareil.incidents.length === 0 ? (
-              <p className="text-sm text-zinc-500">Aucun signalement.</p>
+              <p className="text-sm text-slate-500">Aucun signalement.</p>
             ) : (
               <ol className="flex flex-col gap-3">
                 {appareil.incidents.map((i) => (
                   <li
                     key={i.id}
-                    className="border-l-2 border-zinc-200 pl-3 text-sm dark:border-zinc-700"
+                    className="border-l-2 border-slate-200 pl-3 text-sm"
                   >
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                    <p className="font-medium text-slate-900">
                       {LIBELLES_SIGNALEMENT[i.type]}
-                      <span className="font-normal text-zinc-500">
+                      <span className="font-normal text-slate-500">
                         {' '}
                         · {dateHeureFr(i.dateHeure)}
                       </span>
                     </p>
-                    <p className="text-zinc-600 dark:text-zinc-400">
+                    <p className="text-slate-600">
                       {[i.lieu, i.commentaire].filter(Boolean).join(' · ')}
                     </p>
                     {i.auteur && (
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-slate-500">
                         par {i.auteur.prenoms} {i.auteur.nom} (
                         {LIBELLES_ROLE[i.auteur.role]})
                       </p>
@@ -189,7 +187,7 @@ export default async function FicheAppareil(
                     accept="image/jpeg,image/png,image/webp"
                     capture="environment"
                     required
-                    className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium dark:file:bg-zinc-800"
+                    className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium"
                   />
                 </Champ>
               </FormulaireAction>

@@ -64,7 +64,7 @@ export function TableauEcoles({
           </td>
           <td className={cellule}>
             {dateFr(e.finAbonnement)}
-            <span className="block text-xs text-zinc-500">
+            <span className="block text-xs text-slate-500">
               {echeanceFr(e.abonnement.joursRestants)}
             </span>
           </td>

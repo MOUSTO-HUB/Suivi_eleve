@@ -24,7 +24,7 @@ export async function BandeauAbonnement() {
   return (
     <div
       role="status"
-      className="border-b border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100"
+      className="border-b border-amber-200 bg-amber-50 text-amber-900"
     >
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-2 text-sm">
         <p className="flex-1">{message}</p>

@@ -28,7 +28,7 @@ export function FormulaireImport() {
             name="fichier"
             accept=".xlsx,.csv"
             required
-            className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium dark:file:bg-zinc-800"
+            className="text-sm file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium"
           />
         </Champ>
         <label className="flex items-center gap-2 text-sm">
@@ -52,7 +52,7 @@ export function FormulaireImport() {
           </Alerte>
           {rapport.erreurs.length > 0 && (
             <>
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              <p className="text-sm font-medium text-slate-800">
                 {rapport.erreurs.length} ligne(s) à corriger
                 {rapport.simulation ? '' : ' (non importées)'} :
               </p>

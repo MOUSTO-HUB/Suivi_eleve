@@ -109,7 +109,7 @@ export function FormulaireSignalement({
 }) {
   if (!possibles.length) {
     return (
-      <p className="text-sm text-zinc-500">
+      <p className="text-sm text-slate-500">
         Aucun signalement possible pour cet appareil avec votre rôle.
       </p>
     );

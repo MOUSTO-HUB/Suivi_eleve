@@ -46,10 +46,7 @@ export default async function PageClasses() {
             }
           >
             {classes.map((c) => (
-              <tr
-                key={c.id}
-                className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-              >
+              <tr key={c.id} className="hover:bg-marque-50/60">
                 <td className={cellule}>
                   <Link className={styles.lien} href={`/classes/${c.id}`}>
                     {c.nom}

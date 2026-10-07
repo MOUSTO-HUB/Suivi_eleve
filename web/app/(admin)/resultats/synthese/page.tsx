@@ -59,7 +59,7 @@ export default async function PageSynthese(
         ) : (
           <Badge couleur="orange">Non publié</Badge>
         )}
-        <span className="text-sm text-zinc-600 dark:text-zinc-400">
+        <span className="text-sm text-slate-600">
           Avancement :{' '}
           {grille.matieres
             .map((m) => `${m.nom} ${m.saisies}/${effectif}`)
@@ -153,9 +153,9 @@ export default async function PageSynthese(
       </FormulaireAction>
 
       {grille.peutPublier && (
-        <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mt-6 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-5">
           <h2 className="mb-2 font-semibold">Publication</h2>
-          <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mb-3 text-sm text-slate-600">
             Les familles reçoivent la moyenne générale et le rang par SMS, et le
             bulletin dans l&apos;application. Après publication, les professeurs
             ne peuvent plus modifier leurs saisies. Une seconde publication

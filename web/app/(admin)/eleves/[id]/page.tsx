@@ -53,12 +53,10 @@ function Info({
 }) {
   return (
     <div>
-      <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+      <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {libelle}
       </dt>
-      <dd className="mt-0.5 text-sm text-zinc-900 dark:text-zinc-100">
-        {children}
-      </dd>
+      <dd className="mt-0.5 text-sm text-slate-900">{children}</dd>
     </div>
   );
 }
@@ -140,23 +138,23 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
           </Carte>
 
           <Carte titre="Tuteurs">
-            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <ul className="divide-y divide-slate-100">
               {eleve.tuteurs.map((t) => (
                 <li
                   key={t.id}
                   className="flex flex-wrap items-start justify-between gap-3 py-3"
                 >
                   <div className="text-sm">
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                    <p className="font-medium text-slate-900">
                       <Link className={styles.lien} href={`/tuteurs/${t.id}`}>
                         {t.prenoms} {t.nom}
                       </Link>{' '}
-                      <span className="text-zinc-500">
+                      <span className="text-slate-500">
                         · {LIBELLES_LIEN[t.lien]}
                       </span>{' '}
                       {t.principal && <Badge couleur="vert">Principal</Badge>}
                     </p>
-                    <p className="mt-1 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+                    <p className="mt-1 font-mono text-xs text-slate-600">
                       {t.contact1}
                       {t.contact2 && ` · ${t.contact2}`}
                       {t.email && ` · ${t.email}`}
@@ -176,8 +174,8 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
               ))}
             </ul>
             {gestion && (
-              <details className="mt-4 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
-                <summary className="cursor-pointer text-sm font-medium text-emerald-700 dark:text-emerald-400">
+              <details className="mt-4 rounded-md border border-slate-200 p-4">
+                <summary className="cursor-pointer text-sm font-medium text-marque-700">
                   Ajouter un tuteur
                 </summary>
                 <div className="mt-4">
@@ -212,11 +210,11 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
             }
           >
             {appareils.total === 0 ? (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-slate-500">
                 Aucun appareil enregistré.
               </p>
             ) : (
-              <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              <ul className="divide-y divide-slate-100">
                 {appareils.elements.map((a) => (
                   <li
                     key={a.id}
@@ -226,7 +224,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                       {designationAppareil(a)}
                     </Link>
                     <span className="flex items-center gap-2">
-                      <span className="font-mono text-xs text-zinc-500">
+                      <span className="font-mono text-xs text-slate-500">
                         {a.codeCourt}
                       </span>
                       <BadgeStatut statut={a.statut} />
@@ -241,7 +239,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
         <div className="flex flex-col gap-6">
           <Carte titre="Résultats">
             {resultats.periodes.length === 0 ? (
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-slate-500">
                 Aucune période pour cette classe.
               </p>
             ) : (
@@ -254,7 +252,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                     <span>
                       <span className="font-medium">{p.libelle}</span>
                       {p.resultat?.moyenne != null && (
-                        <span className="text-zinc-600 dark:text-zinc-400">
+                        <span className="text-slate-600">
                           {' '}
                           · {noteFr(p.resultat.moyenne)}/20
                           {p.resultat.rang
@@ -271,7 +269,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                         Bulletin{p.publie ? '' : ' (provisoire)'}
                       </a>
                     ) : (
-                      <span className="text-xs text-zinc-500">non saisi</span>
+                      <span className="text-xs text-slate-500">non saisi</span>
                     )}
                   </li>
                 ))}
@@ -303,7 +301,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
             }
           >
             {comportements.total === 0 ? (
-              <p className="text-sm text-zinc-500">Rien de signalé.</p>
+              <p className="text-sm text-slate-500">Rien de signalé.</p>
             ) : (
               <ul className="flex flex-col gap-2 text-sm">
                 {comportements.elements.map((c) => (
@@ -311,11 +309,11 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                     <Badge couleur={c.type === 'POSITIF' ? 'vert' : 'orange'}>
                       {LIBELLES_CATEGORIE[c.categorie]}
                     </Badge>{' '}
-                    <span className="text-xs text-zinc-500">
+                    <span className="text-xs text-slate-500">
                       {dateFr(c.date.slice(0, 10))}
                       {c.statut === 'EN_ATTENTE' ? ' · à valider' : ''}
                     </span>
-                    <span className="block text-zinc-700 dark:text-zinc-300">
+                    <span className="block text-slate-700">
                       {c.description}
                     </span>
                   </li>
@@ -334,7 +332,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
               }
             >
               {paiements.total === 0 ? (
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-slate-500">
                   Aucun paiement en attente.
                 </p>
               ) : (
@@ -369,9 +367,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
               {absences.total} absence(s), dont{' '}
               <span
                 className={
-                  absences.nonJustifiees
-                    ? 'font-semibold text-red-700 dark:text-red-400'
-                    : ''
+                  absences.nonJustifiees ? 'font-semibold text-red-700' : ''
                 }
               >
                 {absences.nonJustifiees} non justifiée(s)
@@ -397,10 +393,10 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
             <ol className="flex flex-col gap-3 text-sm">
               {eleve.historiqueClasse.map((h) => (
                 <li key={`${h.classe.id}-${h.dateDebut}`}>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  <span className="font-medium text-slate-900">
                     {h.classe.nom}
                   </span>
-                  <span className="block text-xs text-zinc-500">
+                  <span className="block text-xs text-slate-500">
                     depuis le {dateFr(h.dateDebut)}
                     {h.dateFin
                       ? ` jusqu'au ${dateFr(h.dateFin)}`
@@ -409,7 +405,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                 </li>
               ))}
               {eleve.historiqueClasse.length === 0 && (
-                <li className="text-zinc-500">
+                <li className="text-slate-500">
                   Aucune classe pour l&apos;instant.
                 </li>
               )}
@@ -458,7 +454,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                   style="boutonDanger"
                   confirmation="Archiver ce dossier ? L'élève n'apparaîtra plus dans les listes, mais rien n'est supprimé."
                 >
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  <p className="text-sm text-slate-600">
                     Le dossier est conservé et peut être restauré à tout moment.
                   </p>
                   <Champ libelle="Motif">
@@ -475,7 +471,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
 
           {profil.role === 'ADMIN' && (
             <Carte titre="Données personnelles">
-              <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+              <p className="mb-3 text-sm text-slate-600">
                 À la demande de la famille : copie complète des données de
                 l&apos;élève et de ses tuteurs, puis effacement après son
                 départ.
@@ -488,7 +484,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
               </a>
               {archive && (
                 <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-medium text-red-700 dark:text-red-400">
+                  <summary className="cursor-pointer text-sm font-medium text-red-700">
                     Effacer les données de l&apos;élève…
                   </summary>
                   <div className="mt-3">
@@ -498,7 +494,7 @@ export default async function FicheEleve(props: PageProps<'/eleves/[id]'>) {
                       style="boutonDanger"
                       confirmation="Effacer les données de cet élève ? C'est irréversible : identité anonymisée, absences, comportement, résultats, appareils et messages supprimés."
                     >
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      <p className="text-sm text-slate-600">
                         Le dossier reste (anonymisé) pour les statistiques. Les
                         tuteurs sans autre enfant à l&apos;école sont aussi
                         anonymisés et leur compte fermé.

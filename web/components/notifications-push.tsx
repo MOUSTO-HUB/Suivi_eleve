@@ -130,10 +130,10 @@ export function NotificationsAppareil({
   if (etat === 'chargement') return null;
 
   return (
-    <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="mb-6 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4">
       <h2 className="font-medium">Notifications sur cet appareil</h2>
       {etat === 'iphone-a-installer' && (
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-slate-600">
           Sur iPhone et iPad, ajoutez d&apos;abord Suivi_eleve à l&apos;écran
           d&apos;accueil (<strong>Partager</strong> puis{' '}
           <strong>Sur l&apos;écran d&apos;accueil</strong>), ouvrez-le depuis
@@ -141,13 +141,13 @@ export function NotificationsAppareil({
         </p>
       )}
       {etat === 'incompatible' && (
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-slate-600">
           Ce navigateur ne permet pas de recevoir les notifications. Vous
           recevez toujours les SMS et les messages de l&apos;école ici.
         </p>
       )}
       {etat === 'bloque' && (
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-1 text-sm text-slate-600">
           Les notifications sont bloquées pour ce site. Autorisez-les dans les
           réglages du navigateur (icône à gauche de l&apos;adresse), puis
           rechargez la page.
@@ -155,7 +155,7 @@ export function NotificationsAppareil({
       )}
       {etat === 'inactif' && (
         <>
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mt-1 text-sm text-slate-600">
             Recevez une alerte dès que l&apos;école envoie un message, même
             quand Suivi_eleve est fermé.
           </p>
@@ -171,7 +171,7 @@ export function NotificationsAppareil({
       )}
       {etat === 'actif' && (
         <>
-          <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">
+          <p className="mt-1 text-sm text-marque-700">
             Activées : cet appareil reçoit les messages de l&apos;école.
           </p>
           <button
@@ -185,7 +185,7 @@ export function NotificationsAppareil({
         </>
       )}
       {erreur && (
-        <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-400">
+        <p role="alert" className="mt-2 text-sm text-red-700">
           {erreur}
         </p>
       )}

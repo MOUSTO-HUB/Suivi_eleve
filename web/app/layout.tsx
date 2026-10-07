@@ -29,10 +29,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#047857' },
-    { media: '(prefers-color-scheme: dark)', color: '#064e3b' },
-  ],
+  themeColor: '#1e3a8a',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
@@ -41,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+      <body className="flex min-h-full flex-col">
         <EnregistrementServiceWorker />
         <InvitationInstallation />
         {children}

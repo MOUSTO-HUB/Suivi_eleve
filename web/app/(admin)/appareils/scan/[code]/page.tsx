@@ -66,7 +66,7 @@ export default async function PageScan(
             titre="Propriétaire"
             actions={<BadgeStatut statut={appareil.statut} />}
           >
-            <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+            <p className="text-lg font-semibold text-slate-900">
               <Link
                 className={styles.lien}
                 href={`/eleves/${appareil.eleve.id}`}
@@ -74,7 +74,7 @@ export default async function PageScan(
                 {appareil.eleve.prenoms} {appareil.eleve.nom}
               </Link>
             </p>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="text-sm text-slate-600">
               {appareil.eleve.classe?.nom ?? 'Sans classe'} · matricule{' '}
               {appareil.eleve.matricule}
             </p>
@@ -91,7 +91,7 @@ export default async function PageScan(
                   <span className="font-medium">
                     {t.prenoms} {t.nom}
                   </span>{' '}
-                  <span className="text-zinc-500">
+                  <span className="text-slate-500">
                     ({LIBELLES_LIEN[t.lien]})
                   </span>
                   <span className="mt-1 flex flex-wrap gap-2">

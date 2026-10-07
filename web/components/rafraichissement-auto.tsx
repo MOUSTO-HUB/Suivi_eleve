@@ -18,7 +18,7 @@ export function RafraichissementAuto({
     return () => clearInterval(minuteur);
   }, [actif, secondes, routeur]);
   return actif ? (
-    <span className="text-xs text-zinc-500" aria-live="polite">
+    <span className="text-xs text-slate-500" aria-live="polite">
       Mise à jour automatique toutes les {secondes} s
     </span>
   ) : null;

@@ -80,7 +80,7 @@ export default async function PageEleves(props: PageProps<'/eleves'>) {
 
       <form
         role="search"
-        className="mb-4 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 sm:grid-cols-[1fr_200px_160px_auto] dark:border-zinc-800 dark:bg-zinc-900"
+        className="mb-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_200px_160px_auto]"
       >
         <Saisie
           name="q"
@@ -131,10 +131,7 @@ export default async function PageEleves(props: PageProps<'/eleves'>) {
         {eleves.elements.map((e) => {
           const tuteur = e.tuteurs[0];
           return (
-            <tr
-              key={e.id}
-              className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-            >
+            <tr key={e.id} className="hover:bg-marque-50/60">
               <td className={`${cellule} font-mono text-xs`}>{e.matricule}</td>
               <td className={cellule}>
                 <Link className={styles.lien} href={`/eleves/${e.id}`}>

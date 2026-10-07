@@ -87,10 +87,10 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
 
       <div className="mb-6 grid gap-6 lg:grid-cols-3">
         <Carte titre="En attente">
-          <p className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">
+          <p className="text-3xl font-semibold text-slate-900">
             {montant(rappels.enAttente.montant, monnaie)}
           </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm text-slate-600">
             pour {rappels.enAttente.eleves} élève(s)
           </p>
         </Carte>
@@ -181,7 +181,7 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
 
       <form
         role="search"
-        className="mb-4 grid gap-3 rounded-lg border border-zinc-200 bg-white p-4 sm:grid-cols-[1fr_1fr_auto] dark:border-zinc-800 dark:bg-zinc-900"
+        className="mb-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_1fr_auto]"
       >
         <Liste name="statut" defaultValue={filtres.statut} aria-label="Statut">
           <option value="EN_COURS">En attente</option>
@@ -225,7 +225,7 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
               <Link className={styles.lien} href={`/eleves/${r.eleve.id}`}>
                 {r.eleve.nom} {r.eleve.prenoms}
               </Link>
-              <span className="block text-xs text-zinc-500">
+              <span className="block text-xs text-slate-500">
                 {r.eleve.classe?.nom}
               </span>
             </td>
@@ -253,12 +253,12 @@ export default async function PagePaiements(props: PageProps<'/paiements'>) {
             <td className={cellule}>
               {r.nombreEnvois}
               {r.dernierEnvoiLe && (
-                <span className="block text-xs text-zinc-500">
+                <span className="block text-xs text-slate-500">
                   dernier : {dateHeureFr(r.dernierEnvoiLe)}
                 </span>
               )}
               {r.statut === 'EN_COURS' && (
-                <span className="block text-xs text-zinc-500">
+                <span className="block text-xs text-slate-500">
                   {r.prochaineRelanceAuto
                     ? `prochain automatique : ${dateFr(r.prochaineRelanceAuto)}`
                     : 'relances automatiques terminées'}

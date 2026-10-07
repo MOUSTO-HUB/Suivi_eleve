@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 
 function Chiffre({ libelle, valeur }: { libelle: string; valeur: string }) {
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <p className="text-sm text-zinc-500">{libelle}</p>
+    <div className="rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4">
+      <p className="text-sm text-slate-500">{libelle}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums">{valeur}</p>
     </div>
   );
@@ -57,7 +57,7 @@ export default async function TableauDeBord() {
           <Link
             key={etat}
             href={`/plateforme/ecoles?etat=${etat}`}
-            className="rounded-full border border-zinc-200 bg-white px-3 py-1 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1 hover:bg-marque-50/60"
           >
             {LIBELLES_ETAT_ABONNEMENT[etat]} :{' '}
             <strong className="tabular-nums">{t.ecoles.parEtat[etat]}</strong>
@@ -67,7 +67,7 @@ export default async function TableauDeBord() {
 
       <div className="mt-6">
         <Carte titre="Écoles à relancer">
-          <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mb-3 text-sm text-slate-600">
             Fin d’abonnement dans moins de {t.regles.joursAvertissement} jours,
             en retard, ou suspendues faute de paiement.
           </p>

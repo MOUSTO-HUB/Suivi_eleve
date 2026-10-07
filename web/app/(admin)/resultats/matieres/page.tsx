@@ -139,7 +139,7 @@ export default async function PageMatieres(
                 </li>
               ))}
             </ul>
-            <p className="mb-3 text-xs text-zinc-500">
+            <p className="mb-3 text-xs text-slate-500">
               Le coefficient figure sur le bulletin ; il n’entre dans aucun
               calcul.
             </p>

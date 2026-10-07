@@ -49,18 +49,18 @@ export default async function PageComportement(
                   {c.type === 'POSITIF' ? '👍 ' : ''}
                   {LIBELLES_CATEGORIE[c.categorie]}
                 </Badge>
-                <span className="text-sm text-zinc-500">
+                <span className="text-sm text-slate-500">
                   {dateHeureFr(c.date)}
                 </span>
               </div>
               <p className="mt-2 whitespace-pre-line">{c.description}</p>
               {c.sanction && (
-                <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+                <p className="mt-1 text-slate-600">
                   Mesure prise : {c.sanction}
                 </p>
               )}
               {c.convocationLe && (
-                <p className="mt-2 font-medium text-red-700 dark:text-red-400">
+                <p className="mt-2 font-medium text-red-700">
                   Rendez-vous à l&apos;école le {dateHeureFr(c.convocationLe)}
                 </p>
               )}

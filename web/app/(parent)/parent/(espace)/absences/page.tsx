@@ -42,7 +42,7 @@ export default async function Absences(props: PageProps<'/parent/absences'>) {
               <p className="font-semibold">
                 {dateFr(a.date)} · {a.creneau}
                 {a.matiere && (
-                  <span className="font-normal text-zinc-500">
+                  <span className="font-normal text-slate-500">
                     {' '}
                     · {a.matiere}
                   </span>

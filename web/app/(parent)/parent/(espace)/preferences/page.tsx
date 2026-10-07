@@ -43,7 +43,7 @@ export default async function Preferences() {
         <Carte>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-zinc-500">
+              <tr className="text-left text-slate-500">
                 <th className="py-2 font-medium">Message</th>
                 {CANAUX.map(([, , libelle]) => (
                   <th key={libelle} className="py-2 text-center font-medium">
@@ -52,14 +52,14 @@ export default async function Preferences() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+            <tbody className="divide-y divide-slate-100">
               {prefs.map((p) => (
                 <tr key={p.type}>
                   <td className="py-3">
                     <span aria-hidden>{ICONES_NOTIFICATION[p.type]} </span>
                     {LIBELLES_TYPE_NOTIFICATION[p.type]}
                     {p.obligatoire && (
-                      <span className="block text-xs text-zinc-500">
+                      <span className="block text-xs text-slate-500">
                         Toujours envoyé
                       </span>
                     )}
@@ -73,10 +73,10 @@ export default async function Preferences() {
                           defaultChecked={p[cle]}
                           disabled={p.obligatoire}
                           aria-label={`${LIBELLES_TYPE_NOTIFICATION[p.type]} par ${libelle}`}
-                          className="h-5 w-5 accent-emerald-700"
+                          className="h-5 w-5 accent-marque-700"
                         />
                       ) : (
-                        <span className="text-zinc-400">—</span>
+                        <span className="text-slate-400">—</span>
                       )}
                     </td>
                   ))}

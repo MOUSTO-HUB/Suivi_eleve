@@ -34,8 +34,8 @@ export function ChampsComportement({ direction }: { direction: boolean }) {
             key={valeur}
             className={`flex cursor-pointer items-center gap-2 rounded-md border px-4 py-2 text-sm ${
               type === valeur
-                ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950'
-                : 'border-zinc-300 dark:border-zinc-700'
+                ? 'border-marque-600 bg-marque-50'
+                : 'border-slate-300'
             }`}
           >
             <input
@@ -74,8 +74,8 @@ export function ChampsComportement({ direction }: { direction: boolean }) {
                 key={valeur}
                 className={`flex max-w-xs cursor-pointer flex-col rounded-md border p-3 text-sm ${
                   gravite === valeur
-                    ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950'
-                    : 'border-zinc-300 dark:border-zinc-700'
+                    ? 'border-marque-600 bg-marque-50'
+                    : 'border-slate-300'
                 }`}
               >
                 <span className="flex items-center gap-2 font-medium">
@@ -88,7 +88,7 @@ export function ChampsComportement({ direction }: { direction: boolean }) {
                   />
                   {valeur} · {libelle}
                 </span>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-slate-500">
                   {valeur === 3 && direction
                     ? 'Signalé par la direction : envoyé aussitôt.'
                     : aide}

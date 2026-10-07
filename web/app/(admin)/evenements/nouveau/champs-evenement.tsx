@@ -98,12 +98,12 @@ export function ChampsEvenement({
           </label>
         </div>
         {cible === 'CLASSES' && (
-          <div className="grid grid-cols-2 gap-2 rounded-md border border-zinc-200 p-3 text-sm sm:grid-cols-4 dark:border-zinc-700">
+          <div className="grid grid-cols-2 gap-2 rounded-md border border-slate-200 p-3 text-sm sm:grid-cols-4">
             {classes.map((c) => (
               <label key={c.id} className="flex items-center gap-2">
                 <input type="checkbox" name="classeIds" value={c.id} />
                 {c.nom}{' '}
-                <span className="text-xs text-zinc-500">({c.effectif})</span>
+                <span className="text-xs text-slate-500">({c.effectif})</span>
               </label>
             ))}
           </div>
@@ -166,7 +166,7 @@ export function ChampsEvenement({
             />
           </div>
         )}
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-slate-500">
           Un rappel part automatiquement la veille de l&apos;événement à 18h.
         </p>
       </fieldset>

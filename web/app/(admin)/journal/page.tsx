@@ -77,12 +77,12 @@ export default async function Journal(props: PageProps<'/journal'>) {
             <td className={cellule}>
               {l.entite}
               {l.entiteId && (
-                <span className="block font-mono text-xs text-zinc-500">
+                <span className="block font-mono text-xs text-slate-500">
                   {l.entiteId.slice(0, 8)}
                 </span>
               )}
             </td>
-            <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-zinc-600 dark:text-zinc-400">
+            <td className="max-w-xs truncate px-4 py-3 font-mono text-xs text-slate-600">
               {l.details ? JSON.stringify(l.details) : ''}
             </td>
             <td className={cellule}>{l.ip ?? '—'}</td>

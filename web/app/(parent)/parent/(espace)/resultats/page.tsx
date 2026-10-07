@@ -74,25 +74,25 @@ export default async function Resultats(props: PageProps<'/parent/resultats'>) {
               )}
             </p>
             {p.resultat?.appreciation && (
-              <p className="mt-1 italic text-zinc-600 dark:text-zinc-400">
+              <p className="mt-1 italic text-slate-600">
                 « {p.resultat.appreciation} »
               </p>
             )}
             {p.matieres && p.matieres.length > 0 && (
               <table className="mt-4 w-full text-sm">
                 <thead>
-                  <tr className="text-left text-zinc-500">
+                  <tr className="text-left text-slate-500">
                     <th className="py-1 font-medium">Matière</th>
                     <th className="py-1 text-right font-medium">Moyenne</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tbody className="divide-y divide-slate-100">
                   {p.matieres.map((m) => (
                     <tr key={m.matiere.id}>
                       <td className="py-2">
                         {m.matiere.nom}
                         {m.appreciation && (
-                          <span className="block text-xs text-zinc-500">
+                          <span className="block text-xs text-slate-500">
                             {m.appreciation}
                           </span>
                         )}

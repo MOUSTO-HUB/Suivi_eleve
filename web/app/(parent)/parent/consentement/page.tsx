@@ -17,7 +17,7 @@ export default async function PageConsentement() {
       <h1 className="text-2xl font-semibold tracking-tight">
         Bienvenue {profil.prenoms}
       </h1>
-      <p className="text-zinc-600 dark:text-zinc-400">
+      <p className="text-slate-600">
         Avant de commencer, merci de lire comment l&apos;école utilise vos
         données et celles de votre enfant.
       </p>

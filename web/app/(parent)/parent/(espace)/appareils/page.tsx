@@ -48,7 +48,7 @@ export default async function Appareils(props: PageProps<'/parent/appareils'>) {
           <li key={a.id}>
             <Carte>
               <p className="text-lg font-semibold">{designationAppareil(a)}</p>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-slate-500">
                 Étiquette {a.codeCourt}
                 {a.imei ? ` · IMEI ${a.imei}` : ''}
               </p>
@@ -61,7 +61,7 @@ export default async function Appareils(props: PageProps<'/parent/appareils'>) {
                 'DECLARE_PERDU',
               ) && (
                 <details>
-                  <summary className="cursor-pointer font-medium text-red-700 dark:text-red-400">
+                  <summary className="cursor-pointer font-medium text-red-700">
                     Déclarer perdu
                   </summary>
                   <div className="mt-3">

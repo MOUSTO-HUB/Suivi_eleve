@@ -114,7 +114,7 @@ export default async function FicheTuteur(props: PageProps<'/tuteurs/[id]'>) {
             </FormulaireAction>
           ) : (
             <dl className="flex flex-col gap-2 text-sm">
-              <dt className="text-zinc-500">Email</dt>
+              <dt className="text-slate-500">Email</dt>
               <dd>{tuteur.email ?? '—'}</dd>
             </dl>
           )}
