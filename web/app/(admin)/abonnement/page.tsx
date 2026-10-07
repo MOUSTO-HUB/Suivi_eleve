@@ -17,7 +17,7 @@ export default async function Abonnement() {
     <>
       <EnTete
         titre="Abonnement Suivi_eleve"
-        sousTitre={`${gnf(a.tarifs.MENSUEL)} par mois, ou ${gnf(a.tarifs.ANNUEL)} par an (2 mois offerts), sans TVA.`}
+        sousTitre={`${gnf(a.tarifs.MENSUEL)} par mois, ou ${gnf(a.tarifs.ANNUEL)} par an (2 mois offerts), hors taxes (TVA en sus).`}
       />
       <div className="grid gap-6 lg:grid-cols-2">
         <Carte titre="État">

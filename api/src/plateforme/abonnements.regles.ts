@@ -3,7 +3,7 @@ import { depuisJour, versJour } from '../common/dates.js';
 import type { FormuleAbonnement } from '../generated/prisma/enums.js';
 import { montantFr } from '../paiements/paiements.regles.js';
 
-/** Tarifs en francs guinéens, sans TVA : l'année = 10 mois payés (2 offerts). */
+/** Tarifs en francs guinéens hors taxes (TVA en sus) : l'année = 10 mois payés (2 offerts). */
 export const TARIFS_GNF: Record<FormuleAbonnement, number> = {
   MENSUEL: 150_000,
   ANNUEL: 1_500_000,

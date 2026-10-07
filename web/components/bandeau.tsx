@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { seDeconnecter } from '@/app/connexion/actions';
+import { ChoixTheme } from '@/components/choix-theme';
+import { themeCourant } from '@/lib/theme-serveur';
 
 /** Toque de diplômé de l'icône de l'application. */
 export function Logo({ className = 'h-9 w-9' }: { className?: string }) {
@@ -22,7 +24,7 @@ export function Logo({ className = 'h-9 w-9' }: { className?: string }) {
 }
 
 /** Bandeau du haut commun aux espaces : logo, utilisateur, déconnexion. */
-export function Bandeau({
+export async function Bandeau({
   accueil,
   espace,
   utilisateur,
@@ -38,7 +40,7 @@ export function Bandeau({
   largeur?: string;
 }) {
   return (
-    <header className="fond-bandeau text-white shadow-lg shadow-marque-950/20">
+    <header className="fond-bandeau text-white shadow-lg shadow-black/20">
       <div
         className={`mx-auto flex ${largeur} items-center justify-between gap-3 px-4 py-3`}
       >
@@ -55,12 +57,13 @@ export function Bandeau({
             )}
           </span>
         </Link>
-        <div className="flex min-w-0 items-center gap-2 text-sm">
+        <div className="flex min-w-0 items-center gap-1.5 text-sm sm:gap-2">
+          <ChoixTheme initial={await themeCourant()} />
           {compte ? (
             <Link
               href={compte}
               title="Mon compte"
-              className="truncate rounded-full text-white/90 hover:bg-white/10 hover:text-white sm:px-3 sm:py-1.5"
+              className="shrink-0 truncate rounded-full text-white/90 hover:bg-white/10 hover:text-white sm:shrink sm:px-3 sm:py-1.5"
             >
               <span
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/40 sm:hidden"

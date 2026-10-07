@@ -32,7 +32,7 @@ export default async function TableauDeBord() {
     <>
       <EnTete
         titre="Tableau de bord"
-        sousTitre={`Tarif : ${gnf(t.tarifs.MENSUEL)} par mois et par école, ou ${gnf(t.tarifs.ANNUEL)} par an (sans TVA). Essai de ${t.regles.joursEssai} jours, ${t.regles.joursGrace} jours de grâce avant suspension.`}
+        sousTitre={`Tarif : ${gnf(t.tarifs.MENSUEL)} par mois et par école, ou ${gnf(t.tarifs.ANNUEL)} par an, hors taxes (TVA en sus). Essai de ${t.regles.joursEssai} jours, ${t.regles.joursGrace} jours de grâce avant suspension.`}
         actions={
           <Link href="/plateforme/ecoles/nouvelle" className={styles.bouton}>
             Nouvelle école

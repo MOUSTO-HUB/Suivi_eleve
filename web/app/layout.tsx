@@ -4,6 +4,8 @@ import {
   EnregistrementServiceWorker,
   InvitationInstallation,
 } from '@/components/installation';
+import { COULEUR_BARRE } from '@/lib/theme';
+import { themeCourant } from '@/lib/theme-serveur';
 import './globals.css';
 
 const geistSans = Geist({
@@ -28,18 +30,19 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#1e3a8a' },
-    { media: '(prefers-color-scheme: dark)', color: '#020617' },
-  ],
-  colorScheme: 'light dark',
-};
+export async function generateViewport(): Promise<Viewport> {
+  const theme = await themeCourant();
+  return {
+    themeColor: COULEUR_BARRE[theme],
+    colorScheme: theme === 'sombre' ? 'dark' : 'light',
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default async function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="fr"
+      data-theme={await themeCourant()}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">

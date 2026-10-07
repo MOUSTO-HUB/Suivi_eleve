@@ -2,7 +2,7 @@
 // et les notifications envoyées par l'école (Web Push).
 // Les pages et les données des élèves ne sont jamais mises en cache (informations privées).
 
-const CACHE = 'suivi-eleve-v1';
+const CACHE = 'suivi-eleve-v2';
 const HORS_LIGNE = '/hors-ligne.html';
 const FICHIERS = [HORS_LIGNE, '/icones/icone-192.png'];
 

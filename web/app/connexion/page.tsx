@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { Logo } from '@/components/bandeau';
+import { ChoixTheme } from '@/components/choix-theme';
+import { themeCourant } from '@/lib/theme-serveur';
 import { FormulaireAction } from '@/components/formulaire-action';
 import { DesabonnementDeconnexion } from '@/components/notifications-push';
 import { Champ, Liste, parametre, Saisie, styles } from '@/components/ui';
@@ -31,14 +33,17 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
     espace === 'parent' || (!espace && (!suite || suite.startsWith('/parent')));
 
   return (
-    <main className="fond-bandeau flex flex-1 items-center justify-center px-4 py-12">
+    <main className="fond-bandeau relative flex flex-1 items-center justify-center px-4 py-12">
+      <div className="absolute top-4 right-4">
+        <ChoixTheme initial={await themeCourant()} />
+      </div>
       <DesabonnementDeconnexion />
       <div className="w-full max-w-sm">
         <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-white">
           <Logo className="h-12 w-12" />
           Suivi_eleve
         </h1>
-        <p className="mt-2 mb-6 text-sm text-marque-100">
+        <p className="mt-2 mb-6 text-sm text-white/85">
           La scolarité de votre enfant, informée en temps réel.
         </p>
         <nav className="mb-4 flex gap-1 rounded-xl bg-white/15 p-1 ring-1 ring-white/25 backdrop-blur">
@@ -52,7 +57,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
             Personnel de l&apos;école
           </Link>
         </nav>
-        <div className="rounded-2xl bg-carte p-6 shadow-2xl shadow-marque-950/40">
+        <div className="rounded-2xl bg-carte p-6 shadow-2xl shadow-black/40">
           {!parent ? (
             <FormulaireAction
               action={seConnecter}

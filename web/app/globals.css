@@ -31,7 +31,7 @@
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --fond-page: #f4f7fc;
   /* Dégradés : couleurs fixes, indépendantes du mode sombre. */
   --degrade-nuit: #162456;
@@ -41,66 +41,66 @@
 }
 
 /*
- * Mode sombre (téléphone ou ordinateur réglé en sombre) : fonds noirs,
+ * Mode sombre choisi par l'utilisateur (bouton ☀️/🌙, attribut data-theme
+ * posé sur <html> d'après le cookie « theme ») : fonds noirs,
  * textes clairs. On inverse les nuances au lieu de doubler chaque classe :
  * « slate-900 » (texte foncé) devient clair, « marque-50 » (fond pâle) devient
  * bleu nuit, etc. Le blanc reste blanc (texte des boutons en dégradé).
  */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --fond-page: #05070d;
-    --color-carte: #0d1322;
-    --degrade-nuit: #020617;
-    --degrade-bleu: #172554;
-    --degrade-vif: #1d4ed8;
-    --degrade-ciel: #0284c7;
+:root[data-theme='sombre'] {
+  color-scheme: dark;
+  --fond-page: #05070d;
+  --color-carte: #0d1322;
+  --degrade-nuit: #020617;
+  --degrade-bleu: #172554;
+  --degrade-vif: #1d4ed8;
+  --degrade-ciel: #0284c7;
 
-    --color-slate-50: #0b1120;
-    --color-slate-100: #141c2e;
-    --color-slate-200: #1e293b;
-    --color-slate-300: #334155;
-    --color-slate-400: #64748b;
-    --color-slate-500: #94a3b8;
-    --color-slate-600: #a9b6c8;
-    --color-slate-700: #cbd5e1;
-    --color-slate-800: #e2e8f0;
-    --color-slate-900: #f1f5f9;
+  --color-slate-50: #0b1120;
+  --color-slate-100: #141c2e;
+  --color-slate-200: #1e293b;
+  --color-slate-300: #334155;
+  --color-slate-400: #64748b;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #a9b6c8;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f1f5f9;
 
-    --color-marque-50: #0c1730;
-    --color-marque-100: #16244a;
-    --color-marque-200: #1e3366;
-    --color-marque-300: #1e40af;
-    --color-marque-400: #3b82f6;
-    --color-marque-500: #3b82f6;
-    --color-marque-600: #60a5fa;
-    --color-marque-700: #60a5fa;
-    --color-marque-800: #93c5fd;
-    --color-marque-900: #bfdbfe;
-    --color-marque-950: #dbeafe;
+  --color-marque-50: #0c1730;
+  --color-marque-100: #16244a;
+  --color-marque-200: #1e3366;
+  --color-marque-300: #1e40af;
+  --color-marque-400: #3b82f6;
+  --color-marque-500: #3b82f6;
+  --color-marque-600: #60a5fa;
+  --color-marque-700: #60a5fa;
+  --color-marque-800: #93c5fd;
+  --color-marque-900: #bfdbfe;
+  --color-marque-950: #dbeafe;
 
-    --color-soleil-100: #3a2a06;
-    --color-soleil-900: #fde68a;
+  --color-soleil-100: #3a2a06;
+  --color-soleil-900: #fde68a;
 
-    --color-red-50: #2a0e12;
-    --color-red-200: #5b1a20;
-    --color-red-300: #7f1d1d;
-    --color-red-600: #ef4444;
-    --color-red-700: #fca5a5;
-    --color-red-800: #fecaca;
-    --color-emerald-50: #052e22;
-    --color-emerald-100: #064030;
-    --color-emerald-200: #065f46;
-    --color-emerald-800: #a7f3d0;
-    --color-amber-50: #2a1d05;
-    --color-amber-100: #3a2806;
-    --color-amber-200: #5c3d08;
-    --color-amber-700: #fcd34d;
-    --color-amber-800: #fde68a;
-    --color-amber-900: #fef3c7;
-    --color-sky-50: #082033;
-    --color-sky-200: #0c4a6e;
-    --color-sky-800: #bae6fd;
-  }
+  --color-red-50: #2a0e12;
+  --color-red-200: #5b1a20;
+  --color-red-300: #7f1d1d;
+  --color-red-600: #ef4444;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+  --color-emerald-50: #052e22;
+  --color-emerald-100: #064030;
+  --color-emerald-200: #065f46;
+  --color-emerald-800: #a7f3d0;
+  --color-amber-50: #2a1d05;
+  --color-amber-100: #3a2806;
+  --color-amber-200: #5c3d08;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+  --color-amber-900: #fef3c7;
+  --color-sky-50: #082033;
+  --color-sky-200: #0c4a6e;
+  --color-sky-800: #bae6fd;
 }
 
 body {

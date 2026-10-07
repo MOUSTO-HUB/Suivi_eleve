@@ -111,12 +111,17 @@ La comptabilité de l'école est tenue dans ses propres outils ; l'application n
 Le concepteur de l'application (super administrateur) administre toutes les écoles abonnées. Il ne voit jamais les données des élèves ni des familles : seulement les écoles, leurs abonnements et des chiffres globaux.
 
 - **EF-90** Le concepteur crée une école (nom, pays : Guinée, Côte d'Ivoire ou Sénégal, contacts) et son compte de direction ; le mot de passe provisoire est affiché une seule fois. L'année scolaire et ses trois trimestres sont créés avec l'école.
-- **EF-91** Tarif : 150 000 GNF par mois et par école, sans TVA ; ou 1 500 000 GNF par an (10 mois payés, 2 offerts). Une nouvelle école a 1 mois d'essai gratuit.
+- **EF-91** Tarif : 150 000 GNF par mois et par école, hors taxes (TVA en sus) ; ou 1 500 000 GNF par an (10 mois payés, 2 offerts). Une nouvelle école a 1 mois d'essai gratuit.
 - **EF-92** Le concepteur enregistre chaque paiement reçu (formule mensuelle ou annuelle, moyen : Orange Money, MTN Mobile Money, Wave, virement, espèces, autre ; référence ; date). L'abonnement est prolongé d'1 mois ou d'1 an à partir de la fin de la période précédente (ou du jour du paiement si l'école était déjà suspendue).
 - **EF-93** États d'une école : essai, actif, à renouveler (7 derniers jours), en retard (15 jours de grâce après la fin), suspendue (après la grâce, ou suspendue à la main par le concepteur). La direction voit un bandeau d'avertissement dès 7 jours avant la fin.
 - **EF-94** École suspendue : plus aucune connexion (personnel et parents), plus aucun envoi de message ; toutes les données sont conservées et tout revient dès le paiement ou la réactivation.
 - **EF-95** Tableau de bord du concepteur : nombre d'écoles par état, élèves et familles suivis, encaissements du mois et de l'année, écoles à relancer.
 - **EF-96** Chaque école a un pays (Guinée, Côte d'Ivoire, Sénégal) qui fixe la monnaie de ses montants (GNF ou FCFA) et l'indicatif ajouté aux numéros saisis sans (+224, +225, +221). À la connexion, le parent choisit son pays ; le dernier choix est retenu sur l'appareil. Les trois pays sont à l'heure GMT toute l'année.
+
+### 3.8 quater Affichage et SMS par le téléphone de l'école (ajout du 07/10/2026)
+
+- **EF-97** Le site est en « bleu école ». Chaque utilisateur choisit lui-même le mode clair ou sombre (bouton ☀️/🌙 dans le bandeau et sur la page de connexion), sans tenir compte du réglage du téléphone ou de l'ordinateur ; le choix est retenu sur l'appareil, le mode clair est utilisé par défaut.
+- **EF-98** (version suivante, en attente) SMS envoyés par le téléphone Android de l'école, avec sa carte SIM et son forfait : le personnel appuie sur un bouton, le message et les numéros s'ouvrent déjà remplis dans l'application SMS du téléphone, puis il valide l'envoi. Les SMS sont payés par l'école. Un fournisseur de SMS en masse (le moins cher) remplacera ce mode plus tard. Le code de connexion des parents ne peut pas attendre un bouton : il reste à prévoir (fournisseur SMS, ou connexion sans SMS).
 
 ### 3.9 Moteur de notifications (commun)
 

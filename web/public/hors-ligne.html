@@ -19,11 +19,9 @@
         color: #0f172a;
         text-align: center;
       }
-      @media (prefers-color-scheme: dark) {
-        body {
-          background: #05070d;
-          color: #f1f5f9;
-        }
+      [data-theme='sombre'] body {
+        background: #05070d;
+        color: #f1f5f9;
       }
       img {
         width: 72px;
@@ -41,6 +39,11 @@
         text-decoration: none;
       }
     </style>
+    <script>
+      // Même thème que le site (cookie posé par le bouton ☀️/🌙).
+      if (/(?:^|; )theme=sombre/.test(document.cookie))
+        document.documentElement.dataset.theme = 'sombre';
+    </script>
   </head>
   <body>
     <main>
