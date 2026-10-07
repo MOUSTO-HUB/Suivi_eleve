@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 function Chiffre({ libelle, valeur }: { libelle: string; valeur: string }) {
   return (
-    <div className="rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4">
+    <div className="rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-4">
       <p className="text-sm text-slate-500">{libelle}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums">{valeur}</p>
     </div>
@@ -57,7 +57,7 @@ export default async function TableauDeBord() {
           <Link
             key={etat}
             href={`/plateforme/ecoles?etat=${etat}`}
-            className="rounded-full border border-slate-200 bg-white px-3 py-1 hover:bg-marque-50/60"
+            className="rounded-full border border-slate-200 bg-carte px-3 py-1 hover:bg-marque-50/60"
           >
             {LIBELLES_ETAT_ABONNEMENT[etat]} :{' '}
             <strong className="tabular-nums">{t.ecoles.parEtat[etat]}</strong>

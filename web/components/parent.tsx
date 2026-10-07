@@ -100,7 +100,7 @@ export function LigneMessage({ n }: { n: NotificationParent }) {
   return (
     <Link
       href={`/parent/messages/${n.id}`}
-      className={`flex gap-3 rounded-2xl border bg-white p-4 shadow-sm shadow-marque-900/5 transition hover:border-marque-400 hover:shadow-md ${
+      className={`flex gap-3 rounded-2xl border bg-carte p-4 shadow-sm shadow-marque-900/5 transition hover:border-marque-400 hover:shadow-md ${
         n.priorite === 'URGENTE'
           ? 'border-l-4 border-red-600'
           : n.lueLe

@@ -175,7 +175,7 @@ export default async function PageComportements(
 
       <form
         role="search"
-        className="my-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_1fr_1fr_auto]"
+        className="my-4 grid gap-3 rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_1fr_1fr_auto]"
       >
         <Liste
           name="classeId"

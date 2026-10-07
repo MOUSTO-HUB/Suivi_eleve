@@ -117,7 +117,7 @@ export default async function PageEvenements(props: PageProps<'/evenements'>) {
         </Link>
       </div>
 
-      <div className="mb-6 hidden overflow-hidden rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 sm:block">
+      <div className="mb-6 hidden overflow-hidden rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 sm:block">
         <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-medium text-slate-600">
           {JOURS.map((j) => (
             <div key={j} className="py-2">
@@ -136,7 +136,7 @@ export default async function PageEvenements(props: PageProps<'/evenements'>) {
                   <p
                     className={`mb-1 font-medium ${
                       jour === aujourdhui
-                        ? 'inline-flex h-6 w-6 items-center justify-center rounded-full bg-marque-700 text-white'
+                        ? 'inline-flex h-6 w-6 items-center justify-center fond-degrade rounded-full text-white'
                         : 'text-slate-500'
                     }`}
                   >

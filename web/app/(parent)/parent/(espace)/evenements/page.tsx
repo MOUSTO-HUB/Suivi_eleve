@@ -51,7 +51,7 @@ export default async function Evenements() {
                 <li key={e.id}>
                   <Link
                     href={`/parent/evenements/${e.id}`}
-                    className="flex gap-4 rounded-xl border border-slate-200 bg-white p-4 hover:border-marque-600"
+                    className="flex gap-4 rounded-xl border border-slate-200 bg-carte p-4 hover:border-marque-600"
                   >
                     <span className="flex w-16 shrink-0 flex-col items-center justify-center rounded-lg bg-marque-50 py-2 text-marque-800">
                       <span className="text-2xl font-bold">

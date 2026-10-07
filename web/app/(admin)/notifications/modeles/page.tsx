@@ -40,7 +40,7 @@ export default async function PageModeles() {
         {modeles.map((m) => (
           <details
             key={m.type}
-            className="rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4"
+            className="rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-4"
           >
             <summary className="flex cursor-pointer flex-wrap items-center gap-2 font-medium text-slate-900">
               {LIBELLES_TYPE_NOTIFICATION[m.type]}

@@ -5,7 +5,7 @@ import type { ComponentProps, ReactNode } from 'react';
 
 // Texte en 16 px sur téléphone : l'iPhone ne zoome plus sur le champ touché.
 const champ =
-  'block w-full min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-900 shadow-sm transition focus:border-marque-500 focus:outline-none focus:ring-4 focus:ring-marque-500/15 sm:text-sm';
+  'block w-full min-w-0 rounded-lg border border-slate-300 bg-carte px-3 py-2 text-base text-slate-900 shadow-sm transition focus:border-marque-500 focus:outline-none focus:ring-4 focus:ring-marque-500/15 sm:text-sm';
 
 export const styles = {
   champ,
@@ -14,7 +14,7 @@ export const styles = {
   boutonSecondaire:
     'contour-degrade inline-flex items-center justify-center gap-2 rounded-lg border-2 px-4 py-1.5 text-sm font-semibold text-marque-800 shadow-sm transition hover:shadow-md hover:shadow-marque-700/15 active:scale-[0.98] disabled:opacity-60',
   boutonDanger:
-    'inline-flex items-center justify-center gap-2 rounded-lg border-2 border-red-200 bg-white px-4 py-1.5 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-50 disabled:opacity-60',
+    'inline-flex items-center justify-center gap-2 rounded-lg border-2 border-red-200 bg-carte px-4 py-1.5 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-50 disabled:opacity-60',
   lien: 'font-medium text-marque-700 hover:underline',
 };
 
@@ -87,7 +87,7 @@ export function Carte({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-marque-100 bg-white p-4 shadow-sm shadow-marque-900/5 sm:p-5">
+    <section className="rounded-2xl border border-marque-100 bg-carte p-4 shadow-sm shadow-marque-900/5 sm:p-5">
       {(titre || actions) && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           {titre && (
@@ -159,7 +159,7 @@ export function Tableau({
   vide?: string;
 }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5">
+    <div className="overflow-x-auto rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5">
       <table className="min-w-full divide-y divide-marque-100 text-sm">
         <thead className="bg-marque-50">
           <tr>

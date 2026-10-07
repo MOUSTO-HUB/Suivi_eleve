@@ -93,7 +93,7 @@ export function Menu({
   return (
     <nav
       aria-label={libelle}
-      className="sticky top-0 z-30 border-b border-marque-100 bg-white/90 shadow-sm backdrop-blur"
+      className="sticky top-0 z-30 border-b border-marque-100 bg-carte/90 shadow-sm backdrop-blur"
     >
       <div className={`mx-auto ${largeur} px-4 py-2.5`}>
         <div className="hidden flex-wrap gap-2 md:flex">{liens.map(lien)}</div>

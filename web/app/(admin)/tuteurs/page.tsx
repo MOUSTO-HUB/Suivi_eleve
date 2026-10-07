@@ -31,7 +31,7 @@ export default async function PageTuteurs(props: PageProps<'/tuteurs'>) {
       />
       <form
         role="search"
-        className="mb-4 flex gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4"
+        className="mb-4 flex gap-3 rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-4"
       >
         <Saisie
           name="q"

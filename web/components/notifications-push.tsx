@@ -130,7 +130,7 @@ export function NotificationsAppareil({
   if (etat === 'chargement') return null;
 
   return (
-    <div className="mb-6 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4">
+    <div className="mb-6 rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-4">
       <h2 className="font-medium">Notifications sur cet appareil</h2>
       {etat === 'iphone-a-installer' && (
         <p className="mt-1 text-sm text-slate-600">

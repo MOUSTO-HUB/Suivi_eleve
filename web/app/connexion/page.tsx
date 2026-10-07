@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Connexion · Suivi_eleve' };
 const onglet = (actif: boolean) =>
   `flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold transition ${
     actif
-      ? 'bg-white text-marque-800 shadow-md'
+      ? 'bg-carte text-marque-800 shadow-md'
       : 'text-white/85 hover:bg-white/10 hover:text-white'
   }`;
 
@@ -52,7 +52,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
             Personnel de l&apos;école
           </Link>
         </nav>
-        <div className="rounded-2xl bg-white p-6 shadow-2xl shadow-marque-950/40">
+        <div className="rounded-2xl bg-carte p-6 shadow-2xl shadow-marque-950/40">
           {!parent ? (
             <FormulaireAction
               action={seConnecter}

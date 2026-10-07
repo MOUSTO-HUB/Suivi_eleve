@@ -1,8 +1,5 @@
 @import 'tailwindcss';
 
-/* Thème clair uniquement (même si l'appareil est en mode sombre). */
-@custom-variant dark (&:where(.theme-sombre, .theme-sombre *));
-
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -29,14 +26,85 @@
   --color-soleil-300: oklch(87.9% 0.169 91.605);
   --color-soleil-400: oklch(82.8% 0.189 84.429);
   --color-soleil-900: oklch(41.4% 0.112 45.904);
+  /* Fond des cartes, tableaux et champs (`bg-carte`). */
+  --color-carte: #fff;
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
+  --fond-page: #f4f7fc;
+  /* Dégradés : couleurs fixes, indépendantes du mode sombre. */
+  --degrade-nuit: #162456;
+  --degrade-bleu: #193cb8;
+  --degrade-vif: #155dfc;
+  --degrade-ciel: #00a6f4;
+}
+
+/*
+ * Mode sombre (téléphone ou ordinateur réglé en sombre) : fonds noirs,
+ * textes clairs. On inverse les nuances au lieu de doubler chaque classe :
+ * « slate-900 » (texte foncé) devient clair, « marque-50 » (fond pâle) devient
+ * bleu nuit, etc. Le blanc reste blanc (texte des boutons en dégradé).
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fond-page: #05070d;
+    --color-carte: #0d1322;
+    --degrade-nuit: #020617;
+    --degrade-bleu: #172554;
+    --degrade-vif: #1d4ed8;
+    --degrade-ciel: #0284c7;
+
+    --color-slate-50: #0b1120;
+    --color-slate-100: #141c2e;
+    --color-slate-200: #1e293b;
+    --color-slate-300: #334155;
+    --color-slate-400: #64748b;
+    --color-slate-500: #94a3b8;
+    --color-slate-600: #a9b6c8;
+    --color-slate-700: #cbd5e1;
+    --color-slate-800: #e2e8f0;
+    --color-slate-900: #f1f5f9;
+
+    --color-marque-50: #0c1730;
+    --color-marque-100: #16244a;
+    --color-marque-200: #1e3366;
+    --color-marque-300: #1e40af;
+    --color-marque-400: #3b82f6;
+    --color-marque-500: #3b82f6;
+    --color-marque-600: #60a5fa;
+    --color-marque-700: #60a5fa;
+    --color-marque-800: #93c5fd;
+    --color-marque-900: #bfdbfe;
+    --color-marque-950: #dbeafe;
+
+    --color-soleil-100: #3a2a06;
+    --color-soleil-900: #fde68a;
+
+    --color-red-50: #2a0e12;
+    --color-red-200: #5b1a20;
+    --color-red-300: #7f1d1d;
+    --color-red-600: #ef4444;
+    --color-red-700: #fca5a5;
+    --color-red-800: #fecaca;
+    --color-emerald-50: #052e22;
+    --color-emerald-100: #064030;
+    --color-emerald-200: #065f46;
+    --color-emerald-800: #a7f3d0;
+    --color-amber-50: #2a1d05;
+    --color-amber-100: #3a2806;
+    --color-amber-200: #5c3d08;
+    --color-amber-700: #fcd34d;
+    --color-amber-800: #fde68a;
+    --color-amber-900: #fef3c7;
+    --color-sky-50: #082033;
+    --color-sky-200: #0c4a6e;
+    --color-sky-800: #bae6fd;
+  }
 }
 
 body {
-  background: #f4f7fc;
+  background: var(--fond-page);
   color: var(--color-slate-900);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
@@ -45,9 +113,9 @@ body {
 @utility fond-bandeau {
   background-image: linear-gradient(
     110deg,
-    var(--color-marque-950) 0%,
-    var(--color-marque-800) 45%,
-    var(--color-ciel-500) 100%
+    var(--degrade-nuit) 0%,
+    var(--degrade-bleu) 45%,
+    var(--degrade-ciel) 100%
   );
 }
 
@@ -55,19 +123,18 @@ body {
 @utility fond-degrade {
   background-image: linear-gradient(
     135deg,
-    var(--color-marque-800),
-    var(--color-marque-600) 55%,
-    var(--color-ciel-500)
+    var(--degrade-bleu),
+    var(--degrade-vif) 55%,
+    var(--degrade-ciel)
   );
 }
 
-/* Fond blanc avec un contour en dégradé bleu (bordure transparente requise). */
+/* Fond de carte avec un contour en dégradé bleu (bordure transparente requise). */
 @utility contour-degrade {
   border-color: transparent;
   background:
-    linear-gradient(#fff, #fff) padding-box,
-    linear-gradient(135deg, var(--color-marque-700), var(--color-ciel-400))
-      border-box;
+    linear-gradient(var(--color-carte), var(--color-carte)) padding-box,
+    linear-gradient(135deg, var(--degrade-vif), var(--degrade-ciel)) border-box;
 }
 
 @layer base {

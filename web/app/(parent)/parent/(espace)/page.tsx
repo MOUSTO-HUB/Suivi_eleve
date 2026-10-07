@@ -55,7 +55,7 @@ export default async function AccueilParent() {
             </span>
             {libelle}
             {href === '/parent/messages' && messages.nonLues > 0 && (
-              <span className="rounded-full bg-soleil-400 px-2 text-xs font-bold text-soleil-900">
+              <span className="rounded-full bg-soleil-400 px-2 text-xs font-bold text-black/80">
                 {messages.nonLues} non lu(s)
               </span>
             )}

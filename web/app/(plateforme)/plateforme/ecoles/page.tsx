@@ -19,7 +19,7 @@ const filtre = (actif: boolean) =>
   `rounded-full border px-3 py-1 text-sm ${
     actif
       ? 'border-marque-700 bg-marque-50 text-marque-800'
-      : 'border-slate-200 bg-white hover:bg-marque-50/60'
+      : 'border-slate-200 bg-carte hover:bg-marque-50/60'
   }`;
 
 export default async function Ecoles(props: PageProps<'/plateforme/ecoles'>) {

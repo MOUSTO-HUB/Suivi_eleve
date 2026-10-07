@@ -169,7 +169,7 @@ export default async function PageAbsences(props: PageProps<'/absences'>) {
 
       <form
         role="search"
-        className="my-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_1fr_150px_150px_auto]"
+        className="my-4 grid gap-3 rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_1fr_150px_150px_auto]"
       >
         <Liste
           name="classeId"

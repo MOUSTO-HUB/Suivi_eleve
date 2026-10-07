@@ -63,7 +63,7 @@ export default async function PageAppareils(props: PageProps<'/appareils'>) {
 
       <form
         role="search"
-        className="mb-4 grid gap-3 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_180px_160px_auto]"
+        className="mb-4 grid gap-3 rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-4 sm:grid-cols-[1fr_180px_160px_auto]"
       >
         <Saisie
           name="q"

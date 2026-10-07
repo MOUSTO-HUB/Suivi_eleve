@@ -153,7 +153,7 @@ export default async function PageSynthese(
       </FormulaireAction>
 
       {grille.peutPublier && (
-        <div className="mt-6 rounded-2xl border border-marque-100 bg-white shadow-sm shadow-marque-900/5 p-5">
+        <div className="mt-6 rounded-2xl border border-marque-100 bg-carte shadow-sm shadow-marque-900/5 p-5">
           <h2 className="mb-2 font-semibold">Publication</h2>
           <p className="mb-3 text-sm text-slate-600">
             Les familles reçoivent la moyenne générale et le rang par SMS, et le
