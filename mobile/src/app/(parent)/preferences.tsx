@@ -1,18 +1,11 @@
 import { useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
-import {
-  Bouton,
-  Carte,
-  couleurs,
-  Ecran,
-  Etat,
-  Message,
-  Texte,
-} from '@/components/ui';
+import { Bouton, Carte, Ecran, Etat, Message, Texte } from '@/components/ui';
 import { envoyer, ErreurApi } from '@/lib/api';
 import { TYPES_NOTIFICATION } from '@/lib/format';
 import { useRequete } from '@/lib/requete';
 import type { Preference } from '@/lib/types';
+import { useStyles, useTheme, type Couleurs } from '@/lib/theme';
 
 const CANAUX = [
   ['sms', 'SMS', 'SMS'],
@@ -22,6 +15,8 @@ const CANAUX = [
 
 /** Canaux par type de message ; les messages importants restent obligatoires. */
 export default function Preferences() {
+  const { couleurs } = useTheme();
+  const styles = useStyles(creerStyles);
   const r = useRequete<Preference[]>('/notifications/preferences');
   // Modifications en cours ; sinon, les préférences enregistrées.
   const [modifiees, setModifiees] = useState<Preference[] | null>(null);
@@ -106,12 +101,13 @@ export default function Preferences() {
   );
 }
 
-const styles = StyleSheet.create({
-  rangee: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: 44,
-  },
-  libelle: { fontSize: 17, color: couleurs.texte },
-});
+const creerStyles = (couleurs: Couleurs) =>
+  StyleSheet.create({
+    rangee: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      minHeight: 44,
+    },
+    libelle: { fontSize: 17, color: couleurs.texte },
+  });

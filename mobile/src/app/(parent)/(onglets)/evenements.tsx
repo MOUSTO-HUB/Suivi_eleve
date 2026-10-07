@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { Carte, couleurs, Ecran, Etat, Pastille, Texte } from '@/components/ui';
+import { Carte, Ecran, Etat, Pastille, Texte } from '@/components/ui';
 import { dateFr, heureFr, jourIso } from '@/lib/format';
 import { useRequete } from '@/lib/requete';
 import type { Evenement } from '@/lib/types';
+import { useStyles, type Couleurs } from '@/lib/theme';
 
 /** Calendrier : événements des trois prochains mois, regroupés par mois. */
 export default function Evenements() {
+  const styles = useStyles(creerStyles);
   const r = useRequete<Evenement[]>(
     `/evenements?du=${jourIso(0)}&au=${jourIso(92)}`,
   );
@@ -91,24 +93,25 @@ export default function Evenements() {
   );
 }
 
-const styles = StyleSheet.create({
-  mois: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: couleurs.texte,
-    textTransform: 'capitalize',
-    marginTop: 4,
-  },
-  rangee: { flexDirection: 'row', gap: 14 },
-  date: {
-    width: 64,
-    alignItems: 'center',
-    backgroundColor: couleurs.primaireClair,
-    borderRadius: 10,
-    paddingVertical: 8,
-  },
-  jour: { fontSize: 26, fontWeight: '800', color: couleurs.primaire },
-  heure: { fontSize: 14, color: couleurs.primaire },
-  titre: { fontSize: 18, fontWeight: '600', color: couleurs.texte },
-  annule: { textDecorationLine: 'line-through', color: couleurs.secondaire },
-});
+const creerStyles = (couleurs: Couleurs) =>
+  StyleSheet.create({
+    mois: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: couleurs.texte,
+      textTransform: 'capitalize',
+      marginTop: 4,
+    },
+    rangee: { flexDirection: 'row', gap: 14 },
+    date: {
+      width: 64,
+      alignItems: 'center',
+      backgroundColor: couleurs.primaireClair,
+      borderRadius: 10,
+      paddingVertical: 8,
+    },
+    jour: { fontSize: 26, fontWeight: '800', color: couleurs.primaire },
+    heure: { fontSize: 14, color: couleurs.primaire },
+    titre: { fontSize: 18, fontWeight: '600', color: couleurs.texte },
+    annule: { textDecorationLine: 'line-through', color: couleurs.secondaire },
+  });

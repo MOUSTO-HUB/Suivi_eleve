@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErreurApi } from '@/lib/api';
 import { useSession, useUtilisateur } from '@/lib/session';
-import { Bouton, Carte, couleurs, Ecran, Message, Texte, Titre } from './ui';
+import { useTheme } from '@/lib/theme';
+import { Bouton, Carte, Ecran, Message, Texte, Titre } from './ui';
 
 /** Première connexion d'un parent : information sur les données et accord. */
 export function Consentement() {
@@ -10,6 +11,7 @@ export function Consentement() {
   const { consentir, deconnexion } = useSession();
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const { couleurs } = useTheme();
   if (!u.consentement) return null;
   const { version, texte } = u.consentement;
 

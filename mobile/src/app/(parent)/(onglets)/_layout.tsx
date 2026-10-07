@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
-import { couleurs } from '@/components/ui';
+import { useOptionsEntete } from '@/components/entete';
+import { useTheme } from '@/lib/theme';
 
 const icone = (symbole: string) =>
   function Icone({ focused }: { focused: boolean }) {
@@ -12,13 +13,21 @@ const icone = (symbole: string) =>
   };
 
 export default function Onglets() {
+  const entete = useOptionsEntete();
+  const { couleurs } = useTheme();
   return (
     <Tabs
       screenOptions={{
+        ...entete,
+        sceneStyle: { backgroundColor: couleurs.fond },
         tabBarActiveTintColor: couleurs.primaire,
-        tabBarLabelStyle: { fontSize: 13 },
-        tabBarStyle: { minHeight: 64 },
-        headerTitleStyle: { color: couleurs.texte },
+        tabBarInactiveTintColor: couleurs.secondaire,
+        tabBarLabelStyle: { fontSize: 13, fontWeight: '600' },
+        tabBarStyle: {
+          minHeight: 64,
+          backgroundColor: couleurs.carte,
+          borderTopColor: couleurs.bordure,
+        },
       }}
     >
       <Tabs.Screen

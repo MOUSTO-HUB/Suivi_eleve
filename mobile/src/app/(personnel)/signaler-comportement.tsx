@@ -1,18 +1,11 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import {
-  Bouton,
-  Carte,
-  Champ,
-  couleurs,
-  Ecran,
-  Message,
-  Texte,
-} from '@/components/ui';
+import { Bouton, Carte, Champ, Ecran, Message, Texte } from '@/components/ui';
 import { envoyer, ErreurApi, lire } from '@/lib/api';
 import { CATEGORIES_COMPORTEMENT } from '@/lib/format';
 import type { EleveTrouve, Page } from '@/lib/types';
+import { degrade, useStyles, useTheme, type Couleurs } from '@/lib/theme';
 
 function Choix<T extends string | number>({
   options,
@@ -23,6 +16,8 @@ function Choix<T extends string | number>({
   valeur: T | null;
   surChoix: (v: T) => void;
 }) {
+  const { couleurs } = useTheme();
+  const styles = useStyles(creerStyles);
   return (
     <View style={styles.choix}>
       {options.map(([v, libelle]) => (
@@ -31,12 +26,15 @@ function Choix<T extends string | number>({
           onPress={() => surChoix(v)}
           accessibilityRole="radio"
           accessibilityState={{ checked: valeur === v }}
-          style={[styles.option, valeur === v && styles.optionActive]}
+          style={[
+            styles.option,
+            valeur === v && [styles.optionActive, degrade(couleurs.degrade)],
+          ]}
         >
           <Text
             style={[
               styles.optionTexte,
-              valeur === v && { color: couleurs.blanc },
+              valeur === v && { color: couleurs.surPrimaire },
             ]}
           >
             {libelle}
@@ -185,20 +183,21 @@ export default function SignalerComportement() {
   );
 }
 
-const styles = StyleSheet.create({
-  choix: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  option: {
-    minHeight: 48,
-    paddingHorizontal: 16,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: couleurs.bordure,
-    backgroundColor: couleurs.blanc,
-    justifyContent: 'center',
-  },
-  optionActive: {
-    backgroundColor: couleurs.primaire,
-    borderColor: couleurs.primaire,
-  },
-  optionTexte: { fontSize: 16, color: couleurs.texte },
-});
+const creerStyles = (couleurs: Couleurs) =>
+  StyleSheet.create({
+    choix: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    option: {
+      minHeight: 48,
+      paddingHorizontal: 16,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: couleurs.bordure,
+      backgroundColor: couleurs.carte,
+      justifyContent: 'center',
+    },
+    optionActive: {
+      backgroundColor: couleurs.primaire,
+      borderColor: 'transparent',
+    },
+    optionTexte: { fontSize: 16, color: couleurs.texte },
+  });

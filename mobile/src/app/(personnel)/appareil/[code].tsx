@@ -5,7 +5,6 @@ import {
   Bouton,
   Carte,
   Champ,
-  couleurs,
   Ecran,
   Etat,
   Ligne,
@@ -26,6 +25,7 @@ import {
 import { useRequete } from '@/lib/requete';
 import { useUtilisateur } from '@/lib/session';
 import type { AppareilScanne, TypeSignalement } from '@/lib/types';
+import { useTheme } from '@/lib/theme';
 
 /** Appareil scanné : propriétaire, contacts des tuteurs et signalements possibles. */
 export default function EcranAppareil() {
@@ -34,6 +34,7 @@ export default function EcranAppareil() {
   const r = useRequete<AppareilScanne>(
     `/appareils/qr/${encodeURIComponent(code)}`,
   );
+  const { couleurs } = useTheme();
   const [choix, setChoix] = useState<TypeSignalement | null>(null);
   const [lieu, setLieu] = useState('');
   const [commentaire, setCommentaire] = useState('');

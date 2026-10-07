@@ -1,15 +1,18 @@
 import { Stack } from 'expo-router';
-import { couleurs } from '@/components/ui';
+import { useOptionsEntete } from '@/components/entete';
+import { useTheme } from '@/lib/theme';
 
 export const unstable_settings = { initialRouteName: 'personnel' };
 
 /** Mode PERSONNEL : enseignants, surveillants et administration. */
 export default function EspacePersonnel() {
+  const entete = useOptionsEntete();
+  const { couleurs } = useTheme();
   return (
     <Stack
       screenOptions={{
-        headerTintColor: couleurs.primaire,
-        headerTitleStyle: { color: couleurs.texte },
+        ...entete,
+        contentStyle: { backgroundColor: couleurs.fond },
         headerBackButtonDisplayMode: 'minimal',
       }}
     >

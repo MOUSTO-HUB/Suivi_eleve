@@ -1,21 +1,24 @@
 import { Stack } from 'expo-router';
 import { Consentement } from '@/components/consentement';
-import { couleurs } from '@/components/ui';
+import { useOptionsEntete } from '@/components/entete';
 import { FournisseurEnfants } from '@/lib/enfants';
 import { useOuvertureDepuisPush } from '@/lib/push';
 import { useUtilisateur } from '@/lib/session';
+import { useTheme } from '@/lib/theme';
 
 export default function EspaceParent() {
   useOuvertureDepuisPush();
   const u = useUtilisateur();
+  const entete = useOptionsEntete();
+  const { couleurs } = useTheme();
   // Rien n'est affiché avant l'accord du tuteur sur l'usage de ses données.
   if (u.consentement && !u.consentement.accepte) return <Consentement />;
   return (
     <FournisseurEnfants>
       <Stack
         screenOptions={{
-          headerTintColor: couleurs.primaire,
-          headerTitleStyle: { color: couleurs.texte },
+          ...entete,
+          contentStyle: { backgroundColor: couleurs.fond },
           headerBackButtonDisplayMode: 'minimal',
         }}
       >

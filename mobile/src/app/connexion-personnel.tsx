@@ -1,17 +1,11 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  Bouton,
-  Champ,
-  couleurs,
-  Ecran,
-  Message,
-  Texte,
-  Titre,
-} from '@/components/ui';
+import { Accueil } from '@/components/entete';
+import { Bouton, Champ, Ecran, Message, Texte, Titre } from '@/components/ui';
 import { ErreurApi } from '@/lib/api';
 import { useSession } from '@/lib/session';
+import { useTheme } from '@/lib/theme';
 
 /** Enseignants, surveillants et administration : email et mot de passe. */
 export default function ConnexionPersonnel() {
@@ -20,6 +14,7 @@ export default function ConnexionPersonnel() {
   const [motDePasse, setMotDePasse] = useState('');
   const [enCours, setEnCours] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
+  const { couleurs } = useTheme();
 
   const valider = async () => {
     setEnCours(true);
@@ -33,7 +28,11 @@ export default function ConnexionPersonnel() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: couleurs.fond }}>
+    <SafeAreaView
+      edges={['bottom', 'left', 'right']}
+      style={{ flex: 1, backgroundColor: couleurs.fond }}
+    >
+      <Accueil sousTitre="Espace du personnel de l'école" />
       <Ecran>
         <Titre>Espace du personnel</Titre>
         <Texte discret>

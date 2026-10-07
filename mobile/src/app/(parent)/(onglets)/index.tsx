@@ -4,7 +4,7 @@ import { ChoixEnfant } from '@/components/choix-enfant';
 import { LigneNotification } from '@/components/ligne-notification';
 import {
   Carte,
-  couleurs,
+  ContourDegrade,
   Ecran,
   Etat,
   Message,
@@ -14,6 +14,7 @@ import {
 import { useEnfants } from '@/lib/enfants';
 import { useMesNotifications } from '@/lib/notifications';
 import { useUtilisateur } from '@/lib/session';
+import { useStyles, type Couleurs } from '@/lib/theme';
 
 const RUBRIQUES = [
   { href: '/resultats', libelle: 'Résultats', icone: '📊' },
@@ -25,6 +26,7 @@ const RUBRIQUES = [
 ] as const;
 
 export default function Accueil() {
+  const styles = useStyles(creerStyles);
   const utilisateur = useUtilisateur();
   const enfants = useEnfants();
   const messages = useMesNotifications();
@@ -62,10 +64,14 @@ export default function Accueil() {
             key={r.href}
             onPress={() => router.push(r.href)}
             accessibilityRole="button"
-            style={({ pressed }) => [styles.tuile, pressed && { opacity: 0.7 }]}
+            style={({ pressed }) => [styles.tuile, pressed && styles.presse]}
           >
-            <Text style={styles.tuileIcone}>{r.icone}</Text>
-            <Text style={styles.tuileTexte}>{r.libelle}</Text>
+            <ContourDegrade rayon={16} style={{ flex: 1 }}>
+              <View style={styles.tuileContenu}>
+                <Text style={styles.tuileIcone}>{r.icone}</Text>
+                <Text style={styles.tuileTexte}>{r.libelle}</Text>
+              </View>
+            </ContourDegrade>
           </Pressable>
         ))}
       </View>
@@ -101,34 +107,45 @@ export default function Accueil() {
   );
 }
 
-const styles = StyleSheet.create({
-  grille: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  tuile: {
-    width: '31%',
-    flexGrow: 1,
-    minHeight: 96,
-    backgroundColor: couleurs.blanc,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: couleurs.bordure,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    padding: 8,
-  },
-  tuileIcone: { fontSize: 30 },
-  tuileTexte: { fontSize: 15, fontWeight: '600', color: couleurs.texte },
-  entete: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  compteur: { fontSize: 15, color: couleurs.primaire, fontWeight: '600' },
-  lien: {
-    fontSize: 17,
-    color: couleurs.primaire,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-});
+const creerStyles = (couleurs: Couleurs) =>
+  StyleSheet.create({
+    grille: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    tuile: { width: '31%', flexGrow: 1, minHeight: 100 },
+    presse: { opacity: 0.75, transform: [{ scale: 0.97 }] },
+    tuileContenu: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      padding: 4,
+    },
+    tuileIcone: { fontSize: 30 },
+    tuileTexte: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: couleurs.titre,
+      textAlign: 'center',
+    },
+    entete: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 8,
+    },
+    compteur: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: '#1c1400',
+      backgroundColor: couleurs.soleil,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 2,
+      overflow: 'hidden',
+    },
+    lien: {
+      fontSize: 17,
+      color: couleurs.primaire,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+  });
