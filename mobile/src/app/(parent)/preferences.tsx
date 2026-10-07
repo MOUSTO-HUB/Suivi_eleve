@@ -78,7 +78,13 @@ export default function Preferences() {
                   <Switch
                     value={p[cle]}
                     onValueChange={() => basculer(p.type, cle)}
-                    trackColor={{ true: couleurs.primaire }}
+                    trackColor={{
+                      true: couleurs.primaire,
+                      false: couleurs.bordureChamp,
+                    }}
+                    thumbColor={couleurs.surPrimaire}
+                    // Navigateur (react-native-web) : rond blanc aussi en position « oui ».
+                    {...{ activeThumbColor: couleurs.surPrimaire }}
                     accessibilityLabel={`${TYPES_NOTIFICATION[p.type].libelle} par ${libelle}`}
                   />
                 </View>
