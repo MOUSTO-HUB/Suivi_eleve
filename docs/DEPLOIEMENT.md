@@ -33,7 +33,22 @@ curl -fsSL https://get.docker.com | sudo sh
 sudo usermod -aG docker "$USER"   # puis se déconnecter / reconnecter
 ```
 
-Recommandé : connexion SSH par clé uniquement (`PasswordAuthentication no` dans `/etc/ssh/sshd_config`).
+Recommandé : connexion SSH par clé uniquement.
+
+```powershell
+# Sur le PC (PowerShell) : créer la clé (phrase secrète conseillée) et l'envoyer au serveur
+ssh-keygen -t ed25519 -C "suivi-eleve"
+type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh ubuntu@SERVEUR "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+```
+
+Une fois la connexion par clé vérifiée, et en gardant une session ouverte, couper le mot de passe sur le serveur. Le fichier `00-…` est lu avant `50-cloud-init.conf`, qui réactive souvent le mot de passe (la première valeur lue l'emporte) :
+
+```bash
+printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\n' | sudo tee /etc/ssh/sshd_config.d/00-cle-seulement.conf
+sudo sshd -t && sudo systemctl reload ssh
+```
+
+Contrôle depuis le PC : `ssh -o PubkeyAuthentication=no ubuntu@SERVEUR` doit répondre `Permission denied (publickey)`. Clé perdue : console de secours de l'hébergeur (KVM OVH).
 
 ## 3. Installer l'application
 
