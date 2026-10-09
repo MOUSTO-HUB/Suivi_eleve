@@ -41,6 +41,24 @@ export const LIMITES = {
     fenetreS: 15 * 60,
     message: 'Trop de codes essayés. Réessayez dans 15 minutes.',
   },
+  doubleAuthIp: {
+    nom: 'double-auth-ip',
+    max: 20,
+    fenetreS: 15 * 60,
+    message: 'Trop de codes essayés. Réessayez dans 15 minutes.',
+  },
+  oubliIp: {
+    nom: 'oubli-ip',
+    max: 10,
+    fenetreS: 60 * 60,
+    message: 'Trop de demandes. Réessayez dans une heure.',
+  },
+  reinitialisationIp: {
+    nom: 'reinitialisation-ip',
+    max: 20,
+    fenetreS: 15 * 60,
+    message: 'Trop d’essais. Réessayez dans 15 minutes.',
+  },
 } satisfies Record<string, Limite>;
 
 /**
@@ -62,6 +80,18 @@ export class LimiteurService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     await this.redis.quit().catch(() => undefined);
+  }
+
+  /** Vrai la première fois que `cle` est vue pendant `dureeS` secondes (usage unique). */
+  async premiereFois(cle: string, dureeS: number): Promise<boolean> {
+    const reponse = await this.redis.set(
+      `${this.prefixe}:unique:${cle}`,
+      '1',
+      'EX',
+      Math.max(1, dureeS),
+      'NX',
+    );
+    return reponse === 'OK';
   }
 
   /** Compte un essai ; au-delà du maximum, répond 429 avec le délai d'attente. */

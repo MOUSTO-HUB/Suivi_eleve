@@ -975,6 +975,10 @@ export interface DetailEcolePlateforme extends EcolePlateforme {
     email: string | null;
     actif: boolean;
     derniereConnexion: string | null;
+    /** Bloqué après 3 essais incorrects (30 minutes, puis 3 heures). */
+    bloqueJusquA: string | null;
+    /** Désactivé au 3e blocage. */
+    verrouilleLe: string | null;
   }[];
   paiements: PaiementAbonnement[];
 }

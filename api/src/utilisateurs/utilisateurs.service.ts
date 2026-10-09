@@ -3,12 +3,12 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { hash, verify } from '@node-rs/argon2';
 import { AuditService } from '../audit/audit.service.js';
 import type { UtilisateurConnecte } from '../auth/auth.types.js';
 import { Prisma } from '../generated/prisma/client.js';
+import { DEBLOCAGE, SANS_DOUBLE_AUTH } from '../auth/connexion.regles.js';
 import { ActionAudit, Role } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import type {
@@ -28,6 +28,9 @@ const selection = {
   role: true,
   actif: true,
   derniereConnexion: true,
+  bloqueJusquA: true,
+  verrouilleLe: true,
+  doubleAuth: true,
   creeLe: true,
 } satisfies Prisma.UtilisateurSelect;
 
@@ -101,7 +104,14 @@ export class UtilisateursService {
       );
     const modifie = await this.prisma.utilisateur.update({
       where: { id },
-      data: dto,
+      // Réactiver (ou débloquer) remet aussi à zéro les essais incorrects.
+      data: {
+        prenoms: dto.prenoms,
+        nom: dto.nom,
+        role: dto.role,
+        actif: dto.actif,
+        ...(dto.actif === true ? DEBLOCAGE : {}),
+      },
       select: selection,
     });
     if (dto.actif === false && compte.actif) await this.fermerSessions(id);
@@ -124,7 +134,14 @@ export class UtilisateursService {
     const motDePasse = motDePasseProvisoire();
     await this.prisma.utilisateur.update({
       where: { id },
-      data: { motDePasseHash: await hash(motDePasse) },
+      // Téléphone perdu : la double authentification repart de zéro (code par email
+      // pour les rôles qui l'exigent) ; le blocage temporaire est levé.
+      data: {
+        motDePasseHash: await hash(motDePasse),
+        ...SANS_DOUBLE_AUTH,
+        echecsConnexion: 0,
+        bloqueJusquA: null,
+      },
     });
     await this.fermerSessions(id);
     await this.audit.journaliser(
@@ -152,7 +169,7 @@ export class UtilisateursService {
       !compte?.motDePasseHash ||
       !(await verify(compte.motDePasseHash, actuel))
     )
-      throw new UnauthorizedException('Mot de passe actuel incorrect.');
+      throw new BadRequestException('Mot de passe actuel incorrect.');
     const erreur = erreurMotDePasse(nouveau);
     if (erreur) throw new BadRequestException(erreur);
     if (nouveau === actuel)

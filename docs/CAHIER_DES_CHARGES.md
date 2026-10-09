@@ -123,6 +123,14 @@ Le concepteur de l'application (super administrateur) administre toutes les éco
 - **EF-97** Le site est en « bleu école ». Chaque utilisateur choisit lui-même le mode clair ou sombre (bouton ☀️/🌙 dans le bandeau et sur la page de connexion), sans tenir compte du réglage du téléphone ou de l'ordinateur ; le choix est retenu sur l'appareil, le mode clair est utilisé par défaut.
 - **EF-98** (version suivante, en attente) SMS envoyés par le téléphone Android de l'école, avec sa carte SIM et son forfait : le personnel appuie sur un bouton, le message et les numéros s'ouvrent déjà remplis dans l'application SMS du téléphone, puis il valide l'envoi. Les SMS sont payés par l'école. Un fournisseur de SMS en masse (le moins cher) remplacera ce mode plus tard. Le code de connexion des parents ne peut pas attendre un bouton : il reste à prévoir (fournisseur SMS, ou connexion sans SMS).
 
+
+### 3.8 quinquies Sécurité de la connexion (ajout du 09/10/2026)
+
+- **EF-99** « Je ne suis pas un robot » : case à cocher ALTCHA (sans service extérieur ni suivi des visiteurs) sur la connexion du personnel, la demande de code SMS des parents et le mot de passe oublié, sur le site et dans l'application. Chaque réponse ne sert qu'une fois.
+- **EF-100** Blocage progressif du personnel : 3 essais incorrects (mot de passe ou code de double authentification) bloquent le compte 30 minutes ; le 2e blocage dure 3 heures ; le 3e désactive le compte. Les compteurs repartent de zéro à chaque connexion réussie. La direction réactive (ou débloque) les comptes de son école ; le concepteur réactive la direction (nouveau mot de passe provisoire) ; le compte concepteur se réactive par la commande `initialiser` sur le serveur. Un email prévient la personne à chaque blocage.
+- **EF-101** Double authentification du personnel : code à 6 chiffres d'une application d'authentification (Google ou Microsoft Authenticator, avec 10 codes de secours à usage unique) ou code envoyé par email (10 minutes, 3 essais). Obligatoire pour la direction, la comptabilité et le concepteur (code par email par défaut, l'application au choix dans « Mon compte »), proposée aux autres rôles. Les parents ont déjà le code SMS. Une réinitialisation du mot de passe par la direction (ou le concepteur) remet la double authentification par email (téléphone perdu).
+- **EF-102** Mot de passe oublié (personnel) : lien envoyé par email, valable 30 minutes et une seule fois ; même réponse que l'adresse soit connue ou non ; après le changement, toutes les sessions sont fermées et un email confirme le changement.
+
 ### 3.9 Moteur de notifications (commun)
 
 - **EF-80** Chaque notification part sur les canaux choisis : SMS, email, push. Le SMS est court (160 caractères) ; l'email et l'application portent le détail.
@@ -178,7 +186,7 @@ Les données concernent des mineurs : la sécurité et la confidentialité prime
 | Domaine | Exigence mesurable |
 | --- | --- |
 | Confidentialité | Consentement du tuteur à l'inscription ; un parent ne voit que ses enfants ; conformité à la loi locale sur les données personnelles (au Sénégal : loi 2008-12 et déclaration à la CDP) ; droit d'accès, de rectification et d'effacement |
-| Sécurité | HTTPS partout ; mots de passe hachés (bcrypt/argon2) ; connexion parent par numéro + code OTP SMS ; jetons JWT courts avec rafraîchissement ; contrôle d'accès par rôle côté serveur ; journal d'audit |
+| Sécurité | HTTPS partout ; mots de passe hachés (bcrypt/argon2) ; connexion parent par numéro + code OTP SMS ; double authentification et blocage progressif du personnel ; « Je ne suis pas un robot » (ALTCHA) ; jetons JWT courts avec rafraîchissement ; contrôle d'accès par rôle côté serveur ; journal d'audit |
 | Performance | Page ou écran chargé en moins de 2 s en 3G ; 1 000 SMS envoyés en moins de 5 min via une file d'attente |
 | Disponibilité | 99,5 % sur l'année scolaire ; sauvegarde quotidienne chiffrée conservée 30 jours ; restauration testée chaque trimestre |
 | Fiabilité des envois | Nouvel essai automatique (3 fois) ; bascule SMS vers un second fournisseur en cas de panne ; aucun message perdu |

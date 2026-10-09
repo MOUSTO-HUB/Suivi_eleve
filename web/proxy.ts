@@ -14,12 +14,16 @@ import { accueilDuRole } from './lib/types';
 
 const MARGE_MS = 60 * 1000;
 
+/** Pages ouvertes sans connexion (mot de passe oublié : lien reçu par email). */
+const PAGES_PUBLIQUES = ['/mot-de-passe-oublie', '/mot-de-passe/nouveau'];
+
 /**
  * Vérification optimiste de la session et renouvellement du jeton d'accès.
  * La vraie vérification des droits reste faite par l'API à chaque appel.
  */
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  if (PAGES_PUBLIQUES.includes(pathname)) return NextResponse.next();
   const surConnexion = pathname === '/connexion';
   const acces = request.cookies.get(COOKIE_ACCES)?.value;
   const rafraichissement = request.cookies.get(COOKIE_RAFRAICHISSEMENT)?.value;

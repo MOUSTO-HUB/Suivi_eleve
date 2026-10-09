@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { DoubleAuth } from '@/components/double-auth';
 import { changerMotDePasse } from '@/app/(admin)/compte/actions';
 import { FormulaireAction } from '@/components/formulaire-action';
 import { Carte, Champ, EnTete, Saisie } from '@/components/ui';
@@ -16,7 +17,8 @@ export default async function MonCompteConcepteur() {
         titre="Mon compte"
         sousTitre={`${profil.prenoms} ${profil.nom} · Concepteur${profil.email ? ` · ${profil.email}` : ''}`}
       />
-      <div className="max-w-md">
+      <div className="flex max-w-md flex-col gap-6">
+        <DoubleAuth lienApplication="/plateforme/compte/application" />
         <Carte titre="Changer mon mot de passe">
           <FormulaireAction
             action={changerMotDePasse}

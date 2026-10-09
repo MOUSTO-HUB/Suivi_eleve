@@ -7,6 +7,7 @@ import {
 import { hash } from '@node-rs/argon2';
 import { AuditService } from '../audit/audit.service.js';
 import type { UtilisateurConnecte } from '../auth/auth.types.js';
+import { DEBLOCAGE, SANS_DOUBLE_AUTH } from '../auth/connexion.regles.js';
 import { depuisJour, versJour } from '../common/dates.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { ActionAudit, Role, StatutEleve } from '../generated/prisma/enums.js';
@@ -202,6 +203,8 @@ export class PlateformeService {
             email: true,
             actif: true,
             derniereConnexion: true,
+            bloqueJusquA: true,
+            verrouilleLe: true,
           },
           orderBy: { creeLe: 'asc' },
         },
@@ -475,7 +478,11 @@ export class PlateformeService {
     return this.detailEcole(id);
   }
 
-  /** Directeur qui a perdu son mot de passe : nouveau mot de passe provisoire. */
+  /**
+   * Directeur qui a perdu son mot de passe, son téléphone, ou dont le compte est
+   * bloqué : nouveau mot de passe provisoire, compte réactivé, double
+   * authentification remise par email.
+   */
   async reinitialiserDirection(
     u: UtilisateurConnecte,
     id: string,
@@ -490,7 +497,12 @@ export class PlateformeService {
     const motDePasse = motDePasseProvisoire();
     await this.prisma.utilisateur.update({
       where: { id: compte.id },
-      data: { motDePasseHash: await hash(motDePasse) },
+      data: {
+        motDePasseHash: await hash(motDePasse),
+        actif: true,
+        ...DEBLOCAGE,
+        ...SANS_DOUBLE_AUTH,
+      },
     });
     await this.prisma.jetonRafraichissement.updateMany({
       where: { utilisateurId: compte.id, revoqueLe: null },
@@ -501,7 +513,7 @@ export class PlateformeService {
       ActionAudit.MODIFICATION,
       'Utilisateur',
       compte.id,
-      { motDePasseReinitialise: true },
+      { motDePasseReinitialise: true, reactive: true },
       id,
     );
     return { email: compte.email, motDePasseProvisoire: motDePasse };

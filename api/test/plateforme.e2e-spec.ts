@@ -6,6 +6,7 @@ import { randomInt, randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
+import { altcha, connecter } from './connexion.js';
 import { configurerApplication } from '../src/app.setup.js';
 import { Genre, LienTuteur, Role } from '../src/generated/prisma/enums.js';
 import { NotificationsService } from '../src/notifications/notifications.service.js';
@@ -76,16 +77,12 @@ describe('Espace concepteur (e2e)', () => {
   const commeConcepteur = () => ({
     Authorization: `Bearer ${jetonConcepteur}`,
   });
-  const connexionDirection = () =>
-    http()
-      .post('/api/auth/connexion')
-      .send({ email: emailDirection, motDePasse: motDePasseDirection });
+  // Direction et concepteur : code de double authentification reçu par email.
+  const connexionDirection = (statut = 200) =>
+    connecter(http, emailDirection, motDePasseDirection, statut);
 
   it('connecte le concepteur, sans école', async () => {
-    const { body } = await http()
-      .post('/api/auth/connexion')
-      .send({ email: emailConcepteur, motDePasse: 'Concepteur-2026' })
-      .expect(200);
+    const { body } = await connecter(http, emailConcepteur, 'Concepteur-2026');
     expect(body.utilisateur).toMatchObject({
       role: 'SUPER_ADMIN',
       ecoleId: '',
@@ -152,7 +149,7 @@ describe('Espace concepteur (e2e)', () => {
   });
 
   it('la direction se connecte et voit son abonnement, pas l’espace concepteur', async () => {
-    const { body } = await connexionDirection().expect(200);
+    const { body } = await connexionDirection();
     const direction = { Authorization: `Bearer ${body.jetonAcces}` };
     const abonnement = await http()
       .get('/api/abonnement')
@@ -256,13 +253,13 @@ describe('Espace concepteur (e2e)', () => {
       .set(commeConcepteur())
       .send({ motif: 'Abonnement impayé' })
       .expect(200);
-    const refus = await connexionDirection().expect(403);
+    const refus = await connexionDirection(403);
     expect(refus.body.message).toContain('suspendu');
     expect(await prevenir()).toEqual({ tuteurs: 0, envois: 0 });
     // Pas de code SMS pour les parents de cette école (réponse identique).
     await http()
       .post('/api/auth/otp/demande')
-      .send({ telephone: contact })
+      .send({ telephone: contact, altcha: altcha() })
       .expect(202);
     expect(await prisma.codeOtp.count({ where: { telephone: contact } })).toBe(
       0,
@@ -272,7 +269,7 @@ describe('Espace concepteur (e2e)', () => {
       .post(`/api/plateforme/ecoles/${ecoleId}/reactiver`)
       .set(commeConcepteur())
       .expect(200);
-    await connexionDirection().expect(200);
+    await connexionDirection();
     expect((await prevenir()).tuteurs).toBe(1);
   });
 
@@ -281,12 +278,12 @@ describe('Espace concepteur (e2e)', () => {
       where: { id: ecoleId },
       data: { finAbonnement: new Date(`${jour(-15)}T00:00:00Z`) },
     });
-    await connexionDirection().expect(200); // dernier jour de grâce
+    await connexionDirection(); // dernier jour de grâce
     await prisma.ecole.update({
       where: { id: ecoleId },
       data: { finAbonnement: new Date(`${jour(-16)}T00:00:00Z`) },
     });
-    await connexionDirection().expect(403);
+    await connexionDirection(403);
 
     // Un paiement mensuel la rétablit, à partir du jour du paiement.
     const { body } = await http()
@@ -299,7 +296,7 @@ describe('Espace concepteur (e2e)', () => {
       periodeDebut: jour(),
     });
     expect(body.abonnement.etat).toBe('ACTIF');
-    await connexionDirection().expect(200);
+    await connexionDirection();
   });
 
   it('redonne un mot de passe provisoire à la direction', async () => {
@@ -314,13 +311,13 @@ describe('Espace concepteur (e2e)', () => {
       )
       .set(commeConcepteur())
       .expect(200);
-    await connexionDirection().expect(401);
+    await connexionDirection(401);
     motDePasseDirection = body.motDePasseProvisoire;
-    await connexionDirection().expect(200);
+    await connexionDirection();
   });
 
   it('parle la monnaie et l’indicatif du pays de l’école (Guinée)', async () => {
-    const { body } = await connexionDirection().expect(200);
+    const { body } = await connexionDirection();
     const direction = { Authorization: `Bearer ${body.jetonAcces}` };
     const profil = await http().get('/api/auth/moi').set(direction).expect(200);
     expect(profil.body.ecole).toMatchObject({
@@ -351,7 +348,7 @@ describe('Espace concepteur (e2e)', () => {
   });
 
   it('n’affiche pas les actions du concepteur dans le journal de l’école', async () => {
-    const { body } = await connexionDirection().expect(200);
+    const { body } = await connexionDirection();
     const journal = await http()
       .get('/api/audit?parPage=100')
       .set({ Authorization: `Bearer ${body.jetonAcces}` })

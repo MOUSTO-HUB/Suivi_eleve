@@ -9,6 +9,7 @@ import { randomInt, randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
+import { altcha } from './connexion.js';
 import { configurerApplication } from '../src/app.setup.js';
 import { CLE_PARAM_ELEVE } from '../src/auth/decorators/param-eleve.decorator.js';
 import { CLE_PUBLIC } from '../src/auth/decorators/public.decorator.js';
@@ -266,7 +267,7 @@ describe('Sécurité (e2e)', () => {
       // Connexion réelle du parent d'Awa (code lu en base après remplacement).
       const otp = await http()
         .post('/api/auth/otp/demande')
-        .send({ telephone: tuteurs.Awa.contact })
+        .send({ telephone: tuteurs.Awa.contact, altcha: altcha() })
         .expect(202);
       expect(otp.body.message).toBeDefined();
       const code = '123456';
@@ -360,12 +361,12 @@ describe('Sécurité (e2e)', () => {
       for (let i = 0; i < 10; i++) {
         await http()
           .post('/api/auth/connexion')
-          .send({ email, motDePasse: 'mauvais' })
+          .send({ email, motDePasse: 'mauvais', altcha: altcha() })
           .expect(401);
       }
       const { body } = await http()
         .post('/api/auth/connexion')
-        .send({ email, motDePasse: 'mauvais' })
+        .send({ email, motDePasse: 'mauvais', altcha: altcha() })
         .expect(429);
       expect(body.message).toContain('Réessayez dans 15 minutes');
     });
@@ -376,19 +377,28 @@ describe('Sécurité (e2e)', () => {
         await http()
           .post('/api/auth/otp/demande')
           .set('X-Forwarded-For', ip)
-          .send({ telephone: `+22170${randomInt(1_000_000, 9_999_999)}1` })
+          .send({
+            telephone: `+22170${randomInt(1_000_000, 9_999_999)}1`,
+            altcha: altcha(),
+          })
           .expect(202);
       }
       await http()
         .post('/api/auth/otp/demande')
         .set('X-Forwarded-For', ip)
-        .send({ telephone: `+22170${randomInt(1_000_000, 9_999_999)}1` })
+        .send({
+          telephone: `+22170${randomInt(1_000_000, 9_999_999)}1`,
+          altcha: altcha(),
+        })
         .expect(429);
       // Une autre adresse n'est pas touchée.
       await http()
         .post('/api/auth/otp/demande')
         .set('X-Forwarded-For', '198.51.100.8')
-        .send({ telephone: `+22170${randomInt(1_000_000, 9_999_999)}1` })
+        .send({
+          telephone: `+22170${randomInt(1_000_000, 9_999_999)}1`,
+          altcha: altcha(),
+        })
         .expect(202);
     });
   });

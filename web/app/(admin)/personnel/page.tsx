@@ -13,7 +13,7 @@ import {
 } from '@/components/ui';
 import { lireApi } from '@/lib/api';
 import { profilCourant } from '@/lib/profil';
-import { dateHeureFr, LIBELLES_ROLE, type Role } from '@/lib/types';
+import { dateHeureFr, heureFr, LIBELLES_ROLE, type Role } from '@/lib/types';
 import {
   changerRole,
   creerCompte,
@@ -31,7 +31,15 @@ interface Compte {
   role: Role;
   actif: boolean;
   derniereConnexion: string | null;
+  /** Bloqué après 3 essais incorrects (30 minutes, puis 3 heures). */
+  bloqueJusquA: string | null;
+  /** Désactivé au 3e blocage : à réactiver. */
+  verrouilleLe: string | null;
+  doubleAuth: 'APPLICATION' | 'EMAIL' | null;
 }
+
+const estBloque = (c: Compte) =>
+  c.bloqueJusquA !== null && new Date(c.bloqueJusquA) > new Date();
 
 const ROLES: Role[] = [
   'ADMIN',
@@ -97,9 +105,33 @@ export default async function Personnel() {
               <tr key={c.id} className={c.actif ? '' : 'opacity-60'}>
                 <td className={cellule}>
                   {c.prenoms} {c.nom}
-                  {!c.actif && (
+                  {c.verrouilleLe ? (
+                    <span className="ml-2">
+                      <Badge couleur="orange">
+                        Désactivé : trop d’essais incorrects
+                      </Badge>
+                    </span>
+                  ) : !c.actif ? (
                     <span className="ml-2">
                       <Badge>Désactivé</Badge>
+                    </span>
+                  ) : (
+                    estBloque(c) && (
+                      <span className="ml-2">
+                        <Badge couleur="orange">
+                          Bloqué jusqu’à {heureFr(c.bloqueJusquA!)}
+                        </Badge>
+                      </span>
+                    )
+                  )}
+                  {c.doubleAuth && (
+                    <span className="ml-2">
+                      <Badge couleur="vert">
+                        Double auth. :{' '}
+                        {c.doubleAuth === 'APPLICATION'
+                          ? 'application'
+                          : 'email'}
+                      </Badge>
                     </span>
                   )}
                 </td>
@@ -126,6 +158,15 @@ export default async function Personnel() {
                 <td className={cellule}>
                   {!soi && (
                     <div className="flex flex-col gap-2">
+                      {c.actif && estBloque(c) && (
+                        <FormulaireAction
+                          action={modifierCompte.bind(null, c.id, {
+                            actif: true,
+                          })}
+                          libelle="Débloquer"
+                          style="boutonSecondaire"
+                        />
+                      )}
                       <FormulaireAction
                         action={reinitialiser.bind(null, c.id)}
                         libelle="Nouveau mot de passe"

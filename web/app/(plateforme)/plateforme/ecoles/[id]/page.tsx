@@ -22,6 +22,7 @@ import { lireApi } from '@/lib/api';
 import {
   dateFr,
   dateHeureFr,
+  heureFr,
   gnf,
   LIBELLES_FORMULE,
   LIBELLES_MOYEN,
@@ -231,10 +232,21 @@ export default async function Ecole(
                 <div>
                   <p className="font-medium">
                     {d.prenoms} {d.nom}
-                    {!d.actif && (
+                    {d.verrouilleLe ? (
+                      <span className="ml-2 text-xs font-medium text-red-700">
+                        (désactivé après trop d’essais incorrects)
+                      </span>
+                    ) : !d.actif ? (
                       <span className="ml-2 text-xs text-slate-500">
                         (désactivé)
                       </span>
+                    ) : (
+                      d.bloqueJusquA &&
+                      new Date(d.bloqueJusquA) > new Date() && (
+                        <span className="ml-2 text-xs font-medium text-soleil-900">
+                          (bloqué jusqu’à {heureFr(d.bloqueJusquA)})
+                        </span>
+                      )
                     )}
                   </p>
                   <p className="text-sm text-slate-600">
@@ -246,9 +258,13 @@ export default async function Ecole(
                 </div>
                 <FormulaireAction
                   action={reinitialiserDirection.bind(null, e.id, d.id)}
-                  libelle="Nouveau mot de passe provisoire"
+                  libelle={
+                    d.actif
+                      ? 'Nouveau mot de passe provisoire'
+                      : 'Réactiver avec un mot de passe provisoire'
+                  }
                   style="boutonSecondaire"
-                  confirmation={`Générer un nouveau mot de passe pour ${d.prenoms} ${d.nom} ? Ses sessions seront fermées.`}
+                  confirmation={`Générer un nouveau mot de passe pour ${d.prenoms} ${d.nom} ? Le compte est réactivé et débloqué, ses sessions sont fermées et la double authentification repasse par email.`}
                 />
               </li>
             ))}

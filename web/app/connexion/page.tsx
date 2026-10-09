@@ -8,7 +8,14 @@ import { FormulaireAction } from '@/components/formulaire-action';
 import { DesabonnementDeconnexion } from '@/components/notifications-push';
 import { Champ, Liste, parametre, Saisie, styles } from '@/components/ui';
 import { estPays, LISTE_PAYS, paysParDefaut, TELEPHONE_PAYS } from '@/lib/pays';
-import { demanderCode, seConnecter, verifierCode } from './actions';
+import { VerificationRobot } from '@/components/verification-robot';
+import {
+  demanderCode,
+  renvoyerCodeEmail,
+  seConnecter,
+  verifierCode,
+  verifierDoubleAuth,
+} from './actions';
 
 export const metadata: Metadata = { title: 'Connexion · Suivi_eleve' };
 
@@ -31,6 +38,11 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
   const espace = parametre(params.espace);
   const parent =
     espace === 'parent' || (!espace && (!suite || suite.startsWith('/parent')));
+  // Personnel, étape 2 : code de double authentification.
+  const etape = parametre(params.etape);
+  const methode = parametre(params.methode);
+  const emailMasque = parametre(params.email);
+  const motDePasseChange = parametre(params.motDePasse) === 'change';
 
   return (
     <main className="fond-bandeau relative flex flex-1 items-center justify-center px-4 py-12">
@@ -58,31 +70,89 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
           </Link>
         </nav>
         <div className="rounded-2xl bg-carte p-6 shadow-2xl shadow-black/40">
-          {!parent ? (
-            <FormulaireAction
-              action={seConnecter}
-              libelle="Se connecter"
-              libelleEnCours="Connexion…"
-            >
-              <input type="hidden" name="suite" value={suite ?? ''} />
-              <Champ libelle="Email">
-                <Saisie
-                  type="email"
-                  name="email"
-                  autoComplete="username"
-                  required
-                  autoFocus
-                />
-              </Champ>
-              <Champ libelle="Mot de passe">
-                <Saisie
-                  type="password"
-                  name="motDePasse"
-                  autoComplete="current-password"
-                  required
-                />
-              </Champ>
-            </FormulaireAction>
+          {!parent && etape === 'code' ? (
+            <>
+              <p className="mb-4 rounded-md bg-marque-50 p-3 text-sm text-marque-800">
+                {methode === 'APPLICATION'
+                  ? 'Double authentification : saisissez le code à 6 chiffres affiché par votre application d’authentification.'
+                  : `Double authentification : un code à 6 chiffres vient d’être envoyé par email${emailMasque ? ` à ${emailMasque}` : ''}. Il est valable 10 minutes.`}
+              </p>
+              <FormulaireAction
+                action={verifierDoubleAuth}
+                libelle="Valider le code"
+                libelleEnCours="Vérification…"
+              >
+                <input type="hidden" name="suite" value={suite ?? ''} />
+                <Champ
+                  libelle="Code"
+                  aide="Téléphone perdu ? Saisissez un de vos codes de secours (ex. k7pm-x3qa)."
+                >
+                  <Saisie
+                    name="code"
+                    autoComplete="one-time-code"
+                    maxLength={12}
+                    placeholder="123456"
+                    required
+                    autoFocus
+                  />
+                </Champ>
+              </FormulaireAction>
+              {methode === 'EMAIL' && (
+                <div className="mt-4">
+                  <FormulaireAction
+                    action={renvoyerCodeEmail}
+                    libelle="Renvoyer un code"
+                    libelleEnCours="Envoi…"
+                    style="boutonSecondaire"
+                  />
+                </div>
+              )}
+              <Link
+                href="/connexion?espace=personnel"
+                className={`mt-4 block text-center text-sm ${styles.lien}`}
+              >
+                Recommencer la connexion
+              </Link>
+            </>
+          ) : !parent ? (
+            <>
+              {motDePasseChange && (
+                <p className="mb-4 rounded-md bg-emerald-50 p-3 text-sm text-emerald-800">
+                  Mot de passe changé. Connectez-vous avec le nouveau.
+                </p>
+              )}
+              <FormulaireAction
+                action={seConnecter}
+                libelle="Se connecter"
+                libelleEnCours="Connexion…"
+              >
+                <input type="hidden" name="suite" value={suite ?? ''} />
+                <Champ libelle="Email">
+                  <Saisie
+                    type="email"
+                    name="email"
+                    autoComplete="username"
+                    required
+                    autoFocus
+                  />
+                </Champ>
+                <Champ libelle="Mot de passe">
+                  <Saisie
+                    type="password"
+                    name="motDePasse"
+                    autoComplete="current-password"
+                    required
+                  />
+                </Champ>
+                <VerificationRobot />
+              </FormulaireAction>
+              <Link
+                href="/mot-de-passe-oublie"
+                className={`mt-4 block text-center text-sm ${styles.lien}`}
+              >
+                Mot de passe oublié ?
+              </Link>
+            </>
           ) : telephone ? (
             <>
               <p className="mb-4 rounded-md bg-marque-50 p-3 text-sm text-marque-800">
@@ -143,6 +213,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
                   autoFocus
                 />
               </Champ>
+              <VerificationRobot />
             </FormulaireAction>
           )}
         </div>

@@ -7,6 +7,7 @@ import { randomInt, randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
+import { altcha } from './connexion.js';
 import { configurerApplication } from '../src/app.setup.js';
 import { Roles } from '../src/auth/decorators/roles.decorator.js';
 import { ParentOwnsEleveGuard } from '../src/auth/guards/parent-owns-eleve.guard.js';
@@ -128,13 +129,17 @@ describe('Authentification (e2e)', () => {
     it('refuse un mauvais mot de passe', () =>
       http()
         .post('/api/auth/connexion')
-        .send({ email: emailPersonnel, motDePasse: 'faux' })
+        .send({ email: emailPersonnel, motDePasse: 'faux', altcha: altcha() })
         .expect(401));
 
     it('refuse un email inconnu avec le même message', async () => {
       const res = await http()
         .post('/api/auth/connexion')
-        .send({ email: `inconnu-${ecoleId}@test.sn`, motDePasse })
+        .send({
+          email: `inconnu-${ecoleId}@test.sn`,
+          motDePasse,
+          altcha: altcha(),
+        })
         .expect(401);
       expect(res.body.message).toBe('Email ou mot de passe incorrect.');
     });
@@ -142,13 +147,22 @@ describe('Authentification (e2e)', () => {
     it('rejette un champ inattendu', () =>
       http()
         .post('/api/auth/connexion')
-        .send({ email: emailPersonnel, motDePasse, role: 'ADMIN' })
+        .send({
+          email: emailPersonnel,
+          motDePasse,
+          role: 'ADMIN',
+          altcha: altcha(),
+        })
         .expect(400));
 
     it('connecte, donne accès à /moi, applique les rôles, puis tourne les jetons', async () => {
       const connexion = await http()
         .post('/api/auth/connexion')
-        .send({ email: emailPersonnel.toUpperCase(), motDePasse })
+        .send({
+          email: emailPersonnel.toUpperCase(),
+          motDePasse,
+          altcha: altcha(),
+        })
         .expect(200);
       const { jetonAcces, jetonRafraichissement } = connexion.body;
       expect(connexion.body.utilisateur.role).toBe(Role.SECRETARIAT);
@@ -192,7 +206,7 @@ describe('Authentification (e2e)', () => {
     it('déconnecte : le jeton de rafraîchissement ne sert plus', async () => {
       const { body } = await http()
         .post('/api/auth/connexion')
-        .send({ email: emailPersonnel, motDePasse })
+        .send({ email: emailPersonnel, motDePasse, altcha: altcha() })
         .expect(200);
       await http()
         .post('/api/auth/deconnexion')
@@ -210,7 +224,7 @@ describe('Authentification (e2e)', () => {
       const avant = sms.derniers.length;
       await http()
         .post('/api/auth/otp/demande')
-        .send({ telephone: '+221709999999' })
+        .send({ telephone: '+221709999999', altcha: altcha() })
         .expect(202);
       expect(sms.derniers.length).toBe(avant);
     });
@@ -218,7 +232,7 @@ describe('Authentification (e2e)', () => {
     it('bloque le code après 3 essais faux', async () => {
       await http()
         .post('/api/auth/otp/demande')
-        .send({ telephone: telephoneParent })
+        .send({ telephone: telephoneParent, altcha: altcha() })
         .expect(202);
       const bon = sms.dernierCode();
       const faux = bon === '000000' ? '111111' : '000000';
@@ -240,7 +254,7 @@ describe('Authentification (e2e)', () => {
       const avecEspaces = telephoneParent.replace(/^(\+221)(\d{2})/, '$1 $2 ');
       await http()
         .post('/api/auth/otp/demande')
-        .send({ telephone: avecEspaces })
+        .send({ telephone: avecEspaces, altcha: altcha() })
         .expect(202);
       const code = sms.dernierCode();
       expect(sms.derniers.at(-1)?.telephone).toBe(telephoneParent);
@@ -272,18 +286,18 @@ describe('Authentification (e2e)', () => {
       // 2 demandes déjà faites plus haut pour ce numéro.
       await http()
         .post('/api/auth/otp/demande')
-        .send({ telephone: telephoneParent })
+        .send({ telephone: telephoneParent, altcha: altcha() })
         .expect(202);
       await http()
         .post('/api/auth/otp/demande')
-        .send({ telephone: telephoneParent })
+        .send({ telephone: telephoneParent, altcha: altcha() })
         .expect(429);
     });
 
     it('refuse un numéro mal formé', () =>
       http()
         .post('/api/auth/otp/demande')
-        .send({ telephone: '77 123 45 67' })
+        .send({ telephone: '77 123 45 67', altcha: altcha() })
         .expect(400));
   });
 });

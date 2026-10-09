@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Accueil } from '@/components/entete';
 import { Bouton, Champ, Ecran, Message, Texte } from '@/components/ui';
+import { useVerificationRobot } from '@/components/verification-robot';
 import { ErreurApi } from '@/lib/api';
 import { estPays, PAYS, telephoneE164, type Pays } from '@/lib/format';
 import { useSession } from '@/lib/session';
@@ -25,6 +26,7 @@ const PAYS_PAR_DEFAUT: Pays = estPays(process.env.EXPO_PUBLIC_PAYS_PAR_DEFAUT)
 /** Connexion des parents : numéro de téléphone puis code reçu par SMS. */
 export default function Connexion() {
   const { demanderCode, verifierCode } = useSession();
+  const robot = useVerificationRobot();
   const [etape, setEtape] = useState<'numero' | 'code'>('numero');
   const [numero, setNumero] = useState('');
   const [code, setCode] = useState('');
@@ -109,14 +111,21 @@ export default function Connexion() {
                 value={numero}
                 onChangeText={setNumero}
               />
+              {robot.case}
               {erreur && <Message>{erreur}</Message>}
               <Bouton
                 libelle="Recevoir le code par SMS"
                 enCours={enCours}
-                desactive={numero.replace(/\D/g, '').length < 8}
+                desactive={numero.replace(/\D/g, '').length < 8 || !robot.pret}
                 surAppui={() =>
                   executer(async () => {
-                    await demanderCode(telephone);
+                    const altcha = robot.prendre();
+                    if (!altcha)
+                      throw new ErreurApi(
+                        400,
+                        'Cochez la case « Je ne suis pas un robot ».',
+                      );
+                    await demanderCode(telephone, altcha);
                     await enregistrerPays(pays);
                     setEtape('code');
                   })

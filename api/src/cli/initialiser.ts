@@ -2,10 +2,12 @@
 // (espace /plateforme). À lancer à la première mise en service :
 //   node dist/cli/initialiser.js --prenoms Awa --nom Diop --email moi@exemple.com
 // Relancé avec l'email d'un concepteur existant : nouveau mot de passe provisoire
-// (mot de passe oublié). Les sessions ouvertes de ce compte sont fermées.
+// (mot de passe oublié, compte bloqué ou téléphone perdu) : compte réactivé et
+// double authentification remise par email. Les sessions ouvertes sont fermées.
 import { hash } from '@node-rs/argon2';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { parseArgs } from 'node:util';
+import { DEBLOCAGE, SANS_DOUBLE_AUTH } from '../auth/connexion.regles.js';
 import { PrismaClient, Role } from '../generated/prisma/client.js';
 import { motDePasseProvisoire } from '../utilisateurs/utilisateurs.regles.js';
 
@@ -41,7 +43,13 @@ try {
       arreter('cet email appartient au compte d’une école, pas au concepteur.');
     await prisma.utilisateur.update({
       where: { id: existant.id },
-      data: { motDePasseHash: await hash(motDePasse), actif: true },
+      // Compte bloqué ou téléphone perdu : réactivé, double authentification par email.
+      data: {
+        motDePasseHash: await hash(motDePasse),
+        actif: true,
+        ...DEBLOCAGE,
+        ...SANS_DOUBLE_AUTH,
+      },
     });
     await prisma.jetonRafraichissement.updateMany({
       where: { utilisateurId: existant.id, revoqueLe: null },

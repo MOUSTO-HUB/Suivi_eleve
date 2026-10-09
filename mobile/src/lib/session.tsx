@@ -20,14 +20,29 @@ import { desinscrirePush, inscrirePush } from './push';
 import { viderCache } from './stockage-local';
 import type { Session, Utilisateur } from './types';
 
+/** Étape 2 de la connexion du personnel (double authentification). */
+export interface EtapeDoubleAuth {
+  jeton: string;
+  methode: 'APPLICATION' | 'EMAIL';
+  /** Adresse masquée où le code a été envoyé. */
+  email?: string;
+}
+
 interface ContexteSession {
   /** Vrai tant que la session enregistrée est en cours de reprise. */
   chargement: boolean;
   utilisateur: Utilisateur | null;
   dernierUtilisateur: Utilisateur | null;
-  demanderCode: (telephone: string) => Promise<void>;
+  demanderCode: (telephone: string, altcha: string) => Promise<void>;
   verifierCode: (telephone: string, code: string) => Promise<void>;
-  connexionPersonnel: (email: string, motDePasse: string) => Promise<void>;
+  /** Renvoie l'étape du code si la double authentification s'applique, sinon ouvre la session. */
+  connexionPersonnel: (
+    email: string,
+    motDePasse: string,
+    altcha: string,
+  ) => Promise<EtapeDoubleAuth | null>;
+  verifierDoubleAuth: (jeton: string, code: string) => Promise<void>;
+  renvoyerCodeEmail: (jeton: string) => Promise<void>;
   deconnexion: () => Promise<void>;
   /** Le parent accepte le texte d'information (consentement stocké par l'API). */
   consentir: (version: string) => Promise<void>;
@@ -60,6 +75,23 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
       .finally(() => setChargement(false));
   }, [ouvrir]);
 
+  const ouvrirPersonnel = useCallback(
+    async (session: Session) => {
+      // Le concepteur administre les écoles depuis le site web seulement.
+      if (session.utilisateur.role === 'SUPER_ADMIN') {
+        await envoyer('/auth/deconnexion', 'POST', {
+          jetonRafraichissement: session.jetonRafraichissement,
+        }).catch(() => undefined);
+        throw new ErreurApi(
+          403,
+          "L'espace concepteur s'utilise sur le site web de Suivi_eleve.",
+        );
+      }
+      await ouvrir(session);
+    },
+    [ouvrir],
+  );
+
   const valeur = useMemo<ContexteSession>(
     () => ({
       chargement,
@@ -74,8 +106,8 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
         setUtilisateur(profil);
         setDernier(profil);
       },
-      demanderCode: async (telephone) => {
-        await envoyer('/auth/otp/demande', 'POST', { telephone });
+      demanderCode: async (telephone, altcha) => {
+        await envoyer('/auth/otp/demande', 'POST', { telephone, altcha });
       },
       verifierCode: async (telephone, code) => {
         await ouvrir(
@@ -85,22 +117,24 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
           }),
         );
       },
-      connexionPersonnel: async (email, motDePasse) => {
-        const session = await envoyer<Session>('/auth/connexion', 'POST', {
-          email,
-          motDePasse,
-        });
-        // Le concepteur administre les écoles depuis le site web seulement.
-        if (session.utilisateur.role === 'SUPER_ADMIN') {
-          await envoyer('/auth/deconnexion', 'POST', {
-            jetonRafraichissement: session.jetonRafraichissement,
-          }).catch(() => undefined);
-          throw new ErreurApi(
-            403,
-            "L'espace concepteur s'utilise sur le site web de Suivi_eleve.",
-          );
-        }
-        await ouvrir(session);
+      connexionPersonnel: async (email, motDePasse, altcha) => {
+        const reponse = await envoyer<
+          Session | { doubleAuth: EtapeDoubleAuth }
+        >('/auth/connexion', 'POST', { email, motDePasse, altcha });
+        if ('doubleAuth' in reponse) return reponse.doubleAuth;
+        await ouvrirPersonnel(reponse);
+        return null;
+      },
+      verifierDoubleAuth: async (jeton, code) => {
+        await ouvrirPersonnel(
+          await envoyer<Session>('/auth/double-auth/verification', 'POST', {
+            jeton,
+            code,
+          }),
+        );
+      },
+      renvoyerCodeEmail: async (jeton) => {
+        await envoyer('/auth/double-auth/renvoi', 'POST', { jeton });
       },
       deconnexion: async () => {
         await desinscrirePush();
@@ -109,7 +143,7 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
         setUtilisateur(null);
       },
     }),
-    [chargement, utilisateur, dernier, ouvrir],
+    [chargement, utilisateur, dernier, ouvrir, ouvrirPersonnel],
   );
 
   return <Contexte.Provider value={valeur}>{children}</Contexte.Provider>;

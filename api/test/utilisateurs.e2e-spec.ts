@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import request from 'supertest';
 import { App } from 'supertest/types.js';
 import { AppModule } from '../src/app.module.js';
+import { altcha } from './connexion.js';
 import { configurerApplication } from '../src/app.setup.js';
 import { Role } from '../src/generated/prisma/enums.js';
 import { PrismaService } from '../src/prisma/prisma.service.js';
@@ -52,7 +53,9 @@ describe('Comptes du personnel (e2e)', () => {
   const http = () => request(app.getHttpServer());
   const avec = (qui: string) => ({ Authorization: `Bearer ${jetons[qui]}` });
   const connexion = (mdp: string) =>
-    http().post('/api/auth/connexion').send({ email, motDePasse: mdp });
+    http()
+      .post('/api/auth/connexion')
+      .send({ email, motDePasse: mdp, altcha: altcha() });
 
   it('crée un compte avec un mot de passe provisoire affiché une fois', async () => {
     const { body } = await http()
@@ -105,7 +108,7 @@ describe('Comptes du personnel (e2e)', () => {
       .post('/api/utilisateurs/moi/mot-de-passe')
       .set(jeton)
       .send({ actuel: 'faux', nouveau: 'Nouveau-mot-2026' })
-      .expect(401);
+      .expect(400);
     const faible = await http()
       .post('/api/utilisateurs/moi/mot-de-passe')
       .set(jeton)

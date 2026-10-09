@@ -210,6 +210,17 @@ enum ActionAudit {
   EXPORT
 }
 
+// Double authentification du personnel : application (code TOTP) ou code par email.
+enum MethodeDoubleAuth {
+  APPLICATION
+  EMAIL
+}
+
+enum ButCodeVerification {
+  DOUBLE_AUTH // code à 6 chiffres envoyé par email à la connexion
+  REINITIALISATION // lien « mot de passe oublié »
+}
+
 // ─── École et utilisateurs ───────────────────────────────────────────────────
 
 model Ecole {
@@ -254,6 +265,16 @@ model Utilisateur {
   motDePasseHash    String?   @map("mot_de_passe_hash")
   actif             Boolean   @default(true)
   derniereConnexion DateTime? @map("derniere_connexion")
+  // Blocage progressif (connexion.regles.ts) : remis à zéro à chaque connexion réussie.
+  echecsConnexion   Int       @default(0) @map("echecs_connexion")
+  blocages          Int       @default(0)
+  bloqueJusquA      DateTime? @map("bloque_jusqu_a")
+  verrouilleLe      DateTime? @map("verrouille_le") // désactivé au 3e blocage (actif = false)
+  // Double authentification ; obligatoire (email par défaut) pour ADMIN, COMPTABLE et SUPER_ADMIN.
+  doubleAuth        MethodeDoubleAuth? @map("double_auth")
+  totpSecret        String?   @map("totp_secret") // chiffré (chiffrement.ts)
+  totpDernierPas    Int?      @map("totp_dernier_pas") // un code d'application ne sert qu'une fois
+  codesSecours      String[]  @default([]) @map("codes_secours") // empreintes SHA-256
   creeLe            DateTime  @default(now()) @map("cree_le")
   modifieLe         DateTime  @updatedAt @map("modifie_le")
   creePar           String?   @map("cree_par")
@@ -268,7 +289,8 @@ model Utilisateur {
   jetonsPush                JetonPush[]
   paiementsAbonnementSaisis PaiementAbonnement[]
   jetonsRafraichissement    JetonRafraichissement[]
-  absencesSignalees         Absence[]               @relation("AbsenceSignaleur")
+  codesVerification         CodeVerification[]
+  absencesSignalees        Absence[]               @relation("AbsenceSignaleur")
   absencesJustifiees        Absence[]               @relation("AbsenceJustificateur")
   enseignements             Enseignement[]
   moyennesSaisies           MoyenneMatiere[]
@@ -311,6 +333,25 @@ model CodeOtp {
 
   @@index([telephone, creeLe])
   @@map("codes_otp")
+}
+
+// Code de double authentification envoyé par email (10 minutes, 3 essais) ou lien
+// « mot de passe oublié » (30 minutes, usage unique). Seule l'empreinte SHA-256 est stockée.
+model CodeVerification {
+  id            String              @id @default(uuid(7))
+  utilisateurId String              @map("utilisateur_id")
+  but           ButCodeVerification
+  codeHash      String              @map("code_hash")
+  expireLe      DateTime            @map("expire_le")
+  essais        Int                 @default(0)
+  consommeLe    DateTime?           @map("consomme_le") // utilisé, épuisé ou remplacé
+  creeLe        DateTime            @default(now()) @map("cree_le")
+
+  utilisateur Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  @@index([utilisateurId, but, creeLe])
+  @@index([codeHash])
+  @@map("codes_verification")
 }
 
 model JetonPush {

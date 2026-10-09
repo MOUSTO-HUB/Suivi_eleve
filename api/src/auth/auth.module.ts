@@ -4,10 +4,14 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
+import { DoubleAuthController } from './double-auth.controller.js';
+import { DoubleAuthService } from './double-auth.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { ParentOwnsEleveGuard } from './guards/parent-owns-eleve.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
+import { MotDePasseService } from './mot-de-passe.service.js';
 import { OtpService } from './otp.service.js';
+import { VerrouillageService } from './verrouillage.service.js';
 
 @Module({
   imports: [
@@ -23,10 +27,13 @@ import { OtpService } from './otp.service.js';
       },
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, DoubleAuthController],
   providers: [
     AuthService,
     OtpService,
+    DoubleAuthService,
+    MotDePasseService,
+    VerrouillageService,
     ParentOwnsEleveGuard,
     // Ordre d'exécution : authentification, puis rôles.
     { provide: APP_GUARD, useClass: JwtAuthGuard },

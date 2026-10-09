@@ -67,7 +67,7 @@ Remplir au minimum :
 - `SAUVEGARDE_PHRASE` : phrase secrète des sauvegardes, **à noter aussi hors du serveur** (coffre-fort de mots de passe) : sans elle, aucune sauvegarde ne peut être relue ;
 - les fournisseurs SMS, email et push (voir § 6). En production, l'API refuse de démarrer avec les fournisseurs `console` ou `simulation`.
 
-**Phase d'essai sans fournisseurs** (comptes SMS, email, Firebase pas encore ouverts) : `ENVOIS_SIMULES=oui`, `SMS_FOURNISSEUR=console`, `SMS_FOURNISSEUR_SECOURS=` (vide), `EMAIL_FOURNISSEUR=console`, `PUSH_FOURNISSEUR=console`. Aucun message ne part : ils sont écrits dans les logs, y compris les codes de connexion des parents (`suivi logs api | grep 'connexion est'`). Les notifications du site installé (Web Push) fonctionnent, elles, réellement. Repasser à `ENVOIS_SIMULES=non` avec de vrais fournisseurs avant d'accueillir des familles.
+**Phase d'essai sans fournisseurs** (comptes SMS, email, Firebase pas encore ouverts) : `ENVOIS_SIMULES=oui`, `SMS_FOURNISSEUR=console`, `SMS_FOURNISSEUR_SECOURS=` (vide), `EMAIL_FOURNISSEUR=console`, `PUSH_FOURNISSEUR=console`. Aucun message ne part : ils sont écrits dans les logs, y compris les codes de connexion des parents (`suivi logs api | grep 'connexion est'`), les codes de double authentification du personnel et les liens « mot de passe oublié » (`suivi logs api | grep -E 'Code de connexion|jeton='`). Les notifications du site installé (Web Push) fonctionnent, elles, réellement. Repasser à `ENVOIS_SIMULES=non` avec de vrais fournisseurs avant d'accueillir des familles.
 
 **Sans nom de domaine** : `DOMAINE` peut être le nom fourni par l'hébergeur, par exemple `vps-1a2b3c4d.vps.ovh.net` (espace client OVH, page du VPS). Le certificat HTTPS est obtenu de la même façon. Passer à un vrai domaine plus tard : changer `DOMAINE`, puis `suivi up -d` ; le faire avant d'imprimer des étiquettes QR ou de publier l'application mobile, qui contiennent l'adresse.
 
@@ -98,7 +98,9 @@ suivi exec api node dist/cli/initialiser.js \
   --email moi@mon-domaine.com
 ```
 
-La commande affiche un **mot de passe provisoire**. Mot de passe oublié : relancer la même commande avec le même email (sans `--prenoms`/`--nom`) donne un nouveau mot de passe provisoire.
+La commande affiche un **mot de passe provisoire**. Mot de passe oublié : relancer la même commande avec le même email (sans `--prenoms`/`--nom`) donne un nouveau mot de passe provisoire. La même commande réactive le compte concepteur s'il a été désactivé après trop d'essais incorrects, ou si le téléphone de la double authentification est perdu (retour au code par email).
+
+La double authentification est **obligatoire** pour le concepteur, la direction et la comptabilité : à chaque connexion, un code à 6 chiffres est envoyé par email (en phase d'essai, il est dans les logs, voir plus haut). Dans *Mon compte*, chacun peut passer à une application d'authentification (Google ou Microsoft Authenticator) et noter ses codes de secours.
 
 Sur le site, se connecter (onglet *Personnel de l'école*) : on arrive dans l'**espace concepteur**. Changer d'abord le mot de passe (clic sur son nom → *Mon compte*), puis pour chaque école abonnée :
 
@@ -190,7 +192,11 @@ Revenir à la version précédente en cas de problème : `cd ~/Suivi_eleve && gi
 
 - HTTPS partout (Caddy, HSTS) ; en-têtes de sécurité sur le site et l'API (CSP, anti-iframe, nosniff).
 - Mots de passe hachés (argon2) ; jetons d'accès de 15 minutes, jetons de rafraîchissement révocables.
-- Limitation des tentatives : connexion (10 par compte, 20 par adresse IP / 15 min), codes SMS (3 par numéro / 15 min, 10 par IP / heure, 3 essais par code).
+- « Je ne suis pas un robot » (ALTCHA, calculé sur le serveur lui-même, sans service extérieur) sur la connexion, la demande de code SMS et le mot de passe oublié.
+- Blocage progressif du personnel : 3 essais incorrects → 30 minutes ; puis 3 heures ; puis compte désactivé, réactivé par la direction (menu *Personnel*), par le concepteur pour la direction (fiche de l'école), par la commande `initialiser` pour le concepteur.
+- Double authentification : application d'authentification ou code par email ; obligatoire pour le concepteur, la direction et la comptabilité. Les clés des applications sont chiffrées en base avec une clé tirée de `JWT_SECRET` : **ne jamais changer `JWT_SECRET`** une fois l'application en service (sinon chacun doit refaire l'ajout de son application).
+- Mot de passe oublié : lien par email, valable 30 minutes et une seule fois ; toutes les sessions sont alors fermées.
+- Limitation des tentatives : connexion (10 par compte, 20 par adresse IP / 15 min), codes SMS (3 par numéro / 15 min, 10 par IP / heure, 3 essais par code), codes de double authentification (3 essais par code, 3 codes non utilisés par quart d'heure).
 - Contrôle d'accès vérifié automatiquement sur **chaque route** de l'API (test `api/test/securite.e2e-spec.ts`) ; un parent ne voit que ses enfants.
 - Journal d'audit (avec l'IP) : connexions, créations, modifications, exports, effacements.
 - Consentement du tuteur demandé et stocké (date et version du texte) à la première connexion.
