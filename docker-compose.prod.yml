@@ -72,6 +72,9 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    # Joindre FactuPlus, qui tourne sur le serveur lui-même (hors Docker, port 8088).
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     ports:
       - '80:80'
       - '443:443'

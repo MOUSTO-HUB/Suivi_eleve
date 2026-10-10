@@ -22,3 +22,11 @@
 		format console
 	}
 }
+
+# FactuPlus (autre application du même serveur, hors Docker) : Caddy obtient son certificat HTTPS
+# et lui transmet les visiteurs. FactuPlus écoute sur le port interne 8088 du serveur, joignable
+# depuis Docker seulement (voir docs/DEPLOIEMENT.md, « Cohabitation avec FactuPlus »).
+factuplus.site {
+	encode zstd gzip
+	reverse_proxy host.docker.internal:8088
+}

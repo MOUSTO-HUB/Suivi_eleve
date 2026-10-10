@@ -272,3 +272,21 @@ Une fois les clés VAPID configurées (section 6), le parent ouvre **Préférenc
 - **iPhone et iPad** (iOS 16.4 ou plus) : seulement depuis l'icône ajoutée à l'écran d'accueil ; la page l'explique au parent.
 - Le message est chiffré de bout en bout jusqu'au navigateur (seul l'appareil du parent peut le lire). L'API n'envoie qu'aux services push des navigateurs (Google, Mozilla, Apple, Microsoft).
 - Un abonnement est coupé quand le parent se déconnecte, et supprimé automatiquement quand le navigateur le retire. Les préférences « Application » du parent s'appliquent aussi à ces notifications.
+
+## 12. Cohabitation avec FactuPlus (même serveur)
+
+Le serveur héberge aussi **FactuPlus** (`factuplus.site`), installé hors Docker par ses propres scripts. Caddy reste le seul à tenir les ports 80 et 443 : il sert Suivi_eleve comme avant et transmet en plus les visiteurs de `factuplus.site` à FactuPlus, qui écoute sur le port interne **8088** du serveur (fermé pour Internet, ouvert aux seuls réseaux Docker).
+
+Ce que cela ajoute ici :
+
+- `deploy/Caddyfile` : un bloc `factuplus.site { … reverse_proxy host.docker.internal:8088 }`. Caddy obtient et renouvelle aussi le certificat HTTPS de `factuplus.site` (le DNS du domaine doit pointer vers le serveur).
+- `docker-compose.prod.yml`, service `caddy` : `extra_hosts: host.docker.internal:host-gateway`, pour que Caddy joigne le serveur lui-même.
+
+Après une modification de ces deux fichiers, recréer seulement Caddy (coupure de quelques secondes) :
+
+```bash
+cd ~/Suivi_eleve && git pull --ff-only
+docker compose -f docker-compose.prod.yml --env-file .env.production up -d caddy
+```
+
+Si FactuPlus est arrêté, `factuplus.site` affiche une erreur 502 ; Suivi_eleve n'est pas touché. FactuPlus garde son propre guide (`docs/deploiement.md` de son dépôt, partie « Derrière Caddy »).
