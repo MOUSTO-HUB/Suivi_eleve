@@ -2,7 +2,7 @@
 
 > Comment se servir de l'application, **rôle par rôle** : concepteur, direction, secrétariat, enseignant, surveillant, comptable et parent. Il couvre le site web, le site installé sur un téléphone et l'application mobile.
 >
-> État au 8 octobre 2026 : application en **phase d'essai** sur le serveur `https://vps-5fbc9b26.vps.ovh.net` (il n'y a pas encore de nom de domaine). Les SMS, emails et notifications ne partent pas encore vraiment : ils sont écrits dans le journal du serveur (voir §11).
+> État au 8 octobre 2026 : application en **phase d'essai** à l'adresse `https://suivie-eleve.online` (l'ancienne adresse `https://vps-5fbc9b26.vps.ovh.net` y renvoie). Les SMS, emails et notifications ne partent pas encore vraiment : ils sont écrits dans le journal du serveur (voir §11).
 
 ---
 
@@ -317,15 +317,15 @@ Le texte accepté à la première connexion explique quelles données sont utili
 
 À faire par le responsable technique, connecté en SSH au serveur (`ubuntu@vps-5fbc9b26.vps.ovh.net`).
 
-| Besoin                                           | Commande                                                                |
-| ------------------------------------------------ | ----------------------------------------------------------------------- |
-| Mettre à jour après un envoi sur GitHub          | `sh ~/Suivi_eleve/deploy/mettre-a-jour.sh`                              |
-| Voir l'état des 6 services                       | `suivi ps`                                                              |
-| Lire le journal de l'API                         | `suivi logs -f api` (Ctrl+C pour quitter)                               |
-| **Lire le code SMS d'un parent** (phase d'essai) | `suivi logs api \| grep 'connexion est'`                                |
-| Redémarrer le site                               | `suivi restart web`                                                     |
-| Sauvegarde immédiate                             | `suivi exec sauvegarde sauvegarde.sh maintenant`                        |
-| Vérifier que l'API répond                        | ouvrir `https://vps-5fbc9b26.vps.ovh.net/api/sante` → `{"statut":"ok"}` |
+| Besoin                                           | Commande                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------ |
+| Mettre à jour après un envoi sur GitHub          | `sh ~/Suivi_eleve/deploy/mettre-a-jour.sh`                         |
+| Voir l'état des 6 services                       | `suivi ps`                                                         |
+| Lire le journal de l'API                         | `suivi logs -f api` (Ctrl+C pour quitter)                          |
+| **Lire le code SMS d'un parent** (phase d'essai) | `suivi logs api \| grep 'connexion est'`                           |
+| Redémarrer le site                               | `suivi restart web`                                                |
+| Sauvegarde immédiate                             | `suivi exec sauvegarde sauvegarde.sh maintenant`                   |
+| Vérifier que l'API répond                        | ouvrir `https://suivie-eleve.online/api/sante` → `{"statut":"ok"}` |
 
 (`suivi` est un raccourci de `docker compose -f docker-compose.prod.yml --env-file .env.production`, à lancer dans `~/Suivi_eleve`.)
 

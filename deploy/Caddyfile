@@ -1,4 +1,6 @@
-# Certificat HTTPS obtenu et renouvelé automatiquement pour le domaine.
+# Serveur seul (profil « autonome » de docker-compose.prod.yml) : Caddy obtient et renouvelle le
+# certificat HTTPS du domaine. Sur le VPS partagé, c'est le frontal commun (dépôt serveur-vps,
+# frontal/caddy/sites/suivi-eleve.caddy) qui sert Suivi_eleve.
 {$DOMAINE} {
 	encode zstd gzip
 
@@ -23,10 +25,6 @@
 	}
 }
 
-# FactuPlus (autre application du même serveur, hors Docker) : Caddy obtient son certificat HTTPS
-# et lui transmet les visiteurs. FactuPlus écoute sur le port interne 8088 du serveur, joignable
-# depuis Docker seulement (voir docs/DEPLOIEMENT.md, « Cohabitation avec FactuPlus »).
-factuplus.site {
-	encode zstd gzip
-	reverse_proxy host.docker.internal:8088
+www.{$DOMAINE} {
+	redir https://{$DOMAINE}{uri} permanent
 }

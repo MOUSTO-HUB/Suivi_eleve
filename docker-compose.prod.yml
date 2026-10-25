@@ -52,6 +52,11 @@ services:
       API_URL_PUBLIQUE: https://${DOMAINE}/api
     volumes:
       - stockage:/donnees/stockage
+    # Joint par le frontal du serveur (Caddy commun à tous les projets) sous le nom suivi-api.
+    networks:
+      default:
+      frontal:
+        aliases: [suivi-api]
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -65,16 +70,20 @@ services:
       API_URL: http://api:3100/api
       CONTACT_ABONNEMENT: ${CONTACT_ABONNEMENT:-}
       PAYS_PAR_DEFAUT: ${PAYS_PAR_DEFAUT:-GN}
+    networks:
+      default:
+      frontal:
+        aliases: [suivi-web]
     depends_on: [api]
     <<: *journaux
 
-  # HTTPS automatique (Let's Encrypt) ; /api vers l'API, le reste vers le site.
+  # Serveur seul (Suivi_eleve unique application) : HTTPS automatique, /api vers l'API, le reste
+  # vers le site. Lancé seulement avec « --profile autonome ». Sur le VPS partagé, c'est le frontal
+  # commun (dépôt serveur-vps) qui tient les ports 80 et 443 et joint suivi-api et suivi-web.
   caddy:
     image: caddy:2-alpine
+    profiles: ['autonome']
     restart: unless-stopped
-    # Joindre FactuPlus, qui tourne sur le serveur lui-même (hors Docker, port 8088).
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
     ports:
       - '80:80'
       - '443:443'
@@ -106,6 +115,13 @@ services:
     depends_on:
       postgres: { condition: service_healthy }
     <<: *journaux
+
+# Réseau du frontal commun du serveur (dépôt serveur-vps), créé une fois hors de ce projet :
+#   docker network create --subnet 172.30.0.0/24 frontal
+# (deploy/mettre-a-jour.sh le crée s'il manque). Serveur seul : il suffit de le créer aussi.
+networks:
+  frontal:
+    external: true
 
 volumes:
   postgres_data:

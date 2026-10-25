@@ -74,9 +74,13 @@ Remplir au minimum :
 Démarrer (la première construction prend quelques minutes) :
 
 ```bash
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+# Serveur où Suivi_eleve est seul : il tient lui-même les ports 80 et 443 (profil « autonome »)
+docker network create --subnet 172.30.0.0/24 frontal
+docker compose -f docker-compose.prod.yml --env-file .env.production --profile autonome up -d --build
 docker compose -f docker-compose.prod.yml --env-file .env.production ps
 ```
+
+Sur un serveur partagé avec d'autres projets, ne pas mettre `--profile autonome` : c'est le frontal commun qui reçoit les visiteurs (§ 12).
 
 Caddy obtient le certificat HTTPS tout seul (le DNS doit déjà pointer vers le serveur). Vérifier : `https://suivi.mon-ecole.sn/api/sante` doit répondre `{"statut":"ok"…}`.
 
@@ -273,20 +277,14 @@ Une fois les clés VAPID configurées (section 6), le parent ouvre **Préférenc
 - Le message est chiffré de bout en bout jusqu'au navigateur (seul l'appareil du parent peut le lire). L'API n'envoie qu'aux services push des navigateurs (Google, Mozilla, Apple, Microsoft).
 - Un abonnement est coupé quand le parent se déconnecte, et supprimé automatiquement quand le navigateur le retire. Les préférences « Application » du parent s'appliquent aussi à ces notifications.
 
-## 12. Cohabitation avec FactuPlus (même serveur)
+## 12. Serveur partagé avec d'autres projets
 
-Le serveur héberge aussi **FactuPlus** (`factuplus.site`), installé hors Docker par ses propres scripts. Caddy reste le seul à tenir les ports 80 et 443 : il sert Suivi_eleve comme avant et transmet en plus les visiteurs de `factuplus.site` à FactuPlus, qui écoute sur le port interne **8088** du serveur (fermé pour Internet, ouvert aux seuls réseaux Docker).
+Le VPS héberge aussi FactuPlus, BUREAUTIQUE TEST et bientôt Cotisations, chacun sous son domaine. Les ports 80 et 443 sont tenus par un **frontal commun** : un Caddy indépendant de tous les projets (dépôt `serveur-vps`, dossier `~/serveur-vps/frontal` sur le serveur), avec un fichier par site dans `frontal/caddy/sites/`.
 
-Ce que cela ajoute ici :
+Ce que cela change ici :
 
-- `deploy/Caddyfile` : un bloc `factuplus.site { … reverse_proxy host.docker.internal:8088 }`. Caddy obtient et renouvelle aussi le certificat HTTPS de `factuplus.site` (le DNS du domaine doit pointer vers le serveur).
-- `docker-compose.prod.yml`, service `caddy` : `extra_hosts: host.docker.internal:host-gateway`, pour que Caddy joigne le serveur lui-même.
+- le service `caddy` de `docker-compose.prod.yml` ne démarre qu'avec `--profile autonome` (serveur où Suivi_eleve est seul) ;
+- l'API et le site rejoignent le réseau Docker `frontal` sous les noms `suivi-api` et `suivi-web`, que le frontal joint (`frontal/caddy/sites/suivi-eleve.caddy`) ;
+- `suivi down` n'arrête plus que Suivi_eleve : les autres sites restent en ligne.
 
-Après une modification de ces deux fichiers, recréer seulement Caddy (coupure de quelques secondes) :
-
-```bash
-cd ~/Suivi_eleve && git pull --ff-only
-docker compose -f docker-compose.prod.yml --env-file .env.production up -d caddy
-```
-
-Si FactuPlus est arrêté, `factuplus.site` affiche une erreur 502 ; Suivi_eleve n'est pas touché. FactuPlus garde son propre guide (`docs/deploiement.md` de son dépôt, partie « Derrière Caddy »).
+Organisation du serveur, mise en place du frontal, sécurité et ajout d'un nouveau projet : guide `docs/GUIDE.md` du dépôt `serveur-vps`.

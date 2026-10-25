@@ -14,6 +14,9 @@ $C exec -T sauvegarde sauvegarde.sh maintenant
 echo "2/4 Récupération de la dernière version…"
 git pull --ff-only
 
+# Réseau du frontal commun du serveur (créé une seule fois, voir docker-compose.prod.yml).
+docker network inspect frontal > /dev/null 2>&1 || docker network create --subnet 172.30.0.0/24 frontal > /dev/null
+
 echo "3/4 Reconstruction et redémarrage (quelques minutes)…"
 $C up -d --build
 # Les anciennes images ne servent plus : on libère le disque.
