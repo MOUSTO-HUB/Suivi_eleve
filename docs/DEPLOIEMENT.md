@@ -180,7 +180,7 @@ Accusés de livraison (statut « délivré » dans le journal des notifications)
 
 ### Connexion des parents par WhatsApp (gratuite)
 
-Le parent saisit son numéro, puis appuie sur **Me connecter avec WhatsApp** : WhatsApp s'ouvre avec un message déjà prêt (« Connexion Suivi_eleve : K7M2PQ ») adressé au numéro du service. Il l'envoie ; l'API reçoit le message (webhook de Meta), vérifie qu'il vient bien du numéro saisi, et l'écran du parent s'ouvre tout seul. WhatsApp ayant vérifié le numéro, c'est aussi sûr qu'un code SMS. Meta ne facture pas les messages reçus, ni la réponse de confirmation (envoyée dans les 24 heures qui suivent le message du parent).
+Le parent saisit son numéro, puis appuie sur **Me connecter avec WhatsApp** : WhatsApp s'ouvre avec un message déjà prêt (« Connexion Suivi_eleve : K7M2PQ ») adressé au numéro du service. Il l'envoie ; l'API reçoit le message (webhook de Meta), vérifie qu'il vient bien du numéro saisi, et l'écran du parent s'ouvre tout seul. WhatsApp ayant vérifié le numéro, c'est aussi sûr qu'un code SMS. Meta ne facture pas les messages reçus : la connexion est gratuite. Les réponses du service au parent (confirmation, ou rappel à qui écrit autre chose) sont des messages de « service » : gratuits jusqu'à 1 000 par mois et par numéro, payants au-delà depuis le 1er octobre 2026 (tarifs Meta). Sans `WHATSAPP_ID_NUMERO` ni `WHATSAPP_JETON_ACCES`, aucune réponse ne part : la connexion fonctionne pareil (l'écran du parent s'ouvre tout seul) et ne coûte jamais rien.
 
 Mise en place (une fois) :
 
@@ -189,7 +189,7 @@ Mise en place (une fois) :
 3. **WhatsApp → Configuration de l'API** : ajouter le numéro dédié (vérification par SMS ou appel) et son nom d'affichage (ex. « Suivi_eleve »). Noter l'**identifiant du numéro de téléphone** (`WHATSAPP_ID_NUMERO`).
 4. **Paramètres de l'application → Général** : copier la **clé secrète** (`WHATSAPP_SECRET_APPLICATION`).
 5. **WhatsApp → Configuration → Webhook** : URL de rappel `https://DOMAINE/api/auth/whatsapp/webhook`, jeton de vérification = valeur choisie pour `WHATSAPP_JETON_VERIFICATION` (`openssl rand -hex 24`). L'API doit déjà tourner avec ces variables : Meta vérifie l'URL tout de suite. Puis **s'abonner au champ `messages`**.
-6. Réponse de confirmation au parent (facultatif mais conseillé) : dans les **paramètres de l'entreprise → Utilisateurs système**, créer un utilisateur système administrateur, lui attribuer l'application et le compte WhatsApp, puis **générer un jeton** (sans expiration) avec les autorisations `whatsapp_business_messaging` et `whatsapp_business_management` (`WHATSAPP_JETON_ACCES`).
+6. Réponse de confirmation au parent (facultatif ; 1 000 réponses gratuites par mois, voir plus haut) : dans les **paramètres de l'entreprise → Utilisateurs système**, créer un utilisateur système administrateur, lui attribuer l'application et le compte WhatsApp, puis **générer un jeton** (sans expiration) avec les autorisations `whatsapp_business_messaging` et `whatsapp_business_management` (`WHATSAPP_JETON_ACCES`).
 7. Passer l'application en mode **En ligne** (une URL de politique de confidentialité est demandée).
 8. Dans `.env.production` : `WHATSAPP_NUMERO=+224…` et les variables ci-dessus, puis `suivi up -d`. Essai : se connecter comme parent avec un vrai numéro de tuteur ; les échanges apparaissent dans `suivi logs -f api`.
 
