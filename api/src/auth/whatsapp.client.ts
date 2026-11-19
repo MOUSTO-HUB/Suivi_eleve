@@ -5,8 +5,9 @@ import { ConfigService } from '@nestjs/config';
  * Numéro WhatsApp du service (API WhatsApp Cloud de Meta), utilisé pour la
  * connexion des parents par « code inversé ». Activé par WHATSAPP_NUMERO.
  *
- * Les messages reçus sont gratuits ; la réponse de confirmation aussi, car elle
- * part dans les 24 heures qui suivent le message du parent (fenêtre de service).
+ * Les messages reçus sont gratuits. Les réponses (messages de « service », dans
+ * les 24 heures qui suivent le message du parent) sont gratuites jusqu'à 1 000
+ * par mois et par numéro, payantes au-delà (tarifs Meta depuis le 1er octobre 2026).
  */
 @Injectable()
 export class WhatsappClient {
