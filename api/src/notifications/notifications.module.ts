@@ -18,6 +18,10 @@ class SmsDirect extends SmsSender {
   async envoyer(telephone: string, message: string): Promise<void> {
     await this.canaux.envoyerSms(telephone, preparerSms(message), 'otp');
   }
+
+  override disponible(): boolean {
+    return this.canaux.smsActifs;
+  }
 }
 
 /** Codes et liens de sécurité du personnel : envoi direct (pas de file). */

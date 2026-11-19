@@ -20,6 +20,19 @@ import { desinscrirePush, inscrirePush } from './push';
 import { viderCache } from './stockage-local';
 import type { Session, Utilisateur } from './types';
 
+/** Moyen de recevoir le code à 6 chiffres. */
+export type CanalCode = 'SMS' | 'EMAIL';
+
+/** Connexion par WhatsApp : message à envoyer depuis le WhatsApp du parent. */
+export interface DemandeWhatsapp {
+  jeton: string;
+  code: string;
+  message: string;
+  /** Ouvre WhatsApp avec le message prérempli. */
+  lien: string;
+  numero: string;
+}
+
 /** Étape 2 de la connexion du personnel (double authentification). */
 export interface EtapeDoubleAuth {
   jeton: string;
@@ -33,8 +46,18 @@ interface ContexteSession {
   chargement: boolean;
   utilisateur: Utilisateur | null;
   dernierUtilisateur: Utilisateur | null;
-  demanderCode: (telephone: string, altcha: string) => Promise<void>;
+  demanderCode: (
+    telephone: string,
+    altcha: string,
+    canal: CanalCode,
+  ) => Promise<void>;
   verifierCode: (telephone: string, code: string) => Promise<void>;
+  demanderWhatsapp: (
+    telephone: string,
+    altcha: string,
+  ) => Promise<DemandeWhatsapp>;
+  /** Vrai une fois le message reçu et la session ouverte. */
+  suivreWhatsapp: (jeton: string) => Promise<boolean>;
   /** Renvoie l'étape du code si la double authentification s'applique, sinon ouvre la session. */
   connexionPersonnel: (
     email: string,
@@ -106,8 +129,27 @@ export function FournisseurSession({ children }: { children: ReactNode }) {
         setUtilisateur(profil);
         setDernier(profil);
       },
-      demanderCode: async (telephone, altcha) => {
-        await envoyer('/auth/otp/demande', 'POST', { telephone, altcha });
+      demanderCode: async (telephone, altcha, canal) => {
+        await envoyer('/auth/otp/demande', 'POST', {
+          telephone,
+          altcha,
+          canal,
+        });
+      },
+      demanderWhatsapp: (telephone, altcha) =>
+        envoyer<DemandeWhatsapp>('/auth/whatsapp/demande', 'POST', {
+          telephone,
+          altcha,
+        }),
+      suivreWhatsapp: async (jeton) => {
+        const reponse = await envoyer<Session | { statut: 'EN_ATTENTE' }>(
+          '/auth/whatsapp/suivi',
+          'POST',
+          { jeton },
+        );
+        if ('statut' in reponse) return false;
+        await ouvrir(reponse);
+        return true;
       },
       verifierCode: async (telephone, code) => {
         await ouvrir(

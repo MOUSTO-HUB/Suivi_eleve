@@ -31,4 +31,17 @@ describe('CanauxService en production', () => {
       /interdit en production/,
     );
   });
+
+  it('coupe les SMS avec SMS_FOURNISSEUR=aucun, sans fournisseur à configurer', () => {
+    const service = canaux({
+      ...production,
+      ENVOIS_SIMULES: 'oui',
+      SMS_FOURNISSEUR: 'aucun',
+      SMS_FOURNISSEUR_SECOURS: 'twilio',
+    });
+    expect(service.smsActifs).toBe(false);
+    expect(canaux({ ...production, ENVOIS_SIMULES: 'oui' }).smsActifs).toBe(
+      true,
+    );
+  });
 });

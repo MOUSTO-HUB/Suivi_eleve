@@ -174,6 +174,27 @@ Faire un essai de restauration au moins une fois par trimestre (sur une base de 
 
 Accusés de livraison (statut « délivré » dans le journal des notifications) : déclarer chez chaque fournisseur l'URL `https://DOMAINE/api/notifications/webhooks/<fournisseur>?jeton=WEBHOOK_SECRET` (`orange`, `twilio`, `brevo`).
 
+### Sans forfait SMS
+
+`SMS_FOURNISSEUR=aucun` coupe les SMS : aucun SMS n'est mis en file (les messages partent par email, push et l'historique de l'application) et la page de connexion ne propose plus le code par SMS. Les parents se connectent alors par **WhatsApp** ou par **code envoyé par email** (adresse enregistrée sur la fiche du tuteur). Remettre `orange` le jour où les écoles prennent un forfait.
+
+### Connexion des parents par WhatsApp (gratuite)
+
+Le parent saisit son numéro, puis appuie sur **Me connecter avec WhatsApp** : WhatsApp s'ouvre avec un message déjà prêt (« Connexion Suivi_eleve : K7M2PQ ») adressé au numéro du service. Il l'envoie ; l'API reçoit le message (webhook de Meta), vérifie qu'il vient bien du numéro saisi, et l'écran du parent s'ouvre tout seul. WhatsApp ayant vérifié le numéro, c'est aussi sûr qu'un code SMS. Meta ne facture pas les messages reçus, ni la réponse de confirmation (envoyée dans les 24 heures qui suivent le message du parent).
+
+Mise en place (une fois) :
+
+1. Un **numéro dédié** au service (puce à part), qui n'est pas déjà utilisé dans l'application WhatsApp ou WhatsApp Business (sinon, supprimer d'abord ce compte WhatsApp).
+2. Sur [developers.facebook.com](https://developers.facebook.com) : **Créer une application** → type **Entreprise** → ajouter le produit **WhatsApp**, relié au compte Meta Business (portefeuille d'entreprise).
+3. **WhatsApp → Configuration de l'API** : ajouter le numéro dédié (vérification par SMS ou appel) et son nom d'affichage (ex. « Suivi_eleve »). Noter l'**identifiant du numéro de téléphone** (`WHATSAPP_ID_NUMERO`).
+4. **Paramètres de l'application → Général** : copier la **clé secrète** (`WHATSAPP_SECRET_APPLICATION`).
+5. **WhatsApp → Configuration → Webhook** : URL de rappel `https://DOMAINE/api/auth/whatsapp/webhook`, jeton de vérification = valeur choisie pour `WHATSAPP_JETON_VERIFICATION` (`openssl rand -hex 24`). L'API doit déjà tourner avec ces variables : Meta vérifie l'URL tout de suite. Puis **s'abonner au champ `messages`**.
+6. Réponse de confirmation au parent (facultatif mais conseillé) : dans les **paramètres de l'entreprise → Utilisateurs système**, créer un utilisateur système administrateur, lui attribuer l'application et le compte WhatsApp, puis **générer un jeton** (sans expiration) avec les autorisations `whatsapp_business_messaging` et `whatsapp_business_management` (`WHATSAPP_JETON_ACCES`).
+7. Passer l'application en mode **En ligne** (une URL de politique de confidentialité est demandée).
+8. Dans `.env.production` : `WHATSAPP_NUMERO=+224…` et les variables ci-dessus, puis `suivi up -d`. Essai : se connecter comme parent avec un vrai numéro de tuteur ; les échanges apparaissent dans `suivi logs -f api`.
+
+Le numéro du service ne sert qu'à la connexion : à tout autre message, il répond d'appeler l'école.
+
 ## 7. Mettre à jour
 
 Une seule commande, après chaque nouvelle version poussée sur GitHub :

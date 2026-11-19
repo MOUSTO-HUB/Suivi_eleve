@@ -4,4 +4,9 @@
  */
 export abstract class SmsSender {
   abstract envoyer(telephone: string, message: string): Promise<void>;
+
+  /** Faux quand les SMS sont coupés (SMS_FOURNISSEUR=aucun). */
+  disponible(): boolean {
+    return true;
+  }
 }

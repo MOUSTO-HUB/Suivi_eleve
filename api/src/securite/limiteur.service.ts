@@ -41,6 +41,14 @@ export const LIMITES = {
     fenetreS: 15 * 60,
     message: 'Trop de codes essayés. Réessayez dans 15 minutes.',
   },
+  // L'appareil interroge toutes les 3 secondes pendant 10 minutes au plus (≈ 200 appels) ;
+  // plusieurs parents peuvent partager une même adresse IP (Wi-Fi de l'école).
+  whatsappSuiviIp: {
+    nom: 'whatsapp-suivi-ip',
+    max: 1000,
+    fenetreS: 15 * 60,
+    message: 'Trop de vérifications. Réessayez dans 15 minutes.',
+  },
   doubleAuthIp: {
     nom: 'double-auth-ip',
     max: 20,

@@ -39,9 +39,13 @@ export class CanauxService {
   constructor(private readonly config: ConfigService) {
     const principal = config.get<string>('SMS_FOURNISSEUR', 'console');
     const secours = config.get<string>('SMS_FOURNISSEUR_SECOURS');
-    this.sms = [principal, secours]
-      .filter((nom): nom is string => Boolean(nom))
-      .map((nom) => this.creerSms(nom));
+    // « aucun » : SMS coupés (pas encore de forfait) ; email, push et WhatsApp restent.
+    this.sms =
+      principal === 'aucun'
+        ? []
+        : [principal, secours]
+            .filter((nom): nom is string => Boolean(nom))
+            .map((nom) => this.creerSms(nom));
     this.email = this.creerEmail(
       config.get<string>('EMAIL_FOURNISSEUR', 'console'),
     );
@@ -64,6 +68,11 @@ export class CanauxService {
       this.urlRappels = `${urlApi.replace(/\/$/, '')}/notifications/webhooks`;
     const cout = Number(config.get('SMS_COUT_FCFA'));
     this.coutSms = Number.isFinite(cout) && cout > 0 ? cout : undefined;
+  }
+
+  /** Faux avec SMS_FOURNISSEUR=aucun : aucun SMS n'est mis en file. */
+  get smsActifs(): boolean {
+    return this.sms.length > 0;
   }
 
   /** URL de l'accusé de livraison d'un fournisseur, si l'API est joignable de l'extérieur. */
