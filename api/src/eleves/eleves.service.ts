@@ -23,6 +23,7 @@ import type {
   TuteurEleveDto,
 } from './eleves.dto.js';
 import {
+  erreurDateChangementClasse,
   normaliserTuteurs,
   prochainMatricule,
   verifierDateNaissance,
@@ -147,7 +148,8 @@ export class ElevesService {
             dateFin: true,
             classe: { select: { id: true, nom: true } },
           },
-          orderBy: { dateDebut: 'desc' },
+          // Deux changements le même jour : le plus récent d'abord.
+          orderBy: [{ dateDebut: 'desc' }, { creeLe: 'desc' }],
         },
       },
     });
@@ -273,7 +275,18 @@ export class ElevesService {
       throw new BadRequestException("L'élève est déjà dans cette classe.");
     }
     await this.classes.verifierClasse(u.ecoleId, dto.classeId);
-    const date = dto.date ? depuisJour(dto.date) : aujourdHui();
+    const jour = dto.date ?? versJour(new Date());
+    const actuelle = await this.prisma.historiqueClasse.findFirst({
+      where: { eleveId: id, dateFin: null },
+      orderBy: { dateDebut: 'desc' },
+      select: { dateDebut: true },
+    });
+    const erreur = erreurDateChangementClasse(
+      jour,
+      actuelle?.dateDebut ?? null,
+    );
+    if (erreur) throw new BadRequestException(erreur);
+    const date = depuisJour(jour);
 
     await this.prisma.$transaction([
       this.prisma.historiqueClasse.updateMany({

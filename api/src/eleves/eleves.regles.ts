@@ -46,6 +46,26 @@ export function verifierDateNaissance(jour: string): void {
   if (erreur) throw new BadRequestException(erreur);
 }
 
+/**
+ * Message d'erreur si la date d'un changement de classe est invalide, sinon null.
+ * Le changement ne peut pas précéder le début de la classe actuelle : la
+ * période close finirait avant d'avoir commencé (historique incohérent, EF-03).
+ * Le même jour est permis (correction d'une affectation erronée).
+ */
+export function erreurDateChangementClasse(
+  jour: string,
+  debutClasseActuelle: Date | null,
+): string | null {
+  const date = depuisJour(jour);
+  if (Number.isNaN(date.getTime()) || versJour(date) !== jour) {
+    return `Date de changement invalide : ${jour}.`;
+  }
+  if (debutClasseActuelle && date < debutClasseActuelle) {
+    return `Le changement de classe ne peut pas précéder le début de la classe actuelle (${versJour(debutClasseActuelle)}).`;
+  }
+  return null;
+}
+
 export interface TuteurDemande {
   tuteurId?: string;
   prenoms?: string;
