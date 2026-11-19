@@ -14,6 +14,7 @@ import {
 } from '../generated/prisma/enums.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { EtatEcolesService } from '../plateforme/etat-ecoles.service.js';
+import { CanauxService } from './canaux.service.js';
 import { EnvoiService } from './envoi.service.js';
 import {
   MODELES_PAR_DEFAUT,
@@ -64,6 +65,7 @@ export class NotificationsService {
     private readonly prisma: PrismaService,
     private readonly envoi: EnvoiService,
     private readonly etatEcoles: EtatEcolesService,
+    private readonly canauxEnvoi: CanauxService,
     config: ConfigService,
   ) {
     this.plafondSms = Number(config.get('SMS_PLAFOND_MENSUEL', 0)) || 0;
@@ -82,6 +84,8 @@ export class NotificationsService {
       return { tuteurs: 0, envois: 0 };
     }
 
+    // SMS coupés (SMS_FOURNISSEUR=aucun) : le message part par les autres canaux.
+    const smsActifs = this.canauxEnvoi.smsActifs;
     const { eleveIds, classeIds, ecole } = demande.cible;
     const eleves = await this.prisma.eleve.findMany({
       where: {
@@ -204,7 +208,11 @@ export class NotificationsService {
           ? `${demande.cleDeduplication}:${tuteur.id}`
           : undefined,
       });
-      if (canaux.includes(CanalNotification.SMS) && accepte('sms')) {
+      if (
+        smsActifs &&
+        canaux.includes(CanalNotification.SMS) &&
+        accepte('sms')
+      ) {
         if (smsRestants > 0) {
           smsRestants--;
           lignes.push({

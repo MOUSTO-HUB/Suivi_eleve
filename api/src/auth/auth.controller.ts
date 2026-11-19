@@ -2,6 +2,7 @@ import { Body, Controller, Get, HttpCode, Ip, Post } from '@nestjs/common';
 import { Role } from '../generated/prisma/enums.js';
 import { AltchaService } from '../securite/altcha.service.js';
 import { LIMITES, LimiteurService } from '../securite/limiteur.service.js';
+import { SmsSender } from '../sms/sms.sender.js';
 import { AuthService } from './auth.service.js';
 import type { Session, UtilisateurConnecte } from './auth.types.js';
 import { Public } from './decorators/public.decorator.js';
@@ -14,20 +15,30 @@ import {
   ConsentementDto,
   DefiDoubleAuthDto,
   DemandeOtpDto,
+  DemandeWhatsappDto,
   OubliMotDePasseDto,
   RafraichissementDto,
   ReinitialisationMotDePasseDto,
+  SuiviWhatsappDto,
   VerificationDoubleAuthDto,
   VerificationOtpDto,
 } from './dto/auth.dto.js';
+import {
+  ConnexionWhatsappService,
+  type SuiviWhatsapp,
+} from './connexion-whatsapp.service.js';
 import { MotDePasseService } from './mot-de-passe.service.js';
 import { OtpService } from './otp.service.js';
+import { WhatsappClient } from './whatsapp.client.js';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly auth: AuthService,
     private readonly otp: OtpService,
+    private readonly connexionWhatsapp: ConnexionWhatsappService,
+    private readonly whatsapp: WhatsappClient,
+    private readonly sms: SmsSender,
     private readonly motDePasse: MotDePasseService,
     private readonly limiteur: LimiteurService,
     private readonly altcha: AltchaService,
@@ -79,15 +90,56 @@ export class AuthController {
     return { message: 'Un nouveau code a été envoyé par email.' };
   }
 
-  /** Parents : demande d'un code par SMS (limité par IP et par numéro). */
+  /** Parents : moyens de connexion proposés (les SMS peuvent être coupés). */
+  @Public()
+  @Get('parents/canaux')
+  canauxParents() {
+    return {
+      sms: this.sms.disponible(),
+      email: true,
+      whatsapp: this.whatsapp.actif,
+    };
+  }
+
+  /** Parents : demande d'un code par SMS ou par email (limité par IP et par numéro). */
   @Public()
   @Post('otp/demande')
   @HttpCode(202)
   async demanderOtp(@Body() dto: DemandeOtpDto, @Ip() ip: string) {
     await this.altcha.verifier(dto.altcha);
     await this.limiteur.verifier(LIMITES.otpDemandeIp, ip);
-    await this.otp.demanderCode(dto.telephone);
-    return { message: 'Si ce numéro est connu, un code a été envoyé par SMS.' };
+    await this.otp.demanderCode(dto.telephone, dto.canal);
+    return {
+      message:
+        dto.canal === 'EMAIL'
+          ? "Si ce numéro est connu et qu'un email est enregistré par l'école, un code a été envoyé par email."
+          : 'Si ce numéro est connu, un code a été envoyé par SMS.',
+    };
+  }
+
+  /**
+   * Parents : connexion par WhatsApp. Renvoie le message à envoyer au numéro du
+   * service et le jeton de suivi de l'appareil (même réponse pour un numéro inconnu).
+   */
+  @Public()
+  @Post('whatsapp/demande')
+  @HttpCode(201)
+  async demanderWhatsapp(@Body() dto: DemandeWhatsappDto, @Ip() ip: string) {
+    await this.altcha.verifier(dto.altcha);
+    await this.limiteur.verifier(LIMITES.otpDemandeIp, ip);
+    return this.connexionWhatsapp.demander(dto.telephone);
+  }
+
+  /** Parents : l'appareil demande si le message WhatsApp est arrivé ; si oui, la session. */
+  @Public()
+  @Post('whatsapp/suivi')
+  @HttpCode(200)
+  async suivreWhatsapp(
+    @Body() dto: SuiviWhatsappDto,
+    @Ip() ip: string,
+  ): Promise<SuiviWhatsapp> {
+    await this.limiteur.verifier(LIMITES.whatsappSuiviIp, ip);
+    return this.connexionWhatsapp.suivre(dto.jeton);
   }
 
   /** Parents : vérification du code reçu (3 essais par code, limité par IP). */

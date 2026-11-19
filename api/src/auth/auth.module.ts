@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
+import { ConnexionWhatsappService } from './connexion-whatsapp.service.js';
 import { DoubleAuthController } from './double-auth.controller.js';
 import { DoubleAuthService } from './double-auth.service.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
@@ -12,6 +13,8 @@ import { RolesGuard } from './guards/roles.guard.js';
 import { MotDePasseService } from './mot-de-passe.service.js';
 import { OtpService } from './otp.service.js';
 import { VerrouillageService } from './verrouillage.service.js';
+import { WhatsappClient } from './whatsapp.client.js';
+import { WhatsappController } from './whatsapp.controller.js';
 
 @Module({
   imports: [
@@ -27,10 +30,12 @@ import { VerrouillageService } from './verrouillage.service.js';
       },
     }),
   ],
-  controllers: [AuthController, DoubleAuthController],
+  controllers: [AuthController, DoubleAuthController, WhatsappController],
   providers: [
     AuthService,
     OtpService,
+    ConnexionWhatsappService,
+    WhatsappClient,
     DoubleAuthService,
     MotDePasseService,
     VerrouillageService,

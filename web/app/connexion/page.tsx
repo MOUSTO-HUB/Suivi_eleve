@@ -16,6 +16,15 @@ import {
   verifierCode,
   verifierDoubleAuth,
 } from './actions';
+import { AttenteWhatsappPanneau } from './attente-whatsapp';
+import { attenteWhatsapp, canauxParents } from './donnees';
+
+/** Moyens proposés aux parents, WhatsApp d'abord (gratuit et sans email). */
+const MOYENS = [
+  { valeur: 'WHATSAPP', libelle: 'WhatsApp', canal: 'whatsapp' },
+  { valeur: 'EMAIL', libelle: 'Code par email', canal: 'email' },
+  { valeur: 'SMS', libelle: 'Code par SMS', canal: 'sms' },
+] as const;
 
 export const metadata: Metadata = { title: 'Connexion · Suivi_eleve' };
 
@@ -26,14 +35,23 @@ const onglet = (actif: boolean) =>
       : 'text-white/85 hover:bg-white/10 hover:text-white'
   }`;
 
-/** Parents : numéro puis code SMS. Personnel : email et mot de passe. */
+/** Parents : numéro puis WhatsApp, code par email ou par SMS. Personnel : email et mot de passe. */
 export default async function PageConnexion(props: PageProps<'/connexion'>) {
   const params = await props.searchParams;
   const suite = parametre(params.suite);
   const telephone = parametre(params.telephone);
+  const parEmail = parametre(params.moyen) === 'EMAIL';
+  const magasin = await cookies();
   // Dernier pays choisi sur cet appareil, sinon celui du déploiement.
-  const memorise = (await cookies()).get('pays')?.value;
+  const memorise = magasin.get('pays')?.value;
   const pays = estPays(memorise) ? memorise : paysParDefaut();
+  const canaux = await canauxParents();
+  const moyens = MOYENS.filter((m) => canaux[m.canal]);
+  const moyenMemorise = moyens.find(
+    (m) => m.valeur === magasin.get('moyen')?.value,
+  );
+  const attente =
+    parametre(params.etape) === 'whatsapp' ? await attenteWhatsapp() : null;
   // Un retour vers une page du personnel (session expirée) ouvre l'onglet Personnel.
   const espace = parametre(params.espace);
   const parent =
@@ -153,11 +171,27 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
                 Mot de passe oublié ?
               </Link>
             </>
+          ) : attente ? (
+            <>
+              <AttenteWhatsappPanneau
+                code={attente.code}
+                lien={attente.lien}
+                numero={attente.numero}
+                telephone={attente.telephone}
+              />
+              <Link
+                href="/connexion?espace=parent"
+                className={`mt-4 block text-center text-sm ${styles.lien}`}
+              >
+                Recommencer ou choisir un autre moyen
+              </Link>
+            </>
           ) : telephone ? (
             <>
               <p className="mb-4 rounded-md bg-marque-50 p-3 text-sm text-marque-800">
-                Si ce numéro est connu de l&apos;école, un code à 6 chiffres
-                vient d&apos;être envoyé par SMS au {telephone}.
+                {parEmail
+                  ? `Si ce numéro est connu de l'école et qu'un email y est enregistré, un code à 6 chiffres vient d'y être envoyé. Pensez à regarder dans les courriers indésirables.`
+                  : `Si ce numéro est connu de l'école, un code à 6 chiffres vient d'être envoyé par SMS au ${telephone}.`}
               </p>
               <FormulaireAction
                 action={verifierCode}
@@ -165,7 +199,11 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
                 libelleEnCours="Vérification…"
               >
                 <input type="hidden" name="telephone" value={telephone} />
-                <Champ libelle="Code reçu par SMS">
+                <Champ
+                  libelle={
+                    parEmail ? 'Code reçu par email' : 'Code reçu par SMS'
+                  }
+                >
                   <Saisie
                     name="code"
                     inputMode="numeric"
@@ -188,7 +226,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
           ) : (
             <FormulaireAction
               action={demanderCode}
-              libelle="Recevoir le code par SMS"
+              libelle="Continuer"
               libelleEnCours="Envoi…"
             >
               <Champ libelle="Pays">
@@ -212,6 +250,25 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
                   required
                   autoFocus
                 />
+              </Champ>
+              <Champ
+                libelle="Se connecter avec"
+                aide={
+                  canaux.whatsapp
+                    ? 'WhatsApp : vous envoyez un message déjà prêt, depuis le WhatsApp de ce numéro.'
+                    : undefined
+                }
+              >
+                <Liste
+                  name="moyen"
+                  defaultValue={(moyenMemorise ?? moyens[0])?.valeur}
+                >
+                  {moyens.map((m) => (
+                    <option key={m.valeur} value={m.valeur}>
+                      {m.libelle}
+                    </option>
+                  ))}
+                </Liste>
               </Champ>
               <VerificationRobot />
             </FormulaireAction>

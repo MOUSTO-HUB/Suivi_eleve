@@ -19,6 +19,11 @@ import {
   optionsCookie,
   type Session,
 } from '@/lib/session';
+import {
+  attenteWhatsapp,
+  COOKIE_WHATSAPP,
+  type AttenteWhatsapp,
+} from './donnees';
 
 type Etat = EtatFormulaire | null;
 
@@ -213,7 +218,7 @@ export async function choisirMotDePasse(
   redirect('/connexion?espace=personnel&motDePasse=change');
 }
 
-/** Parent, étape 1 : envoi du code par SMS, puis saisie du code. */
+/** Parent, étape 1 : code par email ou SMS, ou connexion par WhatsApp. */
 export async function demanderCode(
   _etat: Etat,
   donnees: FormData,
@@ -221,29 +226,85 @@ export async function demanderCode(
   const choix = donnees.get('pays');
   const pays = estPays(choix) ? choix : paysParDefaut();
   const telephone = telephoneE164(String(donnees.get('telephone') ?? ''), pays);
-  // Le pays choisi est proposé à la prochaine connexion.
-  (await cookies()).set('pays', pays, {
+  const moyen = String(donnees.get('moyen') ?? 'SMS');
+  const magasin = await cookies();
+  // Le pays et le moyen choisis sont proposés à la prochaine connexion.
+  const memoire = {
     httpOnly: true,
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     maxAge: 365 * 24 * 3600,
     path: '/',
-  });
+  };
+  magasin.set('pays', pays, memoire);
+  magasin.set('moyen', moyen, memoire);
   if (!altcha(donnees)) return SANS_ROBOT;
+  const invalide = `Numéro invalide : saisissez par exemple ${TELEPHONE_PAYS[pays].exemple}.`;
+
+  if (moyen === 'WHATSAPP') {
+    const reponse = await appelAuth('/auth/whatsapp/demande', {
+      telephone,
+      altcha: altcha(donnees),
+    });
+    if (!reponse) return HORS_LIGNE;
+    if (!reponse.ok) return { erreur: (await message(reponse)) || invalide };
+    const demande = (await reponse.json()) as Omit<
+      AttenteWhatsapp,
+      'telephone'
+    >;
+    magasin.set(
+      COOKIE_WHATSAPP,
+      JSON.stringify({
+        jeton: demande.jeton,
+        code: demande.code,
+        lien: demande.lien,
+        numero: demande.numero,
+        telephone,
+      } satisfies AttenteWhatsapp),
+      optionsCookie(10 * 60),
+    );
+    redirect('/connexion?espace=parent&etape=whatsapp');
+  }
+
+  const canal = moyen === 'EMAIL' ? 'EMAIL' : 'SMS';
   const reponse = await appelAuth('/auth/otp/demande', {
     telephone,
+    canal,
     altcha: altcha(donnees),
   });
   if (!reponse) return HORS_LIGNE;
+  if (!reponse.ok) return { erreur: (await message(reponse)) || invalide };
+  redirect(
+    `/connexion?espace=parent&moyen=${canal}&telephone=${encodeURIComponent(telephone)}`,
+  );
+}
+
+/**
+ * Parent, connexion par WhatsApp : appelé régulièrement par la page d'attente.
+ * Ouvre la session dès que le message du parent est arrivé.
+ */
+export async function suivreWhatsapp(): Promise<{
+  erreur?: string;
+} | null> {
+  const magasin = await cookies();
+  const attente = await attenteWhatsapp();
+  if (!attente) return { erreur: 'Demande expirée. Recommencez la connexion.' };
+  const reponse = await appelAuth('/auth/whatsapp/suivi', {
+    jeton: attente.jeton,
+  });
+  if (!reponse) return null; // Serveur momentanément injoignable : on réessaie.
   if (!reponse.ok) {
+    magasin.delete(COOKIE_WHATSAPP);
     return {
       erreur:
         (await message(reponse)) ||
-        `Numéro invalide : saisissez par exemple ${TELEPHONE_PAYS[pays].exemple}.`,
+        'Demande expirée. Recommencez la connexion.',
     };
   }
-  redirect(
-    `/connexion?espace=parent&telephone=${encodeURIComponent(telephone)}`,
-  );
+  const corps = (await reponse.json()) as Session | { statut: 'EN_ATTENTE' };
+  if ('statut' in corps) return null;
+  magasin.delete(COOKIE_WHATSAPP);
+  await ouvrirSession(corps);
+  redirect('/parent');
 }
 
 /** Parent, étape 2 : vérification du code reçu. */

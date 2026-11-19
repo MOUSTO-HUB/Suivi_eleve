@@ -3,7 +3,8 @@ import { AppModule } from './app.module.js';
 import { configurerApplication } from './app.setup.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Corps brut conservé : la signature des webhooks WhatsApp porte sur lui.
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   configurerApplication(app);
   // Une ou plusieurs origines séparées par des virgules (site web, version navigateur du mobile).
   const origines = (process.env.WEB_ORIGIN ?? 'http://localhost:3001')

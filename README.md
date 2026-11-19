@@ -70,7 +70,7 @@ Le schéma de données est dans [`api/prisma/schema.prisma`](api/prisma/schema.p
 | Qui       | Route                                                               | Identifiants de test                                                                                                                                                         |
 | --------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Personnel | `POST /api/auth/connexion`                                          | `direction@ecole-pilote.sn`, `secretariat@…`, `comptabilite@…`, `surveillant@…`, `prof.diop@…`, `prof.ba@…` ; mot de passe `SEED_MOT_DE_PASSE` (`Suivi-Dev-2026` par défaut) |
-| Parent    | `POST /api/auth/otp/demande` puis `POST /api/auth/otp/verification` | un numéro de tuteur, ex. `+221771000036` ; avec `SMS_FOURNISSEUR=console`, le code s'affiche dans les logs de l'API                                                          |
+| Parent    | `POST /api/auth/otp/demande` (`canal` : `SMS` ou `EMAIL`) puis `POST /api/auth/otp/verification` ; ou WhatsApp : `POST /api/auth/whatsapp/demande` puis `POST /api/auth/whatsapp/suivi` | un numéro de tuteur, ex. `+221771000036` ; avec les fournisseurs `console`, le code s'affiche dans les logs de l'API |
 
 Les deux renvoient un jeton d'accès (15 minutes, à passer dans `Authorization: Bearer …`) et un jeton de rafraîchissement (30 jours, `POST /api/auth/rafraichir`). `GET /api/auth/moi` renvoie l'utilisateur connecté.
 

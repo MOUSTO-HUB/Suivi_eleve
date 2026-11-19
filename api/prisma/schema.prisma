@@ -335,6 +335,26 @@ model CodeOtp {
   @@map("codes_otp")
 }
 
+// Connexion des parents par WhatsApp (« code inversé ») : le site affiche un code que le
+// parent envoie lui-même, depuis son WhatsApp, au numéro du service. Le message reçu
+// prouve qu'il détient le numéro ; l'appareil qui a fait la demande ouvre alors la
+// session avec son jeton de suivi. Valide 10 minutes, une seule fois.
+model DemandeConnexionWhatsapp {
+  id         String    @id @default(uuid(7))
+  telephone  String // E.164, numéro saisi par le parent
+  codeHash   String    @map("code_hash") // SHA-256 du code à envoyer
+  jetonHash  String    @unique @map("jeton_hash") // SHA-256 du jeton de suivi de l'appareil
+  expireLe   DateTime  @map("expire_le")
+  valideeLe  DateTime? @map("validee_le") // message reçu du bon numéro
+  consommeLe DateTime? @map("consomme_le") // session ouverte, ou demande remplacée
+  creeLe     DateTime  @default(now()) @map("cree_le")
+  modifieLe  DateTime  @updatedAt @map("modifie_le")
+  creePar    String?   @map("cree_par")
+
+  @@index([telephone, creeLe])
+  @@map("demandes_connexion_whatsapp")
+}
+
 // Code de double authentification envoyé par email (10 minutes, 3 essais) ou lien
 // « mot de passe oublié » (30 minutes, usage unique). Seule l'empreinte SHA-256 est stockée.
 model CodeVerification {

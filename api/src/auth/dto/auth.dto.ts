@@ -1,5 +1,13 @@
-import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
+import {
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+  MaxLength,
+} from 'class-validator';
 import { EstEmail, EstTelephone } from '../../common/validation.js';
+import type { CanalCode } from '../otp.service.js';
 
 /** Réponse au défi « Je ne suis pas un robot » (ALTCHA), obligatoire sur les formulaires publics. */
 class AvecAltchaDto {
@@ -21,6 +29,24 @@ export class ConnexionDto extends AvecAltchaDto {
 export class DemandeOtpDto extends AvecAltchaDto {
   @EstTelephone()
   telephone: string;
+
+  /** Par défaut SMS ; EMAIL : adresse enregistrée sur la fiche du tuteur. */
+  @IsOptional()
+  @IsIn(['SMS', 'EMAIL'], { message: 'Choisissez SMS ou EMAIL.' })
+  canal?: CanalCode;
+}
+
+/** Parents : connexion par WhatsApp (le parent envoie lui-même le code affiché). */
+export class DemandeWhatsappDto extends AvecAltchaDto {
+  @EstTelephone()
+  telephone: string;
+}
+
+export class SuiviWhatsappDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  jeton: string;
 }
 
 export class VerificationOtpDto {

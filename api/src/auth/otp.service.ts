@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -9,6 +10,7 @@ import { randomInt } from 'node:crypto';
 import { Role } from '../generated/prisma/enums.js';
 import { EtatEcolesService } from '../plateforme/etat-ecoles.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { EmailSender } from '../sms/email.sender.js';
 import { SmsSender } from '../sms/sms.sender.js';
 import { AuthService } from './auth.service.js';
 import type { Session } from './auth.types.js';
@@ -18,20 +20,35 @@ export const ESSAIS_MAX_OTP = 3;
 export const DEMANDES_MAX_OTP = 3;
 export const FENETRE_DEMANDES_OTP_MS = 15 * 60 * 1000;
 
+/** Moyen de recevoir le code à 6 chiffres. */
+export type CanalCode = 'SMS' | 'EMAIL';
+
 const CODE_INVALIDE = 'Code invalide ou expiré. Demandez un nouveau code.';
 
-/** Connexion des parents par numéro de téléphone et code à 6 chiffres reçu par SMS. */
+/**
+ * Connexion des parents par numéro de téléphone et code à 6 chiffres reçu par SMS
+ * ou par email (adresse de la fiche du tuteur). Voir aussi ConnexionWhatsappService.
+ */
 @Injectable()
 export class OtpService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly sms: SmsSender,
+    private readonly email: EmailSender,
     private readonly auth: AuthService,
     private readonly etatEcoles: EtatEcolesService,
   ) {}
 
   /** Ne révèle jamais si le numéro est connu : la réponse est la même dans tous les cas. */
-  async demanderCode(telephone: string): Promise<void> {
+  async demanderCode(
+    telephone: string,
+    canal: CanalCode = 'SMS',
+  ): Promise<void> {
+    if (canal === 'SMS' && !this.sms.disponible()) {
+      throw new BadRequestException(
+        "L'envoi du code par SMS n'est pas disponible. Choisissez l'email ou WhatsApp.",
+      );
+    }
     const demandesRecentes = await this.prisma.codeOtp.count({
       where: {
         telephone,
@@ -46,8 +63,9 @@ export class OtpService {
     }
 
     const tuteur = await this.trouverTuteur(telephone);
-    // École suspendue : pas de SMS (la réponse reste la même).
+    // École suspendue, ou pas d'email pour ce tuteur : rien n'est envoyé (la réponse reste la même).
     if (!tuteur || (await this.etatEcoles.estSuspendue(tuteur.ecoleId))) return;
+    if (canal === 'EMAIL' && !tuteur.email) return;
 
     const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
     const codeHash = await hash(code);
@@ -66,10 +84,16 @@ export class OtpService {
       }),
     ]);
 
-    await this.sms.envoyer(
-      telephone,
-      `Suivi_eleve : votre code de connexion est ${code}. Il expire dans 5 minutes. Ne le communiquez à personne.`,
-    );
+    const texte = `Suivi_eleve : votre code de connexion est ${code}. Il expire dans 5 minutes. Ne le communiquez à personne.`;
+    if (canal === 'EMAIL' && tuteur.email) {
+      await this.email.envoyer(
+        tuteur.email,
+        `Votre code de connexion Suivi_eleve : ${code}`,
+        `Bonjour ${tuteur.prenoms},\n\n${texte}\n\nSi vous n'avez pas demandé ce code, ignorez ce message.`,
+      );
+    } else {
+      await this.sms.envoyer(telephone, texte);
+    }
   }
 
   async verifierCode(telephone: string, code: string): Promise<Session> {
@@ -104,9 +128,19 @@ export class OtpService {
     if (!(await this.consommer(otp.id))) {
       throw new UnauthorizedException(CODE_INVALIDE);
     }
+    return this.ouvrirSessionParent(telephone, CODE_INVALIDE);
+  }
 
+  /**
+   * Session du parent dont le numéro vient d'être prouvé (code reçu, ou message
+   * WhatsApp envoyé depuis ce numéro).
+   */
+  async ouvrirSessionParent(
+    telephone: string,
+    refus = CODE_INVALIDE,
+  ): Promise<Session> {
     const tuteur = await this.trouverTuteur(telephone);
-    if (!tuteur) throw new UnauthorizedException(CODE_INVALIDE);
+    if (!tuteur) throw new UnauthorizedException(refus);
 
     // Premier passage : le compte parent est créé et rattaché au tuteur.
     const utilisateur =
@@ -142,7 +176,7 @@ export class OtpService {
   }
 
   /** Contact_tuteur_1 d'abord ; Contact_tuteur_2 seulement s'il désigne un seul tuteur. */
-  private async trouverTuteur(telephone: string) {
+  async trouverTuteur(telephone: string) {
     const parContact1 = await this.prisma.tuteur.findFirst({
       where: { contact1: telephone },
       include: { utilisateur: true },
