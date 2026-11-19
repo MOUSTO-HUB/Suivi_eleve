@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { depuisJour } from '../common/dates.js';
 import { LienTuteur } from '../generated/prisma/enums.js';
 import {
+  erreurDateChangementClasse,
   erreurDateNaissance,
   formaterMatricule,
   normaliserTuteurs,
@@ -34,6 +35,29 @@ describe('erreurDateNaissance', () => {
   it('refuse un âge improbable', () => {
     expect(erreurDateNaissance('2025-06-01', aujourdHui)).toMatch(/improbable/);
     expect(erreurDateNaissance('1980-01-01', aujourdHui)).toMatch(/improbable/);
+  });
+});
+
+describe('erreurDateChangementClasse', () => {
+  const debut = depuisJour('2026-11-19');
+
+  it('accepte le jour du début de la classe actuelle ou après', () => {
+    expect(erreurDateChangementClasse('2026-11-19', debut)).toBeNull();
+    expect(erreurDateChangementClasse('2026-12-01', debut)).toBeNull();
+  });
+
+  it('refuse une date antérieure au début de la classe actuelle', () => {
+    expect(erreurDateChangementClasse('2026-11-02', debut)).toMatch(
+      /ne peut pas précéder.*2026-11-19/,
+    );
+  });
+
+  it('accepte toute date sans classe en cours', () => {
+    expect(erreurDateChangementClasse('2020-01-01', null)).toBeNull();
+  });
+
+  it('refuse une date inexistante', () => {
+    expect(erreurDateChangementClasse('2026-02-30', null)).toMatch(/invalide/);
   });
 });
 
