@@ -297,22 +297,34 @@ describe('Élèves, tuteurs et classes (e2e)', () => {
         telephone: '+221700000001',
       });
 
+      // Inscrite aujourd'hui en 6e A : un changement daté d'hier fermerait
+      // cette période avant son début.
+      const jour = (decalage: number) =>
+        new Date(Date.now() + decalage * 86_400_000).toISOString().slice(0, 10);
+      await http()
+        .post(`/api/eleves/${awa.id}/changer-classe`)
+        .set(avec(secretariat))
+        .send({ classeId: classeB, date: jour(-1) })
+        .expect(400);
+
+      const aujourdHui = jour(0);
       const change = await http()
         .post(`/api/eleves/${awa.id}/changer-classe`)
         .set(avec(secretariat))
-        .send({ classeId: classeB, date: '2026-11-02' })
+        .send({ classeId: classeB, date: aujourdHui })
         .expect(201);
       expect(change.body.classe.id).toBe(classeB);
       expect(change.body.historiqueClasse).toEqual([
         {
           classe: { id: classeB, nom: '6e B' },
-          dateDebut: '2026-11-02',
+          dateDebut: aujourdHui,
           dateFin: null,
         },
-        expect.objectContaining({
+        {
           classe: { id: classeA, nom: '6e A' },
-          dateFin: '2026-11-02',
-        }),
+          dateDebut: aujourdHui,
+          dateFin: aujourdHui,
+        },
       ]);
       await http()
         .post(`/api/eleves/${awa.id}/changer-classe`)

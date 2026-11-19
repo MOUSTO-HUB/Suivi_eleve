@@ -116,7 +116,7 @@ export class ChangerClasseDto {
   @IsUUID()
   classeId: string;
 
-  /** Date du changement ; par défaut aujourd'hui. */
+  /** Date du changement ; par défaut aujourd'hui. Jamais avant le début de la classe actuelle. */
   @IsOptional()
   @Matches(JOUR, { message: MESSAGE_JOUR })
   date?: string;
