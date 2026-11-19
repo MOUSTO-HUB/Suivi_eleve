@@ -15,7 +15,15 @@ import { Accueil } from '@/components/entete';
 import { Bouton, Champ, Ecran, Message, Texte } from '@/components/ui';
 import { useVerificationRobot } from '@/components/verification-robot';
 import { ErreurApi, lire } from '@/lib/api';
-import { estPays, PAYS, telephoneE164, type Pays } from '@/lib/format';
+import {
+  estPays,
+  formaterTelephone,
+  longueurTelephone,
+  PAYS,
+  telephoneComplet,
+  telephoneE164,
+  type Pays,
+} from '@/lib/format';
 import { useSession, type DemandeWhatsapp } from '@/lib/session';
 import { enregistrerPays, paysEnregistre } from '@/lib/stockage-local';
 import { degrade, useStyles, useTheme, type Couleurs } from '@/lib/theme';
@@ -171,7 +179,11 @@ export default function Connexion() {
                 {(Object.keys(PAYS) as Pays[]).map((p) => (
                   <Pressable
                     key={p}
-                    onPress={() => setPays(p)}
+                    onPress={() => {
+                      setPays(p);
+                      // Le numéro déjà saisi suit le découpage du nouveau pays.
+                      setNumero((n) => formaterTelephone(n, p));
+                    }}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: p === pays }}
                     style={[
@@ -203,12 +215,13 @@ export default function Connexion() {
               </View>
               <Champ
                 libelle="Votre numéro de téléphone"
-                aide="Le numéro donné à l'école lors de l'inscription."
+                aide={`Le numéro donné à l'école lors de l'inscription : ${PAYS[pays].chiffres} chiffres, sans l'indicatif +${PAYS[pays].indicatif}.`}
                 placeholder={PAYS[pays].exemple}
                 keyboardType="phone-pad"
                 autoComplete="tel"
+                maxLength={longueurTelephone(numero, pays)}
                 value={numero}
-                onChangeText={setNumero}
+                onChangeText={(t) => setNumero(formaterTelephone(t, pays))}
               />
               <Texte>Se connecter avec</Texte>
               <View style={styles.choix} accessibilityRole="radiogroup">
@@ -248,7 +261,7 @@ export default function Connexion() {
                       : 'Recevoir le code par SMS'
                 }
                 enCours={enCours}
-                desactive={numero.replace(/\D/g, '').length < 8 || !robot.pret}
+                desactive={!telephoneComplet(numero, pays) || !robot.pret}
                 surAppui={continuer}
               />
             </>

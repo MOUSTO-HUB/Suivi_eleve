@@ -7,7 +7,7 @@ import { themeCourant } from '@/lib/theme-serveur';
 import { FormulaireAction } from '@/components/formulaire-action';
 import { DesabonnementDeconnexion } from '@/components/notifications-push';
 import { Champ, Liste, parametre, Saisie, styles } from '@/components/ui';
-import { estPays, LISTE_PAYS, paysParDefaut, TELEPHONE_PAYS } from '@/lib/pays';
+import { estPays, paysParDefaut } from '@/lib/pays';
 import { VerificationRobot } from '@/components/verification-robot';
 import {
   demanderCode,
@@ -17,6 +17,7 @@ import {
   verifierDoubleAuth,
 } from './actions';
 import { AttenteWhatsappPanneau } from './attente-whatsapp';
+import { ChampsTelephone } from './champs-telephone';
 import { attenteWhatsapp, canauxParents } from './donnees';
 
 /** Moyens proposés aux parents, WhatsApp d'abord (gratuit et sans email). */
@@ -229,28 +230,7 @@ export default async function PageConnexion(props: PageProps<'/connexion'>) {
               libelle="Continuer"
               libelleEnCours="Envoi…"
             >
-              <Champ libelle="Pays">
-                <Liste name="pays" defaultValue={pays}>
-                  {LISTE_PAYS.map((p) => (
-                    <option key={p.code} value={p.code}>
-                      {p.libelle}
-                    </option>
-                  ))}
-                </Liste>
-              </Champ>
-              <Champ
-                libelle="Votre numéro de téléphone"
-                aide="Le numéro donné à l'école lors de l'inscription."
-              >
-                <Saisie
-                  type="tel"
-                  name="telephone"
-                  autoComplete="tel"
-                  placeholder={TELEPHONE_PAYS[pays].exemple}
-                  required
-                  autoFocus
-                />
-              </Champ>
+              <ChampsTelephone paysInitial={pays} />
               <Champ
                 libelle="Se connecter avec"
                 aide={

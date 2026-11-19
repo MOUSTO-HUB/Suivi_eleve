@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   codeEtiquette,
   dateFr,
+  formaterTelephone,
+  longueurTelephone,
   montant,
+  telephoneComplet,
   fusionnerNotifications,
   heureFr,
   lienNotification,
@@ -66,6 +69,36 @@ describe('mise en forme', () => {
     expect(telephoneE164('+33 6 12 34 56 78', 'SN')).toBe('+33612345678');
     // Longueur inattendue : rendu tel quel, l'API le refusera.
     expect(telephoneE164('7712345', 'SN')).toBe('7712345');
+  });
+
+  it('présente le numéro en cours de saisie comme l’exemple du pays, sans chiffre de trop', () => {
+    expect(formaterTelephone('621123456', 'GN')).toBe('621 12 34 56');
+    expect(formaterTelephone('771234567', 'SN')).toBe('77 123 45 67');
+    expect(formaterTelephone('0712345678', 'CI')).toBe('07 12 34 56 78');
+    expect(formaterTelephone('7712', 'SN')).toBe('77 12');
+    expect(formaterTelephone('77 12', 'SN')).toBe('77 12');
+    expect(formaterTelephone('', 'GN')).toBe('');
+    // Chiffres en trop (ou collés depuis ailleurs) : coupés au nombre du pays.
+    expect(formaterTelephone('77123456799', 'SN')).toBe('77 123 45 67');
+    expect(formaterTelephone('07123456789', 'CI')).toBe('07 12 34 56 78');
+    expect(formaterTelephone('6211234567', 'GN')).toBe('621 12 34 56');
+    // Changement de pays : la même saisie suit le nouveau découpage.
+    expect(formaterTelephone('621 12 34 56', 'SN')).toBe('62 112 34 56');
+    // Saisie internationale : laissée libre.
+    expect(formaterTelephone('+221 77 123 45 67', 'GN')).toBe('+221771234567');
+    expect(formaterTelephone('00221771234567', 'GN')).toBe('+221771234567');
+    expect(formaterTelephone('2217712', 'SN')).toBe('+2217712');
+    expect(formaterTelephone('+', 'SN')).toBe('+');
+  });
+
+  it('dit si le numéro est complet', () => {
+    expect(telephoneComplet('77 123 45 67', 'SN')).toBe(true);
+    expect(telephoneComplet('77 123 45', 'SN')).toBe(false);
+    expect(telephoneComplet('07 12 34 56 7', 'CI')).toBe(false);
+    expect(telephoneComplet('+33612345678', 'SN')).toBe(true);
+    expect(longueurTelephone('77 1', 'SN')).toBe(12);
+    expect(longueurTelephone('07', 'CI')).toBe(14);
+    expect(longueurTelephone('+221', 'GN')).toBe(16);
   });
 });
 
